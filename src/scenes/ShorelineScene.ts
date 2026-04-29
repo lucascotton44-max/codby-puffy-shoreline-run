@@ -6,19 +6,15 @@ import {
   AUDIO_PATHS,
   COLORS,
   DAMAGE_COOLDOWN_MS,
-  END_X,
   GAME_HEIGHT,
   GAME_WIDTH,
   GROUND_Y,
-  REQUIRED_FRAGMENTS,
-  START_X,
-  TOTAL_FRAGMENTS,
   TEXTURE_KEYS,
-  WORLD_WIDTH,
 } from '../config/constants.js';
+import { LEVELS, LevelDefinition } from '../config/levels.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
-import { HazardZone } from '../objects/Hazard.js';
+import { HazardKind, HazardZone } from '../objects/Hazard.js';
 import { PowerUpKind, PowerUpPickup } from '../objects/PowerUp.js';
 
 type Controls = {
@@ -81,6 +77,8 @@ const CHARACTER_ANIMATION_KEYS = {
 } as const;
 
 export class ShorelineScene extends Phaser.Scene {
+  private currentLevelIndex = 0;
+  private currentLevel: LevelDefinition = LEVELS[0];
   private controls!: Controls;
   private platforms!: Phaser.Physics.Arcade.StaticGroup;
   private hazards!: Phaser.Physics.Arcade.StaticGroup;
@@ -101,6 +99,7 @@ export class ShorelineScene extends Phaser.Scene {
   private levelStartedAt = 0;
   private levelEndedAt = 0;
   private isEnded = false;
+  private didWinLevel = false;
   private hudPanel!: Phaser.GameObjects.Rectangle;
   private hudTitleText!: Phaser.GameObjects.Text;
   private hudStatsText!: Phaser.GameObjects.Text;
@@ -132,7 +131,9 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   public preload(): void {
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01Backdrop, ASSET_PATHS.shorelineRunLevel01Backdrop);
+    LEVELS.forEach((level) => {
+      this.load.image(level.backdropTextureKey, level.backdropPath);
+    });
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
       frameWidth: 256,
       frameHeight: 320,
@@ -166,9 +167,10 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   public create(): void {
+    this.selectCurrentLevel();
     this.resetRunState();
     this.resetCameraState();
-    this.physics.world.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
+    this.physics.world.setBounds(0, 0, this.currentLevel.worldWidth, GAME_HEIGHT);
 
     this.createControls();
     this.createAudio();
@@ -183,6 +185,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.createDebugOverlay();
 
     this.cameras.main.startFollow(this.player, true, 0.12, 0.1, -120, 30);
+
+    if (this.registry.get('shorelineStartLevelImmediately') === true) {
+      this.registry.set('shorelineStartLevelImmediately', false);
+      this.startRun();
+    }
   }
 
   public update(time: number): void {
@@ -190,6 +197,16 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.restart)) {
       this.scene.restart();
+      return;
+    }
+
+    if (
+      this.isEnded &&
+      this.didWinLevel &&
+      this.hasNextLevel() &&
+      Phaser.Input.Keyboard.JustDown(this.controls.start)
+    ) {
+      this.advanceToNextLevel();
       return;
     }
 
@@ -281,6 +298,28 @@ export class ShorelineScene extends Phaser.Scene {
       musicToggle: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.M),
       sfxToggle: keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.N),
     };
+  }
+
+  private selectCurrentLevel(): void {
+    const storedLevelIndex = this.registry.get('shorelineCurrentLevelIndex');
+    const levelIndex = typeof storedLevelIndex === 'number' ? storedLevelIndex : 0;
+    this.currentLevelIndex = Phaser.Math.Clamp(Math.floor(levelIndex), 0, LEVELS.length - 1);
+    this.currentLevel = LEVELS[this.currentLevelIndex];
+    this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex);
+  }
+
+  private hasNextLevel(): boolean {
+    return this.currentLevelIndex < LEVELS.length - 1;
+  }
+
+  private advanceToNextLevel(): void {
+    if (!this.hasNextLevel()) {
+      return;
+    }
+
+    this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex + 1);
+    this.registry.set('shorelineStartLevelImmediately', true);
+    this.scene.restart();
   }
 
   private createAudio(): void {
@@ -429,13 +468,13 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createRealBackdrop(): boolean {
-    if (!this.textures.exists(TEXTURE_KEYS.shorelineRunLevel01Backdrop)) {
+    if (!this.textures.exists(this.currentLevel.backdropTextureKey)) {
       return false;
     }
 
-    const source = this.textures.get(TEXTURE_KEYS.shorelineRunLevel01Backdrop).getSourceImage() as HTMLImageElement;
+    const source = this.textures.get(this.currentLevel.backdropTextureKey).getSourceImage() as HTMLImageElement;
     const coverScale = Math.max(GAME_WIDTH / source.width, GAME_HEIGHT / source.height);
-    const image = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXTURE_KEYS.shorelineRunLevel01Backdrop);
+    const image = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, this.currentLevel.backdropTextureKey);
     image.setDisplaySize(source.width * coverScale, source.height * coverScale);
     image.setScrollFactor(0);
     image.setDepth(-100);
@@ -447,10 +486,16 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createDistantParallaxSilhouette(): void {
-    this.add.rectangle(WORLD_WIDTH / 2, 286, WORLD_WIDTH, 54, 0x203a34, 0.08).setScrollFactor(0.16, 0).setDepth(-97);
-    this.add.rectangle(WORLD_WIDTH / 2, 326, WORLD_WIDTH, 28, 0xd8ddd2, 0.05).setScrollFactor(0.2, 0).setDepth(-96);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, 286, this.currentLevel.worldWidth, 54, 0x203a34, 0.08)
+      .setScrollFactor(0.16, 0)
+      .setDepth(-97);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, 326, this.currentLevel.worldWidth, 28, 0xd8ddd2, 0.05)
+      .setScrollFactor(0.2, 0)
+      .setDepth(-96);
 
-    for (let x = -140; x < WORLD_WIDTH + 240; x += 150) {
+    for (let x = -140; x < this.currentLevel.worldWidth + 240; x += 150) {
       const treeLine = this.add.ellipse(x, 292 + Math.sin(x * 0.03) * 7, 118, 44, 0x172b26, 0.11);
       const lowScrub = this.add.ellipse(x + 58, 312 + Math.cos(x * 0.021) * 5, 160, 26, 0x203a34, 0.08);
       treeLine.setScrollFactor(0.2, 0).setDepth(-96);
@@ -468,22 +513,26 @@ export class ShorelineScene extends Phaser.Scene {
       const color = Phaser.Display.Color.Interpolate.ColorWithColor(top, bottom, bands - 1, i);
       this.add
         .rectangle(
-          WORLD_WIDTH / 2,
+          this.currentLevel.worldWidth / 2,
           i * bandHeight + bandHeight / 2,
-          WORLD_WIDTH,
+          this.currentLevel.worldWidth,
           bandHeight + 1,
           Phaser.Display.Color.GetColor(color.r, color.g, color.b),
         )
         .setScrollFactor(0.08, 0);
     }
 
-    this.add.rectangle(WORLD_WIDTH / 2, 178, WORLD_WIDTH, 3, 0xd8ddd2, 0.18).setScrollFactor(0.1, 0);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, 178, this.currentLevel.worldWidth, 3, 0xd8ddd2, 0.18)
+      .setScrollFactor(0.1, 0);
   }
 
   private createDistantShoreline(): void {
-    this.add.rectangle(WORLD_WIDTH / 2, 314, WORLD_WIDTH, 88, 0x35534a, 0.52).setScrollFactor(0.28, 0);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, 314, this.currentLevel.worldWidth, 88, 0x35534a, 0.52)
+      .setScrollFactor(0.28, 0);
 
-    for (let x = -80; x < WORLD_WIDTH + 180; x += 118) {
+    for (let x = -80; x < this.currentLevel.worldWidth + 180; x += 118) {
       const trunk = this.add.rectangle(x + 28, 286, 10, 56, 0x3d3329, 0.55).setScrollFactor(0.32, 0);
       const lower = this.add.triangle(x, 286, 0, 76, 48, 0, 96, 76, 0x29443a, 0.86).setScrollFactor(0.32, 0);
       const upper = this.add.triangle(x + 10, 242, 0, 62, 38, 0, 76, 62, 0x21382f, 0.9).setScrollFactor(0.32, 0);
@@ -494,14 +543,16 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createMidgroundWater(): void {
-    this.add.rectangle(WORLD_WIDTH / 2, 390, WORLD_WIDTH, 166, 0x315b64, 0.88).setScrollFactor(0.45, 0);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, 390, this.currentLevel.worldWidth, 166, 0x315b64, 0.88)
+      .setScrollFactor(0.45, 0);
 
-    for (let x = -40; x < WORLD_WIDTH + 240; x += 210) {
+    for (let x = -40; x < this.currentLevel.worldWidth + 240; x += 210) {
       this.add.rectangle(x, 356, 132, 3, 0xb7c7c2, 0.24).setScrollFactor(0.48, 0);
       this.add.rectangle(x + 90, 418, 86, 2, 0xd8ddd2, 0.16).setScrollFactor(0.5, 0);
     }
 
-    for (let x = 90; x < WORLD_WIDTH; x += 185) {
+    for (let x = 90; x < this.currentLevel.worldWidth; x += 185) {
       this.add.ellipse(x, 455, 86, 25, 0x49514d, 0.58).setScrollFactor(0.62, 0);
       this.add.ellipse(x + 34, 449, 48, 16, 0x636961, 0.52).setScrollFactor(0.62, 0);
     }
@@ -515,7 +566,7 @@ export class ShorelineScene extends Phaser.Scene {
     ];
 
     rows.forEach((row, rowIndex) => {
-      for (let x = -160; x < WORLD_WIDTH + 220; x += row.step) {
+      for (let x = -160; x < this.currentLevel.worldWidth + 220; x += row.step) {
         const band = this.add.rectangle(x, row.y + (rowIndex % 2) * 7, row.width, 2, 0xd8e0db, row.alpha);
         band.setScrollFactor(row.scroll, 0);
         band.setDepth(-94 + rowIndex);
@@ -532,9 +583,12 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createForegroundShoreDetail(): void {
-    this.add.rectangle(WORLD_WIDTH / 2, GROUND_Y + 56, WORLD_WIDTH, 86, 0x514c43, 0.34).setScrollFactor(0.82, 0).setDepth(-3);
+    this.add
+      .rectangle(this.currentLevel.worldWidth / 2, GROUND_Y + 56, this.currentLevel.worldWidth, 86, 0x514c43, 0.34)
+      .setScrollFactor(0.82, 0)
+      .setDepth(-3);
 
-    for (let x = 48; x < WORLD_WIDTH; x += 130) {
+    for (let x = 48; x < this.currentLevel.worldWidth; x += 130) {
       this.add.ellipse(x, GROUND_Y + 12, 58, 16, 0x434944, 0.34).setScrollFactor(0.9, 0).setDepth(-2);
       this.add.rectangle(x + 46, GROUND_Y - 3, 54, 5, 0x6f6352, 0.28).setScrollFactor(0.94, 0).setDepth(-2);
     }
@@ -546,20 +600,13 @@ export class ShorelineScene extends Phaser.Scene {
     this.fragments = this.physics.add.group({ allowGravity: false, immovable: true });
     this.powerUps = this.physics.add.group({ allowGravity: false, immovable: true });
 
-    this.addPlatform(375, GROUND_Y + 26, 750, 70, COLORS.shore);
-    this.addPlatform(1240, GROUND_Y + 26, 620, 70, COLORS.shore);
-    this.addPlatform(2050, GROUND_Y + 26, 920, 70, COLORS.shore);
-    this.addPlatform(720, 390, 190, 22, COLORS.dock);
-    this.addPlatform(980, 338, 180, 22, COLORS.dock);
-    this.addPlatform(1510, 408, 210, 22, COLORS.dock);
-    this.addPlatform(1750, 350, 160, 22, COLORS.dock);
-    this.addPlatform(2230, 384, 220, 22, COLORS.dock);
+    this.currentLevel.platforms.forEach(({ x, y, width, height, color }) => {
+      this.addPlatform(x, y, width, height, color);
+    });
 
-    this.addHazard(805, 515, 190, 54, 'water');
-    this.addHazard(1645, 515, 240, 54, 'water');
-    this.addHazard(1290, 464, 46, 34, 'rock');
-    this.addHazard(1905, 464, 50, 34, 'rock');
-    this.addHazard(2325, 360, 44, 44, 'net');
+    this.currentLevel.hazards.forEach(({ x, y, width, height, kind }) => {
+      this.addHazard(x, y, width, height, kind);
+    });
 
     this.createFragments();
     this.createPowerUps();
@@ -620,7 +667,7 @@ export class ShorelineScene extends Phaser.Scene {
     y: number,
     width: number,
     height: number,
-    kind: 'water' | 'rock' | 'net',
+    kind: HazardKind,
   ): void {
     const hazard = new HazardZone(this, x, y, width, height, kind);
     this.hazards.add(hazard);
@@ -633,7 +680,7 @@ export class ShorelineScene extends Phaser.Scene {
     y: number,
     width: number,
     height: number,
-    kind: 'water' | 'rock' | 'net',
+    kind: HazardKind,
   ): void {
     if (this.addHazardProp(x, y, width, height, kind)) {
       return;
@@ -673,7 +720,7 @@ export class ShorelineScene extends Phaser.Scene {
     y: number,
     width: number,
     height: number,
-    kind: 'water' | 'rock' | 'net',
+    kind: HazardKind,
   ): boolean {
     const textureKey =
       kind === 'water'
@@ -707,39 +754,26 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createFragments(): void {
-    const points = [
-      [230, 430],
-      [560, 430],
-      [720, 350],
-      [980, 298],
-      [1180, 430],
-      [1510, 368],
-      [1760, 310],
-      [2060, 430],
-      [2235, 344],
-      [2440, 430],
-    ];
-
-    points.forEach(([x, y], index) => {
+    this.currentLevel.fragments.forEach(({ x, y }, index) => {
       const fragment = new StoryFragment(this, x, y, index + 1);
       this.fragments.add(fragment);
     });
   }
 
   private createPowerUps(): void {
-    GAMEPLAY_TUNING.powerUps.placements.forEach(({ kind, x, y }) => {
-      const powerUp = new PowerUpPickup(this, x, y, kind as PowerUpKind);
+    this.currentLevel.powerUps.forEach(({ kind, x, y }) => {
+      const powerUp = new PowerUpPickup(this, x, y, kind);
       this.powerUps.add(powerUp);
     });
   }
 
   private createEndMarker(): void {
-    this.endMarker = this.add.rectangle(END_X, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
+    this.endMarker = this.add.rectangle(this.currentLevel.endX, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
     if (this.hasTexture(TEXTURE_KEYS.ch8BeaconMarkerProp)) {
-      this.endMarkerVisual = this.add.image(END_X, GROUND_Y - 76, TEXTURE_KEYS.ch8BeaconMarkerProp);
+      this.endMarkerVisual = this.add.image(this.currentLevel.endX, GROUND_Y - 76, TEXTURE_KEYS.ch8BeaconMarkerProp);
       this.endMarkerVisual.setDisplaySize(96, 162);
       this.endMarkerVisual.setDepth(4);
-      this.endMarkerText = this.add.text(END_X - 30, GROUND_Y - 178, 'CH 8', {
+      this.endMarkerText = this.add.text(this.currentLevel.endX - 30, GROUND_Y - 178, 'CH 8', {
         color: COLORS.text,
         fontFamily: 'monospace',
         fontSize: '13px',
@@ -755,9 +789,9 @@ export class ShorelineScene extends Phaser.Scene {
     const base = this.add.rectangle(0, 75, 46, 12, 0x2f3936, 0.94);
     post.setStrokeStyle(2, 0x2e261e, 0.85);
     beacon.setStrokeStyle(2, 0x6a221f, 0.9);
-    this.endMarkerVisual = this.add.container(END_X, GROUND_Y - 72, [post, beacon, cap, band, base]);
+    this.endMarkerVisual = this.add.container(this.currentLevel.endX, GROUND_Y - 72, [post, beacon, cap, band, base]);
 
-    this.endMarkerText = this.add.text(END_X - 38, GROUND_Y - 174, 'CH 8', {
+    this.endMarkerText = this.add.text(this.currentLevel.endX - 38, GROUND_Y - 174, 'CH 8', {
       color: COLORS.text,
       fontFamily: 'monospace',
       fontSize: '14px',
@@ -771,7 +805,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createPlayer(): void {
     const character = CHARACTERS[this.activeCharacter];
-    this.player = this.add.rectangle(START_X, GROUND_Y - 80, character.width, character.height, character.bodyColor);
+    this.player = this.add.rectangle(this.currentLevel.startX, GROUND_Y - 80, character.width, character.height, character.bodyColor);
     this.player.setVisible(false);
     this.physics.add.existing(this.player);
 
@@ -1071,6 +1105,10 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    this.startRun();
+  }
+
+  private startRun(): void {
     this.isRunStarted = true;
     this.levelStartedAt = this.time.now;
     this.titleOverlay.setVisible(false);
@@ -1110,6 +1148,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.levelStartedAt = 0;
     this.levelEndedAt = 0;
     this.isEnded = false;
+    this.didWinLevel = false;
     this.kelpShieldCharges = 0;
     this.tideLiftExpiresAt = 0;
     this.hasTideLiftCharge = false;
@@ -1123,7 +1162,7 @@ export class ShorelineScene extends Phaser.Scene {
     camera.stopFollow();
     camera.resetFX();
     camera.setViewport(0, PRESENTATION_MATTE_Y, GAME_WIDTH, PRESENTATION_VIEW_HEIGHT);
-    camera.setBounds(0, 0, WORLD_WIDTH, PRESENTATION_VIEW_HEIGHT);
+    camera.setBounds(0, 0, this.currentLevel.worldWidth, PRESENTATION_VIEW_HEIGHT);
     camera.setScroll(0, 0);
     camera.setZoom(1);
     camera.setRotation(0);
@@ -1410,7 +1449,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    const direction = this.player.x > END_X / 2 ? -1 : 1;
+    const direction = this.player.x > this.currentLevel.endX / 2 ? -1 : 1;
     this.getPlayerBody().setVelocity(direction * -150, -250);
     this.updateHud();
   }
@@ -1422,11 +1461,11 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.player.x >= END_X - 26) {
-      if (this.collectedFragments >= REQUIRED_FRAGMENTS) {
+    if (this.player.x >= this.currentLevel.endX - 26) {
+      if (this.collectedFragments >= this.currentLevel.requiredFragments) {
         this.endLevel(true);
       } else {
-        this.messageText.setText(`Need ${REQUIRED_FRAGMENTS - this.collectedFragments} more story fragment(s).`);
+        this.messageText.setText(`Need ${this.currentLevel.requiredFragments - this.collectedFragments} more story fragment(s).`);
         this.messagePanel.setVisible(true);
         this.time.delayedCall(900, () => {
           if (!this.isEnded) {
@@ -1440,6 +1479,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private endLevel(didWin: boolean): void {
     this.isEnded = true;
+    this.didWinLevel = didWin;
     this.levelEndedAt = this.time.now;
     const body = this.getPlayerBody();
     body.setVelocity(0, 0);
@@ -1450,20 +1490,20 @@ export class ShorelineScene extends Phaser.Scene {
 
     const summaryLines = didWin
       ? [
-          'LEVEL COMPLETE',
+          this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
           '',
           'You reached CH 8.',
-          `Fragments: ${this.collectedFragments}/${TOTAL_FRAGMENTS}`,
+          `Fragments: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
-          'Press R to Run Again',
+          ...(this.hasNextLevel() ? ['Press ENTER for Next Level', 'Press R to Run Again'] : ['Press R to Run Again']),
         ]
       : [
           'GAME OVER',
           '',
           'The tide got the better of you.',
-          `Fragments: ${this.collectedFragments}/${TOTAL_FRAGMENTS}`,
+          `Fragments: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Score: ${this.score}`,
           '',
           'Press R to Try Again',
@@ -1478,7 +1518,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudTitleText.setText('COD B’Y & PUFFY: SHORELINE RUN');
     this.hudStatsText.setText(
       [
-        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   FRAGS ${this.collectedFragments}/${TOTAL_FRAGMENTS} NEED ${REQUIRED_FRAGMENTS}`,
+        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   FRAGS ${this.collectedFragments}/${this.currentLevel.totalFragments} NEED ${this.currentLevel.requiredFragments}`,
         `POWER ${this.getPowerStatusText()}   SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}`,
       ].join('\n'),
     );
@@ -1529,9 +1569,9 @@ export class ShorelineScene extends Phaser.Scene {
     }
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
     this.syncPowerIndicators();
-    this.endMarkerText.setAlpha(this.collectedFragments >= REQUIRED_FRAGMENTS ? 1 : 0.45);
-    this.endMarker.setAlpha(this.collectedFragments >= REQUIRED_FRAGMENTS ? 1 : 0.55);
-    this.endMarkerVisual.setAlpha(this.collectedFragments >= REQUIRED_FRAGMENTS ? 1 : 0.55);
+    this.endMarkerText.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.45);
+    this.endMarker.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
+    this.endMarkerVisual.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
   }
 
   private syncPowerIndicators(): void {
@@ -1605,9 +1645,9 @@ export class ShorelineScene extends Phaser.Scene {
     });
 
     this.debugGraphics.lineStyle(2, 0x9fb1a7, 0.9);
-    this.debugGraphics.strokeRect(START_X - 46, GROUND_Y - 76, 92, 76);
+    this.debugGraphics.strokeRect(this.currentLevel.startX - 46, GROUND_Y - 76, 92, 76);
     this.debugGraphics.lineStyle(2, 0xffd36e, 1);
-    this.debugGraphics.strokeRect(END_X - 26, GROUND_Y - 132, 52, 140);
+    this.debugGraphics.strokeRect(this.currentLevel.endX - 26, GROUND_Y - 132, 52, 140);
   }
 
   private drawBodyRect(body: Phaser.Physics.Arcade.Body | Phaser.Physics.Arcade.StaticBody, color: number): void {

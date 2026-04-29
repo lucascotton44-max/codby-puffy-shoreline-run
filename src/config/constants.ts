@@ -12,6 +12,7 @@ export const END_X = 2550;
 
 export const ASSET_PATHS = {
   shorelineRunLevel01Backdrop: 'assets/backgrounds/shoreline_run_level_01.png',
+  heritageStepsLevel02Backdrop: 'assets/backgrounds/heritage_steps_level_02.png',
   codbyAtlasImage: 'assets/sprites/codby/codby_atlas_v1.png',
   codbyAtlasJson: 'assets/sprites/codby/codby_atlas_v1.json',
   puffyAtlasImage: 'assets/sprites/puffy/puffy_atlas_v1.png',
@@ -43,6 +44,7 @@ export const AUDIO_PATHS = {
 
 export const TEXTURE_KEYS = {
   shorelineRunLevel01Backdrop: 'shoreline-run-level-01-backdrop',
+  heritageStepsLevel02Backdrop: 'heritage-steps-level-02-backdrop',
   codbyAtlas: 'codby-atlas-v1',
   puffyAtlas: 'puffy-atlas-v1',
   codbyAtlasMeta: 'codby-atlas-v1-meta',
