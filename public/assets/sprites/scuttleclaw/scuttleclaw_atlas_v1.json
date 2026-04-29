@@ -1,0 +1,208 @@
+{
+  "character": "scuttleclaw",
+  "source": "dev_assets/sprites/scuttleclaw/source",
+  "cellWidth": 256,
+  "cellHeight": 160,
+  "columns": 6,
+  "rows": 1,
+  "animations": {
+    "idle": [
+      {
+        "name": "scuttleclaw_idle_01.png",
+        "animation": "idle",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 100,
+          "y": 458,
+          "w": 1071,
+          "h": 383,
+          "area": 224212
+        }
+      },
+      {
+        "name": "scuttleclaw_idle_02.png",
+        "animation": "idle",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 86,
+          "y": 412,
+          "w": 1083,
+          "h": 410,
+          "area": 241606
+        }
+      }
+    ],
+    "walk": [
+      {
+        "name": "scuttleclaw_walk_01.png",
+        "animation": "walk",
+        "index": 0,
+        "atlasX": 512,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 32,
+          "y": 241,
+          "w": 570,
+          "h": 241,
+          "area": 76971
+        }
+      },
+      {
+        "name": "scuttleclaw_walk_02.png",
+        "animation": "walk",
+        "index": 1,
+        "atlasX": 768,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 25,
+          "y": 232,
+          "w": 564,
+          "h": 247,
+          "area": 73352
+        }
+      },
+      {
+        "name": "scuttleclaw_walk_03.png",
+        "animation": "walk",
+        "index": 2,
+        "atlasX": 1024,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 23,
+          "y": 238,
+          "w": 563,
+          "h": 244,
+          "area": 72514
+        }
+      },
+      {
+        "name": "scuttleclaw_walk_04.png",
+        "animation": "walk",
+        "index": 3,
+        "atlasX": 1280,
+        "atlasY": 0,
+        "w": 256,
+        "h": 160,
+        "sourceBBox": {
+          "x": 7,
+          "y": 255,
+          "w": 562,
+          "h": 228,
+          "area": 77741
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "name": "scuttleclaw_idle_01.png",
+      "animation": "idle",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 100,
+        "y": 458,
+        "w": 1071,
+        "h": 383,
+        "area": 224212
+      }
+    },
+    {
+      "name": "scuttleclaw_idle_02.png",
+      "animation": "idle",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 86,
+        "y": 412,
+        "w": 1083,
+        "h": 410,
+        "area": 241606
+      }
+    },
+    {
+      "name": "scuttleclaw_walk_01.png",
+      "animation": "walk",
+      "index": 0,
+      "atlasX": 512,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 32,
+        "y": 241,
+        "w": 570,
+        "h": 241,
+        "area": 76971
+      }
+    },
+    {
+      "name": "scuttleclaw_walk_02.png",
+      "animation": "walk",
+      "index": 1,
+      "atlasX": 768,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 25,
+        "y": 232,
+        "w": 564,
+        "h": 247,
+        "area": 73352
+      }
+    },
+    {
+      "name": "scuttleclaw_walk_03.png",
+      "animation": "walk",
+      "index": 2,
+      "atlasX": 1024,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 23,
+        "y": 238,
+        "w": 563,
+        "h": 244,
+        "area": 72514
+      }
+    },
+    {
+      "name": "scuttleclaw_walk_04.png",
+      "animation": "walk",
+      "index": 3,
+      "atlasX": 1280,
+      "atlasY": 0,
+      "w": 256,
+      "h": 160,
+      "sourceBBox": {
+        "x": 7,
+        "y": 255,
+        "w": 562,
+        "h": 228,
+        "area": 77741
+      }
+    }
+  ]
+}
