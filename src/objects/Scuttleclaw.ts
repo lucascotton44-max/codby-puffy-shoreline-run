@@ -51,6 +51,24 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     this.body.setVelocityX(this.speed * this.direction);
   }
 
+  public defeat(): void {
+    if (!this.active || !this.body.enable) {
+      return;
+    }
+
+    this.body.enable = false;
+    this.body.setVelocity(0, 0);
+
+    this.scene.tweens.add({
+      targets: this,
+      alpha: 0,
+      scaleY: 0.42,
+      y: this.y + 8,
+      duration: 130,
+      onComplete: () => this.destroy(),
+    });
+  }
+
   private static createVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
     const shadow = scene.add.ellipse(0, 13, 72, 10, 0x131817, 0.34);
 

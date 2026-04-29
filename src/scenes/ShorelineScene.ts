@@ -1151,7 +1151,7 @@ export class ShorelineScene extends Phaser.Scene {
     });
 
     this.physics.add.overlap(this.player, this.scuttleclaws, (_, scuttleclaw) => {
-      this.damagePlayer((scuttleclaw as Scuttleclaw).damage);
+      this.handleScuttleclawContact(scuttleclaw as Scuttleclaw);
     });
   }
 
@@ -1431,6 +1431,29 @@ export class ShorelineScene extends Phaser.Scene {
       (child as Scuttleclaw).updatePatrol();
       return true;
     });
+  }
+
+  private handleScuttleclawContact(scuttleclaw: Scuttleclaw): void {
+    if (!scuttleclaw.active || !scuttleclaw.body.enable || this.isEnded) {
+      return;
+    }
+
+    if (this.isStompingScuttleclaw(scuttleclaw)) {
+      scuttleclaw.defeat();
+      this.getPlayerBody().setVelocityY(-235);
+      return;
+    }
+
+    this.damagePlayer(scuttleclaw.damage);
+  }
+
+  private isStompingScuttleclaw(scuttleclaw: Scuttleclaw): boolean {
+    const playerBody = this.getPlayerBody();
+    const enemyBody = scuttleclaw.body;
+    const playerBottom = playerBody.y + playerBody.height;
+    const enemyTop = enemyBody.y;
+
+    return playerBody.velocity.y > 80 && this.player.y < scuttleclaw.y && playerBottom <= enemyTop + 16;
   }
 
   private collectFragment(fragment: StoryFragment): void {
