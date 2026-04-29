@@ -2,6 +2,7 @@ import type { HazardKind } from '../objects/Hazard.js';
 import type { PowerUpKind } from '../objects/PowerUp.js';
 import {
   ASSET_PATHS,
+  AUDIO_KEYS,
   COLORS,
   END_X,
   GROUND_Y,
@@ -53,6 +54,7 @@ export type LevelDefinition = {
   name: string;
   backdropPath: string;
   backdropTextureKey: string;
+  musicAudioKey: string;
   worldWidth: number;
   startX: number;
   endX: number;
@@ -71,6 +73,7 @@ export const LEVELS: LevelDefinition[] = [
     name: 'Shoreline Run',
     backdropPath: ASSET_PATHS.shorelineRunLevel01Backdrop,
     backdropTextureKey: TEXTURE_KEYS.shorelineRunLevel01Backdrop,
+    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
     worldWidth: WORLD_WIDTH,
     startX: START_X,
     endX: END_X,
@@ -117,6 +120,7 @@ export const LEVELS: LevelDefinition[] = [
     name: 'The Heritage Steps',
     backdropPath: ASSET_PATHS.heritageStepsLevel02Backdrop,
     backdropTextureKey: TEXTURE_KEYS.heritageStepsLevel02Backdrop,
+    musicAudioKey: AUDIO_KEYS.level02Theme,
     worldWidth: 3300,
     startX: START_X,
     endX: 3160,

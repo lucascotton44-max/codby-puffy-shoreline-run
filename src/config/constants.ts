@@ -30,6 +30,7 @@ export const ASSET_PATHS = {
 
 export const AUDIO_PATHS = {
   shorelineThemeLoop: 'assets/audio/music/shoreline_theme_loop.wav',
+  level02Theme: 'assets/audio/music/level_02_theme.wav',
   jump: 'assets/audio/sfx/jump.wav',
   glide: 'assets/audio/sfx/glide.wav',
   collectFragment: 'assets/audio/sfx/collect_fragment.wav',
@@ -62,6 +63,7 @@ export const TEXTURE_KEYS = {
 
 export const AUDIO_KEYS = {
   shorelineThemeLoop: 'shoreline-theme-loop',
+  level02Theme: 'level-02-theme',
   jump: 'jump-sfx',
   glide: 'glide-sfx',
   collectFragment: 'collect-fragment-sfx',

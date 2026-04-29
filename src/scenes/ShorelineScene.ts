@@ -156,6 +156,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.tideLiftIcon, ASSET_PATHS.tideLiftIcon);
     this.load.image(TEXTURE_KEYS.storySparkIcon, ASSET_PATHS.storySparkIcon);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
+    this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
     this.load.audio(AUDIO_KEYS.jump, AUDIO_PATHS.jump);
     this.load.audio(AUDIO_KEYS.glide, AUDIO_PATHS.glide);
     this.load.audio(AUDIO_KEYS.collectFragment, AUDIO_PATHS.collectFragment);
@@ -198,6 +199,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.handleAudioInput();
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.restart)) {
+      this.stopCurrentMusic();
       this.scene.restart();
       return;
     }
@@ -323,6 +325,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex + 1);
     this.registry.set('shorelineStartLevelImmediately', true);
+    this.stopCurrentMusic();
     this.scene.restart();
   }
 
@@ -331,8 +334,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.isSfxEnabled = this.getStoredAudioToggle('shorelineSfxEnabled', GAMEPLAY_TUNING.audio.sfxEnabled);
     this.hasPlayerInteractedWithAudio = this.registry.get('shorelineAudioUnlocked') === true;
 
-    if (this.hasAudio(AUDIO_KEYS.shorelineThemeLoop)) {
-      this.music = this.sound.get(AUDIO_KEYS.shorelineThemeLoop) ?? this.sound.add(AUDIO_KEYS.shorelineThemeLoop, {
+    const musicKey = this.currentLevel.musicAudioKey;
+    this.stopOtherLevelMusic(musicKey);
+
+    if (this.hasAudio(musicKey)) {
+      this.music = this.sound.get(musicKey) ?? this.sound.add(musicKey, {
         loop: true,
         volume: GAMEPLAY_TUNING.audio.musicVolume,
       });
@@ -414,7 +420,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private startOrResumeMusic(): void {
-    if (!this.isMusicEnabled || !this.music || !this.hasAudio(AUDIO_KEYS.shorelineThemeLoop)) {
+    if (!this.isMusicEnabled || !this.music || !this.hasAudio(this.currentLevel.musicAudioKey)) {
       return;
     }
 
@@ -428,6 +434,22 @@ export class ShorelineScene extends Phaser.Scene {
     if (!this.music.isPlaying) {
       this.music.play({ loop: true, volume: GAMEPLAY_TUNING.audio.musicVolume });
     }
+  }
+
+  private stopCurrentMusic(): void {
+    if (this.music) {
+      this.music.stop();
+    }
+  }
+
+  private stopOtherLevelMusic(currentMusicKey: string): void {
+    LEVELS.forEach((level) => {
+      if (level.musicAudioKey === currentMusicKey) {
+        return;
+      }
+
+      this.sound.get(level.musicAudioKey)?.stop();
+    });
   }
 
   private playSfx(audioKey: string): void {
