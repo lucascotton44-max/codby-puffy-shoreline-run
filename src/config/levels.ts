@@ -39,6 +39,15 @@ export type PowerUpDefinition = {
   y: number;
 };
 
+export type ScuttleclawDefinition = {
+  x: number;
+  y: number;
+  minX: number;
+  maxX: number;
+  speed?: number;
+  damage?: number;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -53,6 +62,7 @@ export type LevelDefinition = {
   hazards: HazardDefinition[];
   fragments: FragmentDefinition[];
   powerUps: PowerUpDefinition[];
+  scuttleclaws: ScuttleclawDefinition[];
 };
 
 export const LEVELS: LevelDefinition[] = [
@@ -100,6 +110,7 @@ export const LEVELS: LevelDefinition[] = [
       { kind: 'tideLift', x: 910, y: 298 },
       { kind: 'storySpark', x: 1685, y: 310 },
     ],
+    scuttleclaws: [],
   },
   {
     id: 'heritage-steps-level-02',
@@ -154,6 +165,9 @@ export const LEVELS: LevelDefinition[] = [
       { kind: 'kelpShield', x: 1380, y: 430 },
       { kind: 'tideLift', x: 970, y: 288 },
       { kind: 'storySpark', x: 2320, y: 352 },
+    ],
+    scuttleclaws: [
+      { x: 1120, y: GROUND_Y - 20, minX: 1030, maxX: 1210, speed: 52, damage: 1 },
     ],
   },
 ];

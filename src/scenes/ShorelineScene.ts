@@ -16,6 +16,7 @@ import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
 import { HazardKind, HazardZone } from '../objects/Hazard.js';
 import { PowerUpKind, PowerUpPickup } from '../objects/PowerUp.js';
+import { Scuttleclaw } from '../objects/Scuttleclaw.js';
 
 type Controls = {
   cursors: Phaser.Types.Input.Keyboard.CursorKeys;
@@ -84,6 +85,7 @@ export class ShorelineScene extends Phaser.Scene {
   private hazards!: Phaser.Physics.Arcade.StaticGroup;
   private fragments!: Phaser.Physics.Arcade.Group;
   private powerUps!: Phaser.Physics.Arcade.Group;
+  private scuttleclaws!: Phaser.Physics.Arcade.Group;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -232,6 +234,7 @@ export class ShorelineScene extends Phaser.Scene {
         return true;
       });
       this.updateWaterShimmers(time);
+      this.updateScuttleclaws();
       this.syncPlayerDecorations();
       this.updateHud();
       this.drawDebugHitboxes();
@@ -257,6 +260,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.updatePowerUpTimers(time);
     this.applyStorySparkAttraction();
     this.updateWaterShimmers(time);
+    this.updateScuttleclaws();
     this.syncPlayerDecorations();
 
     if (this.isEnded) {
@@ -599,6 +603,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hazards = this.physics.add.staticGroup();
     this.fragments = this.physics.add.group({ allowGravity: false, immovable: true });
     this.powerUps = this.physics.add.group({ allowGravity: false, immovable: true });
+    this.scuttleclaws = this.physics.add.group();
 
     this.currentLevel.platforms.forEach(({ x, y, width, height, color }) => {
       this.addPlatform(x, y, width, height, color);
@@ -610,6 +615,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.createFragments();
     this.createPowerUps();
+    this.createScuttleclaws();
     this.createEndMarker();
     this.createStartZone();
   }
@@ -767,6 +773,13 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
+  private createScuttleclaws(): void {
+    this.currentLevel.scuttleclaws.forEach((definition) => {
+      const scuttleclaw = new Scuttleclaw(this, definition);
+      this.scuttleclaws.add(scuttleclaw);
+    });
+  }
+
   private createEndMarker(): void {
     this.endMarker = this.add.rectangle(this.currentLevel.endX, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
     if (this.hasTexture(TEXTURE_KEYS.ch8BeaconMarkerProp)) {
@@ -828,6 +841,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.playerLabel.setVisible(false);
 
     this.physics.add.collider(this.player, this.platforms);
+    this.physics.add.collider(this.scuttleclaws, this.platforms);
   }
 
   private createPlayerPowerIndicators(): void {
@@ -1135,6 +1149,10 @@ export class ShorelineScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.hazards, (_, hazard) => {
       this.damagePlayer((hazard as HazardZone).damage);
     });
+
+    this.physics.add.overlap(this.player, this.scuttleclaws, (_, scuttleclaw) => {
+      this.damagePlayer((scuttleclaw as Scuttleclaw).damage);
+    });
   }
 
   private resetRunState(): void {
@@ -1408,6 +1426,13 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
+  private updateScuttleclaws(): void {
+    this.scuttleclaws.children.each((child) => {
+      (child as Scuttleclaw).updatePatrol();
+      return true;
+    });
+  }
+
   private collectFragment(fragment: StoryFragment): void {
     if (!fragment.body.enable || this.isEnded) {
       return;
@@ -1640,6 +1665,14 @@ export class ShorelineScene extends Phaser.Scene {
       const powerUp = child as PowerUpPickup;
       if (powerUp.active && powerUp.body.enable) {
         this.drawBodyRect(powerUp.body, 0xcfa7ff);
+      }
+      return true;
+    });
+
+    this.scuttleclaws.children.each((child) => {
+      const scuttleclaw = child as Scuttleclaw;
+      if (scuttleclaw.active && scuttleclaw.body.enable) {
+        this.drawBodyRect(scuttleclaw.body, 0xff8a5c);
       }
       return true;
     });
