@@ -64,6 +64,10 @@ export const GAMEPLAY_TUNING = {
       attractionRadius: 190,
       attractionStrength: 0.055,
     },
+    tiderunner: {
+      durationMs: 5200,
+      moveSpeedMultiplier: 1.14,
+    },
   },
   audio: {
     musicVolume: 0.25,

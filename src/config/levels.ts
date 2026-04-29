@@ -223,6 +223,7 @@ export const LEVELS: LevelDefinition[] = [
     ],
     powerUps: [
       { kind: 'kelpShield', x: 1460, y: 430 },
+      { kind: 'tiderunner', x: 1535, y: 430 },
       { kind: 'tideLift', x: 1070, y: 276 },
       { kind: 'storySpark', x: 2460, y: 298 },
     ],

@@ -2,12 +2,13 @@ import Phaser from 'phaser';
 import { COLORS, TEXTURE_KEYS } from '../config/constants.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 
-export type PowerUpKind = 'kelpShield' | 'tideLift' | 'storySpark';
+export type PowerUpKind = 'kelpShield' | 'tideLift' | 'storySpark' | 'tiderunner';
 
 const POWER_UP_LABELS: Record<PowerUpKind, string> = {
   kelpShield: 'KELP',
   tideLift: 'TIDE',
   storySpark: 'SPARK',
+  tiderunner: 'RUN',
 };
 
 export class PowerUpPickup extends Phaser.GameObjects.Container {
@@ -62,11 +63,27 @@ export class PowerUpPickup extends Phaser.GameObjects.Container {
       return [shadow, icon, label];
     }
 
-    const color = kind === 'kelpShield' ? 0x5f8b4b : kind === 'tideLift' ? 0x5f9eb6 : 0xd5a24f;
-    const stroke = kind === 'kelpShield' ? 0x2f5232 : kind === 'tideLift' ? 0x27566a : 0x6d4d24;
+    const color =
+      kind === 'kelpShield'
+        ? 0x5f8b4b
+        : kind === 'tideLift'
+          ? 0x5f9eb6
+          : kind === 'tiderunner'
+            ? 0x4f8fa6
+            : 0xd5a24f;
+    const stroke =
+      kind === 'kelpShield'
+        ? 0x2f5232
+        : kind === 'tideLift'
+          ? 0x27566a
+          : kind === 'tiderunner'
+            ? 0x234b57
+            : 0x6d4d24;
     const core =
       kind === 'storySpark'
         ? scene.add.rectangle(0, 0, 25, 29, color, 0.95)
+        : kind === 'tiderunner'
+          ? scene.add.arc(0, 0, 16, 35, 315, false, color, 0.95)
         : scene.add.arc(0, 0, 15, kind === 'tideLift' ? 35 : 0, kind === 'tideLift' ? 325 : 360, false, color, 0.95);
 
     core.setStrokeStyle(2, stroke, 0.9);
@@ -76,7 +93,9 @@ export class PowerUpPickup extends Phaser.GameObjects.Container {
         ? scene.add.rectangle(0, 1, 7, 24, 0xc6d7a1, 0.78)
         : kind === 'tideLift'
           ? scene.add.arc(0, 0, 9, 35, 325, false, 0xd8e8e8, 0.5).setStrokeStyle(3, 0xd8e8e8, 0.5)
-          : scene.add.rectangle(0, -1, 16, 3, 0xf4d28b, 0.8);
+          : kind === 'tiderunner'
+            ? scene.add.rectangle(7, 0, 9, 3, 0xd8e8e8, 0.78).setRotation(-0.34)
+            : scene.add.rectangle(0, -1, 16, 3, 0xf4d28b, 0.8);
 
     if (kind === 'kelpShield') {
       mark.setRotation(-0.28);
@@ -93,6 +112,10 @@ export class PowerUpPickup extends Phaser.GameObjects.Container {
   }
 
   private static createIcon(scene: Phaser.Scene, kind: PowerUpKind): Phaser.GameObjects.Image | null {
+    if (kind === 'tiderunner') {
+      return null;
+    }
+
     const textureKey =
       kind === 'kelpShield'
         ? TEXTURE_KEYS.kelpShieldIcon

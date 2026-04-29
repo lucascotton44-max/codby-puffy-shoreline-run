@@ -127,6 +127,7 @@ export class ShorelineScene extends Phaser.Scene {
   private hasTideLiftCharge = false;
   private tideGlideBoostUntil = 0;
   private storySparkExpiresAt = 0;
+  private tideRunExpiresAt = 0;
 
   public constructor() {
     super('ShorelineScene');
@@ -1184,7 +1185,7 @@ export class ShorelineScene extends Phaser.Scene {
     });
 
     this.physics.add.overlap(this.player, this.hazards, (_, hazard) => {
-      this.damagePlayer((hazard as HazardZone).damage);
+      this.handleHazardContact(hazard as HazardZone);
     });
 
     this.physics.add.overlap(this.player, this.scuttleclaws, (_, scuttleclaw) => {
@@ -1209,6 +1210,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hasTideLiftCharge = false;
     this.tideGlideBoostUntil = 0;
     this.storySparkExpiresAt = 0;
+    this.tideRunExpiresAt = 0;
     this.wasGliding = false;
   }
 
@@ -1262,6 +1264,7 @@ export class ShorelineScene extends Phaser.Scene {
   private handleMovement(): void {
     const character = CHARACTERS[this.activeCharacter];
     const body = this.getPlayerBody();
+    const moveSpeed = character.moveSpeed * (this.hasActiveTideRun() ? GAMEPLAY_TUNING.powerUps.tiderunner.moveSpeedMultiplier : 1);
     const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown;
     const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown;
     const wantsJump =
@@ -1270,9 +1273,9 @@ export class ShorelineScene extends Phaser.Scene {
       Phaser.Input.Keyboard.JustDown(this.controls.space);
 
     if (left) {
-      body.setVelocityX(-character.moveSpeed);
+      body.setVelocityX(-moveSpeed);
     } else if (right) {
-      body.setVelocityX(character.moveSpeed);
+      body.setVelocityX(moveSpeed);
     }
 
     if (wantsJump && body.blocked.down) {
@@ -1376,6 +1379,12 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    if (kind === 'tiderunner') {
+      this.tideRunExpiresAt = this.time.now + GAMEPLAY_TUNING.powerUps.tiderunner.durationMs;
+      this.playSfx(AUDIO_KEYS.powerupPickup);
+      return;
+    }
+
     this.storySparkExpiresAt = this.time.now + GAMEPLAY_TUNING.powerUps.storySpark.durationMs;
     this.playSfx(AUDIO_KEYS.powerupPickup);
   }
@@ -1390,6 +1399,10 @@ export class ShorelineScene extends Phaser.Scene {
     if (this.storySparkExpiresAt > 0 && time >= this.storySparkExpiresAt) {
       this.storySparkExpiresAt = 0;
     }
+
+    if (this.tideRunExpiresAt > 0 && time >= this.tideRunExpiresAt) {
+      this.tideRunExpiresAt = 0;
+    }
   }
 
   private hasActiveTideLift(): boolean {
@@ -1398,6 +1411,10 @@ export class ShorelineScene extends Phaser.Scene {
 
   private hasActiveStorySpark(): boolean {
     return this.storySparkExpiresAt > this.time.now;
+  }
+
+  private hasActiveTideRun(): boolean {
+    return this.tideRunExpiresAt > this.time.now;
   }
 
   private consumeTideLiftForJump(): number {
@@ -1483,6 +1500,14 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.damagePlayer(scuttleclaw.damage);
+  }
+
+  private handleHazardContact(hazard: HazardZone): void {
+    if (hazard.kind === 'water' && this.hasActiveTideRun()) {
+      return;
+    }
+
+    this.damagePlayer(hazard.damage);
   }
 
   private isStompingScuttleclaw(scuttleclaw: Scuttleclaw): boolean {
@@ -1638,6 +1663,10 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (this.hasActiveStorySpark()) {
       states.push(`Spark ${this.getRemainingSeconds(this.storySparkExpiresAt)}`);
+    }
+
+    if (this.hasActiveTideRun()) {
+      states.push(`TideRun ${this.getRemainingSeconds(this.tideRunExpiresAt)}`);
     }
 
     return states.length > 0 ? states.join('  ') : 'None';
