@@ -170,6 +170,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.characterSwitch, AUDIO_PATHS.characterSwitch);
     this.load.audio(AUDIO_KEYS.levelComplete, AUDIO_PATHS.levelComplete);
     this.load.audio(AUDIO_KEYS.gameOver, AUDIO_PATHS.gameOver);
+    this.load.audio(AUDIO_KEYS.scuttleclawStomp, AUDIO_PATHS.scuttleclawStomp);
     this.load.audio(AUDIO_KEYS.powerupPickup, AUDIO_PATHS.powerupPickup);
     this.load.audio(AUDIO_KEYS.kelpShield, AUDIO_PATHS.kelpShield);
     this.load.audio(AUDIO_KEYS.tideLift, AUDIO_PATHS.tideLift);
@@ -1468,6 +1469,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (this.isStompingScuttleclaw(scuttleclaw)) {
       scuttleclaw.defeat();
+      this.playSfx(AUDIO_KEYS.scuttleclawStomp);
       this.getPlayerBody().setVelocityY(-235);
       return;
     }
