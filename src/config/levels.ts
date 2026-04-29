@@ -179,7 +179,7 @@ export const LEVELS: LevelDefinition[] = [
     name: "St. Peter's Canal",
     backdropPath: ASSET_PATHS.stPetersCanalLevel03Backdrop,
     backdropTextureKey: TEXTURE_KEYS.stPetersCanalLevel03Backdrop,
-    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
     worldWidth: 3450,
     startX: START_X,
     endX: 3310,
