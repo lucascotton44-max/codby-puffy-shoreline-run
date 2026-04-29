@@ -1,10 +1,29 @@
 import Phaser from 'phaser';
+import { TEXTURE_KEYS } from '../config/constants.js';
 import type { ScuttleclawDefinition } from '../config/levels.js';
 
 const DEFAULT_SPEED = 48;
 const DEFAULT_DAMAGE = 1;
 const BODY_WIDTH = 62;
 const BODY_HEIGHT = 22;
+const SPRITE_DISPLAY_WIDTH = 92;
+const SPRITE_DISPLAY_HEIGHT = 58;
+const WALK_ANIMATION_KEY = 'scuttleclaw-walk';
+const IDLE_ANIMATION_KEY = 'scuttleclaw-idle';
+
+type ScuttleclawAtlasFrame = {
+  atlasX: number;
+  atlasY: number;
+  w: number;
+  h: number;
+};
+
+type ScuttleclawAtlasMeta = {
+  cellWidth: number;
+  cellHeight: number;
+  columns: number;
+  animations: Record<string, ScuttleclawAtlasFrame[]>;
+};
 
 export class Scuttleclaw extends Phaser.GameObjects.Container {
   public declare readonly body: Phaser.Physics.Arcade.Body;
@@ -12,12 +31,15 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   private readonly minX: number;
   private readonly maxX: number;
   private readonly speed: number;
+  private readonly sprite?: Phaser.GameObjects.Sprite;
   private direction = 1;
 
   public constructor(scene: Phaser.Scene, definition: ScuttleclawDefinition) {
+    Scuttleclaw.createAnimations(scene);
     const parts = Scuttleclaw.createVisualParts(scene);
     super(scene, definition.x, definition.y, parts);
 
+    this.sprite = parts.find((part): part is Phaser.GameObjects.Sprite => part instanceof Phaser.GameObjects.Sprite);
     this.minX = Math.min(definition.minX, definition.maxX);
     this.maxX = Math.max(definition.minX, definition.maxX);
     this.speed = Math.max(1, Math.abs(definition.speed ?? DEFAULT_SPEED));
@@ -33,6 +55,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     this.body.setImmovable(true);
     this.body.setVelocityX(this.speed);
     this.setDepth(9);
+    this.playAnimation(WALK_ANIMATION_KEY);
   }
 
   public updatePatrol(): void {
@@ -49,6 +72,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     }
 
     this.body.setVelocityX(this.speed * this.direction);
+    this.playAnimation(WALK_ANIMATION_KEY);
   }
 
   public defeat(): void {
@@ -58,6 +82,8 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
 
     this.body.enable = false;
     this.body.setVelocity(0, 0);
+    this.sprite?.stop();
+    this.sprite?.setFrame(0);
 
     this.scene.tweens.add({
       targets: this,
@@ -70,6 +96,14 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   }
 
   private static createVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
+    if (scene.textures.exists(TEXTURE_KEYS.scuttleclawAtlas)) {
+      const shadow = scene.add.ellipse(0, 16, 74, 10, 0x131817, 0.32);
+      const sprite = scene.add.sprite(0, 20, TEXTURE_KEYS.scuttleclawAtlas, 2);
+      sprite.setOrigin(0.5, 1);
+      sprite.setDisplaySize(SPRITE_DISPLAY_WIDTH, SPRITE_DISPLAY_HEIGHT);
+      return [shadow, sprite];
+    }
+
     const shadow = scene.add.ellipse(0, 13, 72, 10, 0x131817, 0.34);
 
     const rearLegs = [
@@ -98,5 +132,58 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     const rightEye = scene.add.ellipse(12, -12, 5, 5, 0x050505, 1);
 
     return [shadow, ...rearLegs, leftClaw, rightClaw, chippedTip, body, shellBand, shellRidge, leftEye, rightEye];
+  }
+
+  private static createAnimations(scene: Phaser.Scene): void {
+    if (!scene.textures.exists(TEXTURE_KEYS.scuttleclawAtlas)) {
+      return;
+    }
+
+    const meta = scene.cache.json.get(TEXTURE_KEYS.scuttleclawAtlasMeta) as ScuttleclawAtlasMeta | undefined;
+    if (!meta || meta.cellWidth !== 256 || meta.cellHeight !== 160) {
+      return;
+    }
+
+    Scuttleclaw.createAnimationFromMeta(scene, meta, 'idle', IDLE_ANIMATION_KEY, 3);
+    Scuttleclaw.createAnimationFromMeta(scene, meta, 'walk', WALK_ANIMATION_KEY, 8);
+  }
+
+  private static createAnimationFromMeta(
+    scene: Phaser.Scene,
+    meta: ScuttleclawAtlasMeta,
+    sourceName: string,
+    animationKey: string,
+    frameRate: number,
+  ): void {
+    if (scene.anims.exists(animationKey)) {
+      return;
+    }
+
+    const sourceFrames = meta.animations[sourceName];
+    if (!sourceFrames?.length) {
+      return;
+    }
+
+    const frames = sourceFrames.map((frame) => ({
+      key: TEXTURE_KEYS.scuttleclawAtlas,
+      frame: Math.floor(frame.atlasY / meta.cellHeight) * meta.columns + Math.floor(frame.atlasX / meta.cellWidth),
+    }));
+
+    scene.anims.create({
+      key: animationKey,
+      frames,
+      frameRate,
+      repeat: -1,
+    });
+  }
+
+  private playAnimation(animationKey: string): void {
+    if (!this.sprite || !this.scene.anims.exists(animationKey)) {
+      return;
+    }
+
+    if (this.sprite.anims.currentAnim?.key !== animationKey) {
+      this.sprite.play(animationKey);
+    }
   }
 }
