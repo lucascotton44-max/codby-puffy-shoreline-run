@@ -1,0 +1,534 @@
+{
+  "character": "codby",
+  "source": "codby_sprite_sheet_v1_transparent.png",
+  "cellWidth": 256,
+  "cellHeight": 320,
+  "columns": 6,
+  "rows": 5,
+  "animations": {
+    "idle": [
+      {
+        "name": "codby_idle_00.png",
+        "animation": "idle",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 0,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 203,
+          "y": 21,
+          "w": 144,
+          "h": 273,
+          "area": 30206
+        }
+      },
+      {
+        "name": "codby_idle_01.png",
+        "animation": "idle",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 0,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 433,
+          "y": 21,
+          "w": 140,
+          "h": 273,
+          "area": 29767
+        }
+      },
+      {
+        "name": "codby_idle_02.png",
+        "animation": "idle",
+        "index": 2,
+        "atlasX": 512,
+        "atlasY": 0,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 653,
+          "y": 22,
+          "w": 143,
+          "h": 271,
+          "area": 29988
+        }
+      },
+      {
+        "name": "codby_idle_03.png",
+        "animation": "idle",
+        "index": 3,
+        "atlasX": 768,
+        "atlasY": 0,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 880,
+          "y": 21,
+          "w": 138,
+          "h": 272,
+          "area": 29386
+        }
+      }
+    ],
+    "walk": [
+      {
+        "name": "codby_walk_00.png",
+        "animation": "walk",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 157,
+          "y": 320,
+          "w": 175,
+          "h": 247,
+          "area": 26696
+        }
+      },
+      {
+        "name": "codby_walk_01.png",
+        "animation": "walk",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 374,
+          "y": 322,
+          "w": 171,
+          "h": 244,
+          "area": 26066
+        }
+      },
+      {
+        "name": "codby_walk_02.png",
+        "animation": "walk",
+        "index": 2,
+        "atlasX": 512,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 575,
+          "y": 321,
+          "w": 171,
+          "h": 245,
+          "area": 26196
+        }
+      },
+      {
+        "name": "codby_walk_03.png",
+        "animation": "walk",
+        "index": 3,
+        "atlasX": 768,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 763,
+          "y": 322,
+          "w": 169,
+          "h": 244,
+          "area": 24308
+        }
+      },
+      {
+        "name": "codby_walk_04.png",
+        "animation": "walk",
+        "index": 4,
+        "atlasX": 1024,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 961,
+          "y": 322,
+          "w": 173,
+          "h": 244,
+          "area": 25746
+        }
+      },
+      {
+        "name": "codby_walk_05.png",
+        "animation": "walk",
+        "index": 5,
+        "atlasX": 1280,
+        "atlasY": 320,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 1159,
+          "y": 324,
+          "w": 173,
+          "h": 243,
+          "area": 25335
+        }
+      }
+    ],
+    "jump": [
+      {
+        "name": "codby_jump_00.png",
+        "animation": "jump",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 640,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 169,
+          "y": 587,
+          "w": 164,
+          "h": 213,
+          "area": 21414
+        }
+      },
+      {
+        "name": "codby_jump_01.png",
+        "animation": "jump",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 640,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 376,
+          "y": 584,
+          "w": 166,
+          "h": 211,
+          "area": 20749
+        }
+      }
+    ],
+    "fall": [
+      {
+        "name": "codby_fall_00.png",
+        "animation": "fall",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 960,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 680,
+          "y": 595,
+          "w": 174,
+          "h": 228,
+          "area": 23474
+        }
+      },
+      {
+        "name": "codby_fall_01.png",
+        "animation": "fall",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 960,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 907,
+          "y": 606,
+          "w": 168,
+          "h": 217,
+          "area": 21955
+        }
+      }
+    ],
+    "hurt": [
+      {
+        "name": "codby_hurt_00.png",
+        "animation": "hurt",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 1280,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 165,
+          "y": 830,
+          "w": 196,
+          "h": 223,
+          "area": 25749
+        }
+      },
+      {
+        "name": "codby_hurt_01.png",
+        "animation": "hurt",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 1280,
+        "w": 256,
+        "h": 320,
+        "sourceBBox": {
+          "x": 420,
+          "y": 846,
+          "w": 207,
+          "h": 196,
+          "area": 23646
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "name": "codby_idle_00.png",
+      "animation": "idle",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 0,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 203,
+        "y": 21,
+        "w": 144,
+        "h": 273,
+        "area": 30206
+      }
+    },
+    {
+      "name": "codby_idle_01.png",
+      "animation": "idle",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 0,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 433,
+        "y": 21,
+        "w": 140,
+        "h": 273,
+        "area": 29767
+      }
+    },
+    {
+      "name": "codby_idle_02.png",
+      "animation": "idle",
+      "index": 2,
+      "atlasX": 512,
+      "atlasY": 0,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 653,
+        "y": 22,
+        "w": 143,
+        "h": 271,
+        "area": 29988
+      }
+    },
+    {
+      "name": "codby_idle_03.png",
+      "animation": "idle",
+      "index": 3,
+      "atlasX": 768,
+      "atlasY": 0,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 880,
+        "y": 21,
+        "w": 138,
+        "h": 272,
+        "area": 29386
+      }
+    },
+    {
+      "name": "codby_walk_00.png",
+      "animation": "walk",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 157,
+        "y": 320,
+        "w": 175,
+        "h": 247,
+        "area": 26696
+      }
+    },
+    {
+      "name": "codby_walk_01.png",
+      "animation": "walk",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 374,
+        "y": 322,
+        "w": 171,
+        "h": 244,
+        "area": 26066
+      }
+    },
+    {
+      "name": "codby_walk_02.png",
+      "animation": "walk",
+      "index": 2,
+      "atlasX": 512,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 575,
+        "y": 321,
+        "w": 171,
+        "h": 245,
+        "area": 26196
+      }
+    },
+    {
+      "name": "codby_walk_03.png",
+      "animation": "walk",
+      "index": 3,
+      "atlasX": 768,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 763,
+        "y": 322,
+        "w": 169,
+        "h": 244,
+        "area": 24308
+      }
+    },
+    {
+      "name": "codby_walk_04.png",
+      "animation": "walk",
+      "index": 4,
+      "atlasX": 1024,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 961,
+        "y": 322,
+        "w": 173,
+        "h": 244,
+        "area": 25746
+      }
+    },
+    {
+      "name": "codby_walk_05.png",
+      "animation": "walk",
+      "index": 5,
+      "atlasX": 1280,
+      "atlasY": 320,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 1159,
+        "y": 324,
+        "w": 173,
+        "h": 243,
+        "area": 25335
+      }
+    },
+    {
+      "name": "codby_jump_00.png",
+      "animation": "jump",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 640,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 169,
+        "y": 587,
+        "w": 164,
+        "h": 213,
+        "area": 21414
+      }
+    },
+    {
+      "name": "codby_jump_01.png",
+      "animation": "jump",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 640,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 376,
+        "y": 584,
+        "w": 166,
+        "h": 211,
+        "area": 20749
+      }
+    },
+    {
+      "name": "codby_fall_00.png",
+      "animation": "fall",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 960,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 680,
+        "y": 595,
+        "w": 174,
+        "h": 228,
+        "area": 23474
+      }
+    },
+    {
+      "name": "codby_fall_01.png",
+      "animation": "fall",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 960,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 907,
+        "y": 606,
+        "w": 168,
+        "h": 217,
+        "area": 21955
+      }
+    },
+    {
+      "name": "codby_hurt_00.png",
+      "animation": "hurt",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 1280,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 165,
+        "y": 830,
+        "w": 196,
+        "h": 223,
+        "area": 25749
+      }
+    },
+    {
+      "name": "codby_hurt_01.png",
+      "animation": "hurt",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 1280,
+      "w": 256,
+      "h": 320,
+      "sourceBBox": {
+        "x": 420,
+        "y": 846,
+        "w": 207,
+        "h": 196,
+        "area": 23646
+      }
+    }
+  ]
+}

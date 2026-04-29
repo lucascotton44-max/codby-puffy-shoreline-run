@@ -1,0 +1,97 @@
+import { GAMEPLAY_TUNING } from './tuning.js';
+
+export const GAME_WIDTH = 960;
+export const GAME_HEIGHT = 540;
+export const WORLD_WIDTH = 2700;
+export const GROUND_Y = 492;
+export const REQUIRED_FRAGMENTS = 8;
+export const TOTAL_FRAGMENTS = 10;
+export const DAMAGE_COOLDOWN_MS = GAMEPLAY_TUNING.hazards.damageCooldownMs;
+export const START_X = 96;
+export const END_X = 2550;
+
+export const ASSET_PATHS = {
+  stPetersCanalBackdrop: 'assets/backgrounds/st_peters_canal.png',
+  codbyAtlasImage: 'assets/sprites/codby/codby_atlas_v1.png',
+  codbyAtlasJson: 'assets/sprites/codby/codby_atlas_v1.json',
+  puffyAtlasImage: 'assets/sprites/puffy/puffy_atlas_v1.png',
+  puffyAtlasJson: 'assets/sprites/puffy/puffy_atlas_v1.json',
+  dockPlankPlatformProp: 'assets/props/dock_plank_platform.png',
+  brokenWharfHazardProp: 'assets/props/broken_wharf_hazard.png',
+  rockHazardProp: 'assets/props/rock_hazard.png',
+  ropeDebrisHazardProp: 'assets/props/rope_debris_hazard.png',
+  storyFragmentProp: 'assets/props/story_fragment.png',
+  ch8BeaconMarkerProp: 'assets/props/ch8_beacon_marker.png',
+  kelpShieldIcon: 'assets/props/kelp_shield_icon.png',
+  tideLiftIcon: 'assets/props/tide_lift_icon.png',
+  storySparkIcon: 'assets/props/story_spark_icon.png',
+};
+
+export const AUDIO_PATHS = {
+  shorelineThemeLoop: 'assets/audio/music/shoreline_theme_loop.wav',
+  jump: 'assets/audio/sfx/jump.wav',
+  glide: 'assets/audio/sfx/glide.wav',
+  collectFragment: 'assets/audio/sfx/collect_fragment.wav',
+  hazardHit: 'assets/audio/sfx/hazard_hit.wav',
+  characterSwitch: 'assets/audio/sfx/character_switch.wav',
+  levelComplete: 'assets/audio/sfx/level_complete.wav',
+  gameOver: 'assets/audio/sfx/game_over.wav',
+  powerupPickup: 'assets/audio/sfx/powerup_pickup.wav',
+  kelpShield: 'assets/audio/sfx/kelp_shield.wav',
+  tideLift: 'assets/audio/sfx/tide_lift.wav',
+};
+
+export const TEXTURE_KEYS = {
+  stPetersCanalBackdrop: 'st-peters-canal-backdrop',
+  codbyAtlas: 'codby-atlas-v1',
+  puffyAtlas: 'puffy-atlas-v1',
+  codbyAtlasMeta: 'codby-atlas-v1-meta',
+  puffyAtlasMeta: 'puffy-atlas-v1-meta',
+  dockPlankPlatformProp: 'dock-plank-platform-prop',
+  brokenWharfHazardProp: 'broken-wharf-hazard-prop',
+  rockHazardProp: 'rock-hazard-prop',
+  ropeDebrisHazardProp: 'rope-debris-hazard-prop',
+  storyFragmentProp: 'story-fragment-prop',
+  ch8BeaconMarkerProp: 'ch8-beacon-marker-prop',
+  kelpShieldIcon: 'kelp-shield-icon',
+  tideLiftIcon: 'tide-lift-icon',
+  storySparkIcon: 'story-spark-icon',
+};
+
+export const AUDIO_KEYS = {
+  shorelineThemeLoop: 'shoreline-theme-loop',
+  jump: 'jump-sfx',
+  glide: 'glide-sfx',
+  collectFragment: 'collect-fragment-sfx',
+  hazardHit: 'hazard-hit-sfx',
+  characterSwitch: 'character-switch-sfx',
+  levelComplete: 'level-complete-sfx',
+  gameOver: 'game-over-sfx',
+  powerupPickup: 'powerup-pickup-sfx',
+  kelpShield: 'kelp-shield-sfx',
+  tideLift: 'tide-lift-sfx',
+};
+
+export const COLORS = {
+  sky: 0x8fa8a8,
+  farWater: 0x375f68,
+  water: 0x254c57,
+  shore: 0x6c6859,
+  rock: 0x565b56,
+  dock: 0x64523f,
+  evergreen: 0x263f35,
+  cod: 0xe6c84f,
+  puffy: 0xf3f0e8,
+  puffyMark: 0x23262a,
+  fragment: 0xcaa66a,
+  hazard: 0x8b3f35,
+  marker: 0xb7c7b2,
+  text: '#f3efe2',
+  mutedText: '#b9c0b5',
+};
+
+// TODO: Gilbert salmon river level.
+// TODO: FlowEdge river/dome level.
+// TODO: Land Yacht shoreline level.
+// TODO: Toast and Marmalade worksite level.
+// TODO: Rook crow mystery level.

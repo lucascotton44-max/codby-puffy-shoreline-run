@@ -1,0 +1,598 @@
+{
+  "character": "puffy",
+  "source": "puffy_sprite_sheet_v1_transparent.png",
+  "cellWidth": 288,
+  "cellHeight": 240,
+  "columns": 6,
+  "rows": 5,
+  "animations": {
+    "idle": [
+      {
+        "name": "puffy_idle_00.png",
+        "animation": "idle",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 0,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 263,
+          "y": 56,
+          "w": 129,
+          "h": 201,
+          "area": 13628
+        }
+      },
+      {
+        "name": "puffy_idle_01.png",
+        "animation": "idle",
+        "index": 1,
+        "atlasX": 288,
+        "atlasY": 0,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 469,
+          "y": 60,
+          "w": 134,
+          "h": 198,
+          "area": 13561
+        }
+      },
+      {
+        "name": "puffy_idle_02.png",
+        "animation": "idle",
+        "index": 2,
+        "atlasX": 576,
+        "atlasY": 0,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 669,
+          "y": 59,
+          "w": 136,
+          "h": 199,
+          "area": 13773
+        }
+      },
+      {
+        "name": "puffy_idle_03.png",
+        "animation": "idle",
+        "index": 3,
+        "atlasX": 864,
+        "atlasY": 0,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 859,
+          "y": 60,
+          "w": 126,
+          "h": 199,
+          "area": 13184
+        }
+      }
+    ],
+    "run": [
+      {
+        "name": "puffy_run_00.png",
+        "animation": "run",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 130,
+          "y": 302,
+          "w": 164,
+          "h": 169,
+          "area": 13016
+        }
+      },
+      {
+        "name": "puffy_run_01.png",
+        "animation": "run",
+        "index": 1,
+        "atlasX": 288,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 354,
+          "y": 302,
+          "w": 164,
+          "h": 168,
+          "area": 13087
+        }
+      },
+      {
+        "name": "puffy_run_02.png",
+        "animation": "run",
+        "index": 2,
+        "atlasX": 576,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 565,
+          "y": 306,
+          "w": 164,
+          "h": 168,
+          "area": 12468
+        }
+      },
+      {
+        "name": "puffy_run_03.png",
+        "animation": "run",
+        "index": 3,
+        "atlasX": 864,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 776,
+          "y": 306,
+          "w": 158,
+          "h": 165,
+          "area": 12077
+        }
+      },
+      {
+        "name": "puffy_run_04.png",
+        "animation": "run",
+        "index": 4,
+        "atlasX": 1152,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 968,
+          "y": 306,
+          "w": 158,
+          "h": 166,
+          "area": 11502
+        }
+      },
+      {
+        "name": "puffy_run_05.png",
+        "animation": "run",
+        "index": 5,
+        "atlasX": 1440,
+        "atlasY": 240,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 1151,
+          "y": 306,
+          "w": 165,
+          "h": 161,
+          "area": 11476
+        }
+      }
+    ],
+    "jump": [
+      {
+        "name": "puffy_jump_00.png",
+        "animation": "jump",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 480,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 272,
+          "y": 494,
+          "w": 170,
+          "h": 150,
+          "area": 11210
+        }
+      },
+      {
+        "name": "puffy_jump_01.png",
+        "animation": "jump",
+        "index": 1,
+        "atlasX": 288,
+        "atlasY": 480,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 506,
+          "y": 496,
+          "w": 168,
+          "h": 134,
+          "area": 10079
+        }
+      }
+    ],
+    "glide": [
+      {
+        "name": "puffy_glide_00.png",
+        "animation": "glide",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 720,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 169,
+          "y": 687,
+          "w": 210,
+          "h": 133,
+          "area": 14552
+        }
+      },
+      {
+        "name": "puffy_glide_01.png",
+        "animation": "glide",
+        "index": 1,
+        "atlasX": 288,
+        "atlasY": 720,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 448,
+          "y": 718,
+          "w": 216,
+          "h": 103,
+          "area": 13028
+        }
+      },
+      {
+        "name": "puffy_glide_02.png",
+        "animation": "glide",
+        "index": 2,
+        "atlasX": 576,
+        "atlasY": 720,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 736,
+          "y": 711,
+          "w": 219,
+          "h": 99,
+          "area": 12471
+        }
+      },
+      {
+        "name": "puffy_glide_03.png",
+        "animation": "glide",
+        "index": 3,
+        "atlasX": 864,
+        "atlasY": 720,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 1025,
+          "y": 721,
+          "w": 252,
+          "h": 99,
+          "area": 13768
+        }
+      }
+    ],
+    "hurt": [
+      {
+        "name": "puffy_hurt_00.png",
+        "animation": "hurt",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 960,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 212,
+          "y": 874,
+          "w": 160,
+          "h": 171,
+          "area": 13200
+        }
+      },
+      {
+        "name": "puffy_hurt_01.png",
+        "animation": "hurt",
+        "index": 1,
+        "atlasX": 288,
+        "atlasY": 960,
+        "w": 288,
+        "h": 240,
+        "sourceBBox": {
+          "x": 435,
+          "y": 896,
+          "w": 175,
+          "h": 137,
+          "area": 12082
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "name": "puffy_idle_00.png",
+      "animation": "idle",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 0,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 263,
+        "y": 56,
+        "w": 129,
+        "h": 201,
+        "area": 13628
+      }
+    },
+    {
+      "name": "puffy_idle_01.png",
+      "animation": "idle",
+      "index": 1,
+      "atlasX": 288,
+      "atlasY": 0,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 469,
+        "y": 60,
+        "w": 134,
+        "h": 198,
+        "area": 13561
+      }
+    },
+    {
+      "name": "puffy_idle_02.png",
+      "animation": "idle",
+      "index": 2,
+      "atlasX": 576,
+      "atlasY": 0,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 669,
+        "y": 59,
+        "w": 136,
+        "h": 199,
+        "area": 13773
+      }
+    },
+    {
+      "name": "puffy_idle_03.png",
+      "animation": "idle",
+      "index": 3,
+      "atlasX": 864,
+      "atlasY": 0,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 859,
+        "y": 60,
+        "w": 126,
+        "h": 199,
+        "area": 13184
+      }
+    },
+    {
+      "name": "puffy_run_00.png",
+      "animation": "run",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 130,
+        "y": 302,
+        "w": 164,
+        "h": 169,
+        "area": 13016
+      }
+    },
+    {
+      "name": "puffy_run_01.png",
+      "animation": "run",
+      "index": 1,
+      "atlasX": 288,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 354,
+        "y": 302,
+        "w": 164,
+        "h": 168,
+        "area": 13087
+      }
+    },
+    {
+      "name": "puffy_run_02.png",
+      "animation": "run",
+      "index": 2,
+      "atlasX": 576,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 565,
+        "y": 306,
+        "w": 164,
+        "h": 168,
+        "area": 12468
+      }
+    },
+    {
+      "name": "puffy_run_03.png",
+      "animation": "run",
+      "index": 3,
+      "atlasX": 864,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 776,
+        "y": 306,
+        "w": 158,
+        "h": 165,
+        "area": 12077
+      }
+    },
+    {
+      "name": "puffy_run_04.png",
+      "animation": "run",
+      "index": 4,
+      "atlasX": 1152,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 968,
+        "y": 306,
+        "w": 158,
+        "h": 166,
+        "area": 11502
+      }
+    },
+    {
+      "name": "puffy_run_05.png",
+      "animation": "run",
+      "index": 5,
+      "atlasX": 1440,
+      "atlasY": 240,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 1151,
+        "y": 306,
+        "w": 165,
+        "h": 161,
+        "area": 11476
+      }
+    },
+    {
+      "name": "puffy_jump_00.png",
+      "animation": "jump",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 480,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 272,
+        "y": 494,
+        "w": 170,
+        "h": 150,
+        "area": 11210
+      }
+    },
+    {
+      "name": "puffy_jump_01.png",
+      "animation": "jump",
+      "index": 1,
+      "atlasX": 288,
+      "atlasY": 480,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 506,
+        "y": 496,
+        "w": 168,
+        "h": 134,
+        "area": 10079
+      }
+    },
+    {
+      "name": "puffy_glide_00.png",
+      "animation": "glide",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 720,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 169,
+        "y": 687,
+        "w": 210,
+        "h": 133,
+        "area": 14552
+      }
+    },
+    {
+      "name": "puffy_glide_01.png",
+      "animation": "glide",
+      "index": 1,
+      "atlasX": 288,
+      "atlasY": 720,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 448,
+        "y": 718,
+        "w": 216,
+        "h": 103,
+        "area": 13028
+      }
+    },
+    {
+      "name": "puffy_glide_02.png",
+      "animation": "glide",
+      "index": 2,
+      "atlasX": 576,
+      "atlasY": 720,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 736,
+        "y": 711,
+        "w": 219,
+        "h": 99,
+        "area": 12471
+      }
+    },
+    {
+      "name": "puffy_glide_03.png",
+      "animation": "glide",
+      "index": 3,
+      "atlasX": 864,
+      "atlasY": 720,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 1025,
+        "y": 721,
+        "w": 252,
+        "h": 99,
+        "area": 13768
+      }
+    },
+    {
+      "name": "puffy_hurt_00.png",
+      "animation": "hurt",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 960,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 212,
+        "y": 874,
+        "w": 160,
+        "h": 171,
+        "area": 13200
+      }
+    },
+    {
+      "name": "puffy_hurt_01.png",
+      "animation": "hurt",
+      "index": 1,
+      "atlasX": 288,
+      "atlasY": 960,
+      "w": 288,
+      "h": 240,
+      "sourceBBox": {
+        "x": 435,
+        "y": 896,
+        "w": 175,
+        "h": 137,
+        "area": 12082
+      }
+    }
+  ]
+}
