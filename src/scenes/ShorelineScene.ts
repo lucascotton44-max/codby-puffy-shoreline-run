@@ -200,12 +200,17 @@ export class ShorelineScene extends Phaser.Scene {
       this.registry.set('shorelineStartLevelImmediately', false);
       this.startRun();
     }
+
+    if (this.registry.get('shorelineRestartCurrentLevel') === true) {
+      this.registry.set('shorelineRestartCurrentLevel', false);
+    }
   }
 
   public update(time: number): void {
     this.handleAudioInput();
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.restart)) {
+      this.registry.set('shorelineRestartCurrentLevel', true);
       this.stopCurrentMusic();
       this.scene.restart();
       return;
@@ -315,7 +320,10 @@ export class ShorelineScene extends Phaser.Scene {
 
   private selectCurrentLevel(): void {
     const storedLevelIndex = this.registry.get('shorelineCurrentLevelIndex');
-    const levelIndex = typeof storedLevelIndex === 'number' ? storedLevelIndex : 0;
+    const shouldKeepStoredLevel =
+      this.registry.get('shorelineStartLevelImmediately') === true ||
+      this.registry.get('shorelineRestartCurrentLevel') === true;
+    const levelIndex = shouldKeepStoredLevel && typeof storedLevelIndex === 'number' ? storedLevelIndex : 0;
     this.currentLevelIndex = Phaser.Math.Clamp(Math.floor(levelIndex), 0, LEVELS.length - 1);
     this.currentLevel = LEVELS[this.currentLevelIndex];
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex);
