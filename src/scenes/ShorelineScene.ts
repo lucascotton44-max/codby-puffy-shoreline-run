@@ -60,6 +60,9 @@ type WaterShimmer = {
   drift: number;
 };
 
+const PRESENTATION_MATTE_Y = 14;
+const PRESENTATION_VIEW_HEIGHT = GAME_HEIGHT - PRESENTATION_MATTE_Y * 2;
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -129,7 +132,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   public preload(): void {
-    this.load.image(TEXTURE_KEYS.stPetersCanalBackdrop, ASSET_PATHS.stPetersCanalBackdrop);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01Backdrop, ASSET_PATHS.shorelineRunLevel01Backdrop);
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
       frameWidth: 256,
       frameHeight: 320,
@@ -426,13 +429,13 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createRealBackdrop(): boolean {
-    if (!this.textures.exists(TEXTURE_KEYS.stPetersCanalBackdrop)) {
+    if (!this.textures.exists(TEXTURE_KEYS.shorelineRunLevel01Backdrop)) {
       return false;
     }
 
-    const source = this.textures.get(TEXTURE_KEYS.stPetersCanalBackdrop).getSourceImage() as HTMLImageElement;
+    const source = this.textures.get(TEXTURE_KEYS.shorelineRunLevel01Backdrop).getSourceImage() as HTMLImageElement;
     const coverScale = Math.max(GAME_WIDTH / source.width, GAME_HEIGHT / source.height);
-    const image = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXTURE_KEYS.stPetersCanalBackdrop);
+    const image = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXTURE_KEYS.shorelineRunLevel01Backdrop);
     image.setDisplaySize(source.width * coverScale, source.height * coverScale);
     image.setScrollFactor(0);
     image.setDepth(-100);
@@ -1119,7 +1122,8 @@ export class ShorelineScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.stopFollow();
     camera.resetFX();
-    camera.setBounds(0, 0, WORLD_WIDTH, GAME_HEIGHT);
+    camera.setViewport(0, PRESENTATION_MATTE_Y, GAME_WIDTH, PRESENTATION_VIEW_HEIGHT);
+    camera.setBounds(0, 0, WORLD_WIDTH, PRESENTATION_VIEW_HEIGHT);
     camera.setScroll(0, 0);
     camera.setZoom(1);
     camera.setRotation(0);

@@ -11,7 +11,7 @@ export const START_X = 96;
 export const END_X = 2550;
 
 export const ASSET_PATHS = {
-  stPetersCanalBackdrop: 'assets/backgrounds/st_peters_canal.png',
+  shorelineRunLevel01Backdrop: 'assets/backgrounds/shoreline_run_level_01.png',
   codbyAtlasImage: 'assets/sprites/codby/codby_atlas_v1.png',
   codbyAtlasJson: 'assets/sprites/codby/codby_atlas_v1.json',
   puffyAtlasImage: 'assets/sprites/puffy/puffy_atlas_v1.png',
@@ -42,7 +42,7 @@ export const AUDIO_PATHS = {
 };
 
 export const TEXTURE_KEYS = {
-  stPetersCanalBackdrop: 'st-peters-canal-backdrop',
+  shorelineRunLevel01Backdrop: 'shoreline-run-level-01-backdrop',
   codbyAtlas: 'codby-atlas-v1',
   puffyAtlas: 'puffy-atlas-v1',
   codbyAtlasMeta: 'codby-atlas-v1-meta',
