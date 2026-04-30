@@ -49,6 +49,18 @@ type CharacterAtlasMeta = {
 
 type VisualMode = 'sprite' | 'placeholder';
 
+type PowerUpStateAtlasFrame = AtlasAnimationFrame & {
+  name: string;
+};
+
+type PowerUpStateAtlasMeta = {
+  cellWidth: number;
+  cellHeight: number;
+  columns: number;
+  rows: number;
+  frames: PowerUpStateAtlasFrame[];
+};
+
 type WaterShimmer = {
   band: Phaser.GameObjects.Rectangle;
   baseX: number;
@@ -91,6 +103,8 @@ export class ShorelineScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
+  private powerUpStateVisual?: Phaser.GameObjects.Sprite;
+  private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
   private endMarkerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Image;
   private activeCharacter: CharacterKey = 'cod';
@@ -114,7 +128,6 @@ export class ShorelineScene extends Phaser.Scene {
   private endMarker!: Phaser.GameObjects.Rectangle;
   private endMarkerText!: Phaser.GameObjects.Text;
   private waterShimmers: WaterShimmer[] = [];
-  private shieldIndicator!: Phaser.GameObjects.Arc;
   private tideIndicator!: Phaser.GameObjects.Arc;
   private sparkIndicator!: Phaser.GameObjects.Arc;
   private debugGraphics!: Phaser.GameObjects.Graphics;
@@ -125,6 +138,7 @@ export class ShorelineScene extends Phaser.Scene {
   private isSfxEnabled: boolean = GAMEPLAY_TUNING.audio.sfxEnabled;
   private wasGliding = false;
   private kelpShieldCharges = 0;
+  private kelpShieldExpiresAt = 0;
   private tideLiftExpiresAt = 0;
   private hasTideLiftCharge = false;
   private tideGlideBoostUntil = 0;
@@ -160,6 +174,11 @@ export class ShorelineScene extends Phaser.Scene {
       frameHeight: 128,
     });
     this.load.json(TEXTURE_KEYS.tiderunnerAtlasMeta, ASSET_PATHS.tiderunnerAtlasJson);
+    this.load.spritesheet(TEXTURE_KEYS.powerUpStatesAtlas, ASSET_PATHS.powerUpStatesAtlasImage, {
+      frameWidth: 256,
+      frameHeight: 256,
+    });
+    this.load.json(TEXTURE_KEYS.powerUpStatesAtlasMeta, ASSET_PATHS.powerUpStatesAtlasJson);
     this.load.image(TEXTURE_KEYS.dockPlankPlatformProp, ASSET_PATHS.dockPlankPlatformProp);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
@@ -898,6 +917,7 @@ export class ShorelineScene extends Phaser.Scene {
     body.setGravityY(character.gravityY - 900);
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
+    this.powerUpStateVisual = this.createPowerUpStateVisual();
     this.playerLabel = this.add.text(this.player.x, this.player.y - 48, character.label, {
       color: COLORS.text,
       fontFamily: 'monospace',
@@ -912,11 +932,6 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createPlayerPowerIndicators(): void {
-    this.shieldIndicator = this.add.arc(0, 0, 23, 210, 330, false, 0x7f9f5c, 0);
-    this.shieldIndicator.setStrokeStyle(4, 0x7f9f5c, 0.78);
-    this.shieldIndicator.setDepth(19);
-    this.shieldIndicator.setVisible(false);
-
     this.tideIndicator = this.add.arc(0, 0, 28, 30, 150, false, 0x7fb4c9, 0);
     this.tideIndicator.setStrokeStyle(3, 0x7fb4c9, 0.72);
     this.tideIndicator.setDepth(19);
@@ -1035,7 +1050,10 @@ export class ShorelineScene extends Phaser.Scene {
     return frameRates[sourceName] ?? 8;
   }
 
-  private getAtlasFrameIndex(meta: CharacterAtlasMeta, frame: AtlasAnimationFrame): number {
+  private getAtlasFrameIndex(
+    meta: Pick<CharacterAtlasMeta, 'cellWidth' | 'cellHeight' | 'columns'>,
+    frame: AtlasAnimationFrame,
+  ): number {
     const column = Math.floor(frame.atlasX / meta.cellWidth);
     const row = Math.floor(frame.atlasY / meta.cellHeight);
     return row * meta.columns + column;
@@ -1246,6 +1264,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.didWinLevel = false;
     this.isTransitioningToBoss = false;
     this.kelpShieldCharges = 0;
+    this.kelpShieldExpiresAt = 0;
     this.tideLiftExpiresAt = 0;
     this.hasTideLiftCharge = false;
     this.tideGlideBoostUntil = 0;
@@ -1295,6 +1314,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.playerVisual.destroy();
     this.playerVisual = this.createCharacterVisual(next);
+    this.activePowerUpStateFrame = undefined;
     this.playerLabel.setText(character.label);
     this.wasGliding = false;
     this.playSfx(AUDIO_KEYS.characterSwitch);
@@ -1407,6 +1427,8 @@ export class ShorelineScene extends Phaser.Scene {
   private activatePowerUp(kind: PowerUpKind): void {
     if (kind === 'kelpShield') {
       this.kelpShieldCharges = GAMEPLAY_TUNING.powerUps.kelpShield.charges;
+      this.kelpShieldExpiresAt = this.time.now + GAMEPLAY_TUNING.powerUps.kelpShield.durationMs;
+      this.activePowerUpStateFrame = undefined;
       this.playSfx(AUDIO_KEYS.kelpShield);
       return;
     }
@@ -1421,6 +1443,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (kind === 'tiderunner') {
       this.tideRunExpiresAt = this.time.now + GAMEPLAY_TUNING.powerUps.tiderunner.durationMs;
+      this.activePowerUpStateFrame = undefined;
       this.playSfx(AUDIO_KEYS.powerupPickup);
       return;
     }
@@ -1430,6 +1453,13 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private updatePowerUpTimers(time: number): void {
+    if (this.kelpShieldExpiresAt > 0 && time >= this.kelpShieldExpiresAt) {
+      this.kelpShieldExpiresAt = 0;
+      this.kelpShieldCharges = 0;
+      this.clearPowerUpStateVisual();
+      this.updateHud();
+    }
+
     if (this.tideLiftExpiresAt > 0 && time >= this.tideLiftExpiresAt && time >= this.tideGlideBoostUntil) {
       this.tideLiftExpiresAt = 0;
       this.tideGlideBoostUntil = 0;
@@ -1442,6 +1472,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (this.tideRunExpiresAt > 0 && time >= this.tideRunExpiresAt) {
       this.tideRunExpiresAt = 0;
+      this.clearPowerUpStateVisual();
     }
   }
 
@@ -1455,6 +1486,10 @@ export class ShorelineScene extends Phaser.Scene {
 
   private hasActiveTideRun(): boolean {
     return this.tideRunExpiresAt > this.time.now;
+  }
+
+  private hasActiveKelpShield(): boolean {
+    return this.kelpShieldCharges > 0 && this.kelpShieldExpiresAt > this.time.now;
   }
 
   private consumeTideLiftForJump(): number {
@@ -1623,8 +1658,12 @@ export class ShorelineScene extends Phaser.Scene {
     this.lastDamageAt = this.time.now;
     this.hurtUntil = this.time.now + 220;
 
-    if (this.kelpShieldCharges > 0) {
+    if (this.hasActiveKelpShield()) {
       this.kelpShieldCharges -= 1;
+      this.kelpShieldExpiresAt = 0;
+      if (this.kelpShieldCharges <= 0) {
+        this.clearPowerUpStateVisual();
+      }
       this.cameras.main.shake(90, 0.003);
       this.playerVisual.setAlpha(0.78);
       this.time.delayedCall(140, () => this.playerVisual.setAlpha(1));
@@ -1794,8 +1833,8 @@ export class ShorelineScene extends Phaser.Scene {
   private getPowerStatusText(): string {
     const states: string[] = [];
 
-    if (this.kelpShieldCharges > 0) {
-      states.push('Shield');
+    if (this.hasActiveKelpShield()) {
+      states.push(`KELP SHIELD ${this.getRemainingSeconds(this.kelpShieldExpiresAt)}`);
     }
 
     if (this.hasActiveTideLift()) {
@@ -1823,6 +1862,7 @@ export class ShorelineScene extends Phaser.Scene {
     } else {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
+    this.syncPowerUpStateVisual();
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
     this.syncPowerIndicators();
     this.endMarkerText.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.45);
@@ -1830,13 +1870,90 @@ export class ShorelineScene extends Phaser.Scene {
     this.endMarkerVisual.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
   }
 
+  private createPowerUpStateVisual(): Phaser.GameObjects.Sprite | undefined {
+    if (!this.textures.exists(TEXTURE_KEYS.powerUpStatesAtlas) || !this.cache.json.get(TEXTURE_KEYS.powerUpStatesAtlasMeta)) {
+      return undefined;
+    }
+
+    const sprite = this.add.sprite(this.player.x, this.getPlayerFootY(), TEXTURE_KEYS.powerUpStatesAtlas, 0);
+    sprite.setOrigin(0.5, 1);
+    sprite.setDepth(21);
+    sprite.setVisible(false);
+    return sprite;
+  }
+
+  private syncPowerUpStateVisual(): void {
+    if (!this.powerUpStateVisual) {
+      this.playerVisual.setVisible(true);
+      return;
+    }
+
+    const frameName = this.getActivePowerUpStateFrameName();
+    if (!frameName) {
+      this.clearPowerUpStateVisual();
+      return;
+    }
+
+    const frameIndex = this.getPowerUpStateFrameIndex(frameName);
+    if (frameIndex === undefined) {
+      this.clearPowerUpStateVisual();
+      return;
+    }
+
+    if (this.activePowerUpStateFrame !== frameName) {
+      this.powerUpStateVisual.setFrame(frameIndex);
+      this.powerUpStateVisual.setScale(this.getPowerUpStateVisualScale());
+      this.activePowerUpStateFrame = frameName;
+    }
+
+    this.powerUpStateVisual.setPosition(this.player.x, this.getPlayerFootY());
+    this.powerUpStateVisual.setFlipX(this.playerVisualMode === 'sprite' && (this.playerVisual as Phaser.GameObjects.Sprite).flipX);
+    this.powerUpStateVisual.setVisible(true);
+    this.playerVisual.setVisible(false);
+  }
+
+  private clearPowerUpStateVisual(): void {
+    this.powerUpStateVisual?.setVisible(false);
+    this.activePowerUpStateFrame = undefined;
+    this.playerVisual.setVisible(true);
+  }
+
+  private getActivePowerUpStateFrameName(): string | undefined {
+    const prefix = this.activeCharacter === 'cod' ? 'codby' : 'puffy';
+
+    if (this.hasActiveKelpShield()) {
+      return `${prefix}_kelpshield`;
+    }
+
+    if (this.hasActiveTideRun()) {
+      return `${prefix}_tiderunner`;
+    }
+
+    return undefined;
+  }
+
+  private getPowerUpStateFrameIndex(frameName: string): number | undefined {
+    const meta = this.cache.json.get(TEXTURE_KEYS.powerUpStatesAtlasMeta) as PowerUpStateAtlasMeta | undefined;
+    if (!meta || meta.cellWidth !== 256 || meta.cellHeight !== 256 || !this.textures.exists(TEXTURE_KEYS.powerUpStatesAtlas)) {
+      return undefined;
+    }
+
+    const frame = meta.frames.find((candidate) => candidate.name === frameName);
+    if (!frame) {
+      return undefined;
+    }
+
+    return this.getAtlasFrameIndex(meta, frame);
+  }
+
+  private getPowerUpStateVisualScale(): number {
+    return this.activeCharacter === 'cod' ? 0.38 : 0.34;
+  }
+
   private syncPowerIndicators(): void {
     const footY = this.getPlayerFootY();
     const hasTide = this.hasActiveTideLift();
     const hasSpark = this.hasActiveStorySpark();
-
-    this.shieldIndicator.setPosition(this.player.x, footY - 8);
-    this.shieldIndicator.setVisible(this.kelpShieldCharges > 0);
 
     this.tideIndicator.setPosition(this.player.x, footY - 14);
     this.tideIndicator.setVisible(hasTide);

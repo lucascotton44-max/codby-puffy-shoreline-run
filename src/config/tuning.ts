@@ -50,6 +50,7 @@ export const GAMEPLAY_TUNING = {
     ],
     kelpShield: {
       charges: 1,
+      durationMs: 8000,
     },
     tideLift: {
       durationMs: 5200,
