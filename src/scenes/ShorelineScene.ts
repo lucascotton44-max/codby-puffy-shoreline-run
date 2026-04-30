@@ -152,6 +152,11 @@ export class ShorelineScene extends Phaser.Scene {
       frameHeight: 160,
     });
     this.load.json(TEXTURE_KEYS.scuttleclawAtlasMeta, ASSET_PATHS.scuttleclawAtlasJson);
+    this.load.spritesheet(TEXTURE_KEYS.tiderunnerAtlas, ASSET_PATHS.tiderunnerAtlasImage, {
+      frameWidth: 128,
+      frameHeight: 128,
+    });
+    this.load.json(TEXTURE_KEYS.tiderunnerAtlasMeta, ASSET_PATHS.tiderunnerAtlasJson);
     this.load.image(TEXTURE_KEYS.dockPlankPlatformProp, ASSET_PATHS.dockPlankPlatformProp);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);

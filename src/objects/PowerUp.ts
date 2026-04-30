@@ -11,17 +11,41 @@ const POWER_UP_LABELS: Record<PowerUpKind, string> = {
   tiderunner: 'RUN',
 };
 
+const TIDERUNNER_IDLE_ANIMATION_KEY = 'tiderunner-idle';
+
+type TiderunnerAtlasFrame = {
+  atlasX: number;
+  atlasY: number;
+  w: number;
+  h: number;
+};
+
+type TiderunnerAtlasMeta = {
+  cellWidth: number;
+  cellHeight: number;
+  columns: number;
+  animations: Record<string, TiderunnerAtlasFrame[]>;
+};
+
 export class PowerUpPickup extends Phaser.GameObjects.Container {
   public declare readonly body: Phaser.Physics.Arcade.Body;
   public readonly kind: PowerUpKind;
-  private readonly core: Phaser.GameObjects.Image | Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle;
+  private readonly core:
+    | Phaser.GameObjects.Image
+    | Phaser.GameObjects.Sprite
+    | Phaser.GameObjects.Arc
+    | Phaser.GameObjects.Rectangle;
 
   public constructor(scene: Phaser.Scene, x: number, y: number, kind: PowerUpKind) {
     const parts = PowerUpPickup.createVisualParts(scene, kind);
     super(scene, x, y, parts);
 
     this.kind = kind;
-    this.core = parts[1] as Phaser.GameObjects.Image | Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle;
+    this.core = parts[1] as
+      | Phaser.GameObjects.Image
+      | Phaser.GameObjects.Sprite
+      | Phaser.GameObjects.Arc
+      | Phaser.GameObjects.Rectangle;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
@@ -61,6 +85,23 @@ export class PowerUpPickup extends Phaser.GameObjects.Container {
       });
 
       return [shadow, icon, label];
+    }
+
+    if (kind === 'tiderunner' && scene.textures.exists(TEXTURE_KEYS.tiderunnerAtlas)) {
+      PowerUpPickup.createTiderunnerAnimation(scene);
+      const sprite = scene.add.sprite(0, 17, TEXTURE_KEYS.tiderunnerAtlas, 0);
+      sprite.setDisplaySize(34, 34);
+      if (scene.anims.exists(TIDERUNNER_IDLE_ANIMATION_KEY)) {
+        sprite.play(TIDERUNNER_IDLE_ANIMATION_KEY);
+      }
+      const label = scene.add.text(-18, 22, POWER_UP_LABELS[kind], {
+        color: COLORS.text,
+        fontFamily: 'monospace',
+        fontSize: '8px',
+        fontStyle: 'bold',
+      });
+
+      return [shadow, sprite, label];
     }
 
     const color =
@@ -130,5 +171,27 @@ export class PowerUpPickup extends Phaser.GameObjects.Container {
     const icon = scene.add.image(0, -1, textureKey);
     icon.setDisplaySize(38, 38);
     return icon;
+  }
+
+  private static createTiderunnerAnimation(scene: Phaser.Scene): void {
+    if (scene.anims.exists(TIDERUNNER_IDLE_ANIMATION_KEY)) {
+      return;
+    }
+
+    const meta = scene.cache.json.get(TEXTURE_KEYS.tiderunnerAtlasMeta) as TiderunnerAtlasMeta | undefined;
+    const sourceFrames = meta?.animations.idle;
+    if (!meta || meta.cellWidth !== 128 || meta.cellHeight !== 128 || !sourceFrames?.length) {
+      return;
+    }
+
+    scene.anims.create({
+      key: TIDERUNNER_IDLE_ANIMATION_KEY,
+      frames: sourceFrames.map((frame) => ({
+        key: TEXTURE_KEYS.tiderunnerAtlas,
+        frame: Math.floor(frame.atlasY / meta.cellHeight) * meta.columns + Math.floor(frame.atlasX / meta.cellWidth),
+      })),
+      frameRate: 3,
+      repeat: -1,
+    });
   }
 }
