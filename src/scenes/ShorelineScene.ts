@@ -15,6 +15,7 @@ import { LEVELS, LevelDefinition } from '../config/levels.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
 import { HazardKind, HazardZone } from '../objects/Hazard.js';
+import { LordMalefacto } from '../objects/LordMalefacto.js';
 import { PowerUpKind, PowerUpPickup } from '../objects/PowerUp.js';
 import { Scuttleclaw } from '../objects/Scuttleclaw.js';
 
@@ -86,6 +87,7 @@ export class ShorelineScene extends Phaser.Scene {
   private fragments!: Phaser.Physics.Arcade.Group;
   private powerUps!: Phaser.Physics.Arcade.Group;
   private scuttleclaws!: Phaser.Physics.Arcade.Group;
+  private lordMalefacto?: LordMalefacto;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -281,6 +283,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.applyStorySparkAttraction();
     this.updateWaterShimmers(time);
     this.updateScuttleclaws();
+    this.lordMalefacto?.update(time);
     this.syncPlayerDecorations();
 
     if (this.isEnded) {
@@ -659,6 +662,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createFragments();
     this.createPowerUps();
     this.createScuttleclaws();
+    this.createBoss();
     this.createEndMarker();
     this.createStartZone();
   }
@@ -823,7 +827,25 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
+  private createBoss(): void {
+    this.lordMalefacto = this.currentLevel.boss ? new LordMalefacto(this, this.currentLevel.boss) : undefined;
+  }
+
   private createEndMarker(): void {
+    if (this.currentLevel.boss) {
+      this.endMarker = this.add.rectangle(this.currentLevel.endX, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
+      this.endMarkerVisual = this.add.container(this.currentLevel.endX, GROUND_Y - 72);
+      this.endMarkerText = this.add.text(this.currentLevel.endX, GROUND_Y - 174, '', {
+        color: COLORS.text,
+        fontFamily: 'monospace',
+        fontSize: '13px',
+      });
+      this.endMarker.setVisible(false);
+      this.endMarkerVisual.setVisible(false);
+      this.endMarkerText.setVisible(false);
+      return;
+    }
+
     this.endMarker = this.add.rectangle(this.currentLevel.endX, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
     if (this.hasTexture(TEXTURE_KEYS.ch8BeaconMarkerProp)) {
       this.endMarkerVisual = this.add.image(this.currentLevel.endX, GROUND_Y - 76, TEXTURE_KEYS.ch8BeaconMarkerProp);
@@ -1196,6 +1218,16 @@ export class ShorelineScene extends Phaser.Scene {
     this.physics.add.overlap(this.player, this.scuttleclaws, (_, scuttleclaw) => {
       this.handleScuttleclawContact(scuttleclaw as Scuttleclaw);
     });
+
+    if (this.lordMalefacto) {
+      this.physics.add.overlap(this.player, this.lordMalefacto as Phaser.GameObjects.GameObject, () => {
+        this.handleBossContact();
+      });
+
+      this.physics.add.overlap(this.player, this.lordMalefacto.getFlareZone(), () => {
+        this.handleBossFlareContact();
+      });
+    }
   }
 
   private resetRunState(): void {
@@ -1515,6 +1547,50 @@ export class ShorelineScene extends Phaser.Scene {
     this.damagePlayer(hazard.damage);
   }
 
+  private handleBossContact(): void {
+    const boss = this.lordMalefacto;
+    if (!boss || boss.isDefeated() || this.isEnded) {
+      return;
+    }
+
+    if (this.isStompingBoss(boss)) {
+      const didDefeatBoss = boss.takeHit(this.time.now);
+      const bounceDirection = this.player.x < boss.x ? -1 : 1;
+      this.getPlayerBody().setVelocity(bounceDirection * 125, -270);
+      if (didDefeatBoss) {
+        this.endLevel(true);
+      }
+      return;
+    }
+
+    this.damagePlayer(boss.damage);
+  }
+
+  private handleBossFlareContact(): void {
+    const boss = this.lordMalefacto;
+    if (!boss || !boss.isAttackActive()) {
+      return;
+    }
+
+    this.damagePlayer(boss.damage);
+  }
+
+  private isStompingBoss(boss: LordMalefacto): boolean {
+    if (!boss.isVulnerable()) {
+      return false;
+    }
+
+    const playerBody = this.getPlayerBody();
+    const bossBody = boss.body;
+    const playerBottom = playerBody.y + playerBody.height;
+    const bossTop = bossBody.y;
+    const playerCenterY = playerBody.y + playerBody.height * 0.5;
+    const bossUpperBody = bossBody.y + bossBody.height * 0.72;
+    const stompDepth = bossBody.height * 0.72;
+
+    return playerBody.velocity.y > 35 && playerCenterY < bossUpperBody && playerBottom <= bossTop + stompDepth;
+  }
+
   private isStompingScuttleclaw(scuttleclaw: Scuttleclaw): boolean {
     const playerBody = this.getPlayerBody();
     const enemyBody = scuttleclaw.body;
@@ -1577,7 +1653,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.player.x >= this.currentLevel.endX - 26) {
+    if (!this.currentLevel.boss && this.player.x >= this.currentLevel.endX - 26) {
       if (this.collectedFragments >= this.currentLevel.requiredFragments) {
         this.endLevel(true);
       } else {
@@ -1771,6 +1847,14 @@ export class ShorelineScene extends Phaser.Scene {
       }
       return true;
     });
+
+    if (this.lordMalefacto?.active && this.lordMalefacto.body.enable) {
+      this.drawBodyRect(this.lordMalefacto.body, 0xd19745);
+      const flareBody = this.lordMalefacto.getFlareZone().body as Phaser.Physics.Arcade.Body | undefined;
+      if (flareBody?.enable) {
+        this.drawBodyRect(flareBody, 0xff6f32);
+      }
+    }
 
     this.debugGraphics.lineStyle(2, 0x9fb1a7, 0.9);
     this.debugGraphics.strokeRect(this.currentLevel.startX - 46, GROUND_Y - 76, 92, 76);

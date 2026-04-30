@@ -69,6 +69,16 @@ export const GAMEPLAY_TUNING = {
       moveSpeedMultiplier: 1.14,
     },
   },
+  bosses: {
+    lordMalefacto: {
+      maxHealth: 3,
+      damage: 1,
+      telegraphMs: 900,
+      attackActiveMs: 900,
+      vulnerableMs: 1200,
+      hitStunMs: 500,
+    },
+  },
   audio: {
     musicVolume: 0.25,
     sfxVolume: 0.45,

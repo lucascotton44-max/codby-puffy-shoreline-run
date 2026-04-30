@@ -49,6 +49,13 @@ export type ScuttleclawDefinition = {
   damage?: number;
 };
 
+export type LordMalefactoDefinition = {
+  x: number;
+  y: number;
+  hp?: number;
+  damage?: number;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -65,6 +72,7 @@ export type LevelDefinition = {
   fragments: FragmentDefinition[];
   powerUps: PowerUpDefinition[];
   scuttleclaws: ScuttleclawDefinition[];
+  boss?: LordMalefactoDefinition;
 };
 
 export const LEVELS: LevelDefinition[] = [
@@ -230,5 +238,27 @@ export const LEVELS: LevelDefinition[] = [
     scuttleclaws: [
       { x: 2050, y: GROUND_Y - 20, minX: 1940, maxX: 2180, speed: 56, damage: 1 },
     ],
+  },
+  {
+    id: 'lord-malefacto-boss-level-04',
+    name: 'Lord Malefacto',
+    backdropPath: ASSET_PATHS.stPetersCanalLevel03Backdrop,
+    backdropTextureKey: TEXTURE_KEYS.stPetersCanalLevel03Backdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 1320,
+    startX: START_X,
+    endX: 1200,
+    totalFragments: 0,
+    requiredFragments: 0,
+    platforms: [
+      { x: 660, y: GROUND_Y + 26, width: 1320, height: 70, color: COLORS.shore },
+      { x: 372, y: 402, width: 180, height: 22, color: COLORS.dock },
+      { x: 948, y: 402, width: 180, height: 22, color: COLORS.dock },
+    ],
+    hazards: [],
+    fragments: [],
+    powerUps: [],
+    scuttleclaws: [],
+    boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
   },
 ];
