@@ -130,6 +130,8 @@ export class ShorelineScene extends Phaser.Scene {
   private waterShimmers: WaterShimmer[] = [];
   private tideIndicator!: Phaser.GameObjects.Arc;
   private sparkIndicator!: Phaser.GameObjects.Arc;
+  private tideLiftRibbons: Phaser.GameObjects.Rectangle[] = [];
+  private tideLiftBubbles: Phaser.GameObjects.Arc[] = [];
   private debugGraphics!: Phaser.GameObjects.Graphics;
   private areDebugHitboxesVisible = false;
   private music?: Phaser.Sound.BaseSound;
@@ -941,6 +943,33 @@ export class ShorelineScene extends Phaser.Scene {
     this.sparkIndicator.setStrokeStyle(2, 0xd5a24f, 0.76);
     this.sparkIndicator.setDepth(19);
     this.sparkIndicator.setVisible(false);
+
+    this.createTideLiftEffect();
+  }
+
+  private createTideLiftEffect(): void {
+    this.tideLiftRibbons = [];
+    this.tideLiftBubbles = [];
+
+    const ribbonColors = [0x3dbdbd, 0x5ac8d0, 0x7fd4d4];
+    const ribbonWidths = [3, 2, 3];
+    const ribbonHeights = [24, 18, 22];
+    for (let i = 0; i < 3; i++) {
+      const r = this.add.rectangle(0, 0, ribbonWidths[i], ribbonHeights[i], ribbonColors[i], 0.55);
+      r.setDepth(18);
+      r.setVisible(false);
+      this.tideLiftRibbons.push(r);
+    }
+
+    const bubbleColors = [0x7fe8e8, 0x5cd4d4, 0x9eeee, 0x6ecece, 0x8fffff];
+    const bubbleRadii = [2, 3, 2, 4, 2];
+    for (let i = 0; i < 5; i++) {
+      const b = this.add.arc(0, 0, bubbleRadii[i], 0, 360, false, 0, 0);
+      b.setStrokeStyle(1.5, bubbleColors[i], 0.8);
+      b.setDepth(18);
+      b.setVisible(false);
+      this.tideLiftBubbles.push(b);
+    }
   }
 
   private createCharacterVisual(characterKey: CharacterKey): Phaser.GameObjects.Container | Phaser.GameObjects.Sprite {
@@ -1956,10 +1985,44 @@ export class ShorelineScene extends Phaser.Scene {
     const hasSpark = this.hasActiveStorySpark();
 
     this.tideIndicator.setPosition(this.player.x, footY - 14);
-    this.tideIndicator.setVisible(hasTide);
+    this.tideIndicator.setVisible(false);
 
     this.sparkIndicator.setPosition(this.player.x, footY - 22);
     this.sparkIndicator.setVisible(hasSpark);
+
+    this.syncTideLiftEffect(hasTide, footY);
+  }
+
+  private syncTideLiftEffect(hasTide: boolean, footY: number): void {
+    if (!hasTide) {
+      this.tideLiftRibbons.forEach((r) => r.setVisible(false));
+      this.tideLiftBubbles.forEach((b) => b.setVisible(false));
+      return;
+    }
+
+    const t = this.time.now;
+    const px = this.player.x;
+
+    const ribbonXOffsets = [-10, 0, 11];
+    this.tideLiftRibbons.forEach((ribbon, i) => {
+      const phase = i * 1.1;
+      const sway = Math.sin(t * 0.002 + phase) * 2.5;
+      const yPulse = Math.sin(t * 0.003 + phase * 0.7) * 4;
+      ribbon.setPosition(px + ribbonXOffsets[i] + sway, footY - 20 + yPulse);
+      ribbon.setAlpha(0.38 + Math.max(0, Math.sin(t * 0.0018 + phase)) * 0.32);
+      ribbon.setVisible(true);
+    });
+
+    const bXOffsets = [-13, -5, 4, 12, -8];
+    const bCycles = [1800, 2200, 1600, 2500, 1950];
+    const bStagger = [0, 0.37, 0.74, 0.12, 0.58];
+    this.tideLiftBubbles.forEach((bubble, i) => {
+      const phase = ((t / bCycles[i]) + bStagger[i]) % 1;
+      const sway = Math.sin(t * 0.0025 + i * 1.4) * 3;
+      bubble.setPosition(px + bXOffsets[i] + sway, footY - phase * 58);
+      bubble.setAlpha(Math.sin(phase * Math.PI) * 0.72);
+      bubble.setVisible(true);
+    });
   }
 
   private getPlayerBody(): Phaser.Physics.Arcade.Body {
