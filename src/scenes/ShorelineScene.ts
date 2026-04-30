@@ -1846,7 +1846,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (this.hasActiveTideRun()) {
-      states.push(`TideRun ${this.getRemainingSeconds(this.tideRunExpiresAt)}`);
+      states.push(`TIDERUNNER ${this.getRemainingSeconds(this.tideRunExpiresAt)}`);
     }
 
     return states.length > 0 ? states.join('  ') : 'None';
