@@ -1,0 +1,142 @@
+{
+  "character": "powerup_states",
+  "source": "dev_assets/sprites/powerup_states/source",
+  "cellWidth": 256,
+  "cellHeight": 256,
+  "columns": 4,
+  "rows": 1,
+  "animations": {
+    "powerup_state": [
+      {
+        "name": "codby_kelpshield",
+        "animation": "powerup_state",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 91,
+          "y": 71,
+          "w": 1077,
+          "h": 1069,
+          "area": 1151313
+        }
+      },
+      {
+        "name": "puffy_kelpshield",
+        "animation": "powerup_state",
+        "index": 1,
+        "atlasX": 256,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 182,
+          "y": 217,
+          "w": 899,
+          "h": 839,
+          "area": 754261
+        }
+      },
+      {
+        "name": "codby_tiderunner",
+        "animation": "powerup_state",
+        "index": 2,
+        "atlasX": 512,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 54,
+          "y": 170,
+          "w": 1014,
+          "h": 924,
+          "area": 936936
+        }
+      },
+      {
+        "name": "puffy_tiderunner",
+        "animation": "powerup_state",
+        "index": 3,
+        "atlasX": 768,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 79,
+          "y": 368,
+          "w": 1024,
+          "h": 600,
+          "area": 614400
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "name": "codby_kelpshield",
+      "animation": "powerup_state",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 91,
+        "y": 71,
+        "w": 1077,
+        "h": 1069,
+        "area": 1151313
+      }
+    },
+    {
+      "name": "puffy_kelpshield",
+      "animation": "powerup_state",
+      "index": 1,
+      "atlasX": 256,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 182,
+        "y": 217,
+        "w": 899,
+        "h": 839,
+        "area": 754261
+      }
+    },
+    {
+      "name": "codby_tiderunner",
+      "animation": "powerup_state",
+      "index": 2,
+      "atlasX": 512,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 54,
+        "y": 170,
+        "w": 1014,
+        "h": 924,
+        "area": 936936
+      }
+    },
+    {
+      "name": "puffy_tiderunner",
+      "animation": "powerup_state",
+      "index": 3,
+      "atlasX": 768,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 79,
+        "y": 368,
+        "w": 1024,
+        "h": 600,
+        "area": 614400
+      }
+    }
+  ]
+}
