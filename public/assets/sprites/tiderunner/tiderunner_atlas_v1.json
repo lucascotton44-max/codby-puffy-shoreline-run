@@ -1,0 +1,78 @@
+{
+  "character": "tiderunner",
+  "source": "dev_assets/sprites/tiderunner/source",
+  "cellWidth": 128,
+  "cellHeight": 128,
+  "columns": 2,
+  "rows": 1,
+  "animations": {
+    "idle": [
+      {
+        "name": "tiderunner_idle_01.png",
+        "animation": "idle",
+        "index": 0,
+        "atlasX": 0,
+        "atlasY": 0,
+        "w": 128,
+        "h": 128,
+        "sourceBBox": {
+          "x": 357,
+          "y": 157,
+          "w": 552,
+          "h": 902,
+          "area": 497904
+        }
+      },
+      {
+        "name": "tiderunner_idle_02.png",
+        "animation": "idle",
+        "index": 1,
+        "atlasX": 128,
+        "atlasY": 0,
+        "w": 128,
+        "h": 128,
+        "sourceBBox": {
+          "x": 338,
+          "y": 109,
+          "w": 585,
+          "h": 950,
+          "area": 555750
+        }
+      }
+    ]
+  },
+  "frames": [
+    {
+      "name": "tiderunner_idle_01.png",
+      "animation": "idle",
+      "index": 0,
+      "atlasX": 0,
+      "atlasY": 0,
+      "w": 128,
+      "h": 128,
+      "sourceBBox": {
+        "x": 357,
+        "y": 157,
+        "w": 552,
+        "h": 902,
+        "area": 497904
+      }
+    },
+    {
+      "name": "tiderunner_idle_02.png",
+      "animation": "idle",
+      "index": 1,
+      "atlasX": 128,
+      "atlasY": 0,
+      "w": 128,
+      "h": 128,
+      "sourceBBox": {
+        "x": 338,
+        "y": 109,
+        "w": 585,
+        "h": 950,
+        "area": 555750
+      }
+    }
+  ]
+}
