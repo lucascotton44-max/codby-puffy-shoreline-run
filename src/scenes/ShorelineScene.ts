@@ -130,6 +130,7 @@ export class ShorelineScene extends Phaser.Scene {
   private tideGlideBoostUntil = 0;
   private storySparkExpiresAt = 0;
   private tideRunExpiresAt = 0;
+  private isTransitioningToBoss = false;
 
   public constructor() {
     super('ShorelineScene');
@@ -168,6 +169,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.kelpShieldIcon, ASSET_PATHS.kelpShieldIcon);
     this.load.image(TEXTURE_KEYS.tideLiftIcon, ASSET_PATHS.tideLiftIcon);
     this.load.image(TEXTURE_KEYS.storySparkIcon, ASSET_PATHS.storySparkIcon);
+    this.load.image(TEXTURE_KEYS.level04LockTransition, ASSET_PATHS.level04LockTransition);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
     this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
     this.load.audio(AUDIO_KEYS.level03CanalTheme, AUDIO_PATHS.level03CanalTheme);
@@ -1242,6 +1244,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.levelEndedAt = 0;
     this.isEnded = false;
     this.didWinLevel = false;
+    this.isTransitioningToBoss = false;
     this.kelpShieldCharges = 0;
     this.tideLiftExpiresAt = 0;
     this.hasTideLiftCharge = false;
@@ -1680,6 +1683,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.playSfx(didWin ? AUDIO_KEYS.levelComplete : AUDIO_KEYS.gameOver);
     this.updateHud();
 
+    if (didWin && this.shouldPlayBossTransition()) {
+      this.startBossTransition();
+      return;
+    }
+
     const summaryLines = didWin
       ? [
           this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
@@ -1703,6 +1711,58 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.messageText.setText(summaryLines.join('\n'));
     this.messagePanel.setVisible(true);
+  }
+
+  private shouldPlayBossTransition(): boolean {
+    const nextLevel = LEVELS[this.currentLevelIndex + 1];
+    return !this.isTransitioningToBoss && this.currentLevelIndex === 2 && Boolean(nextLevel?.boss);
+  }
+
+  private startBossTransition(): void {
+    this.isTransitioningToBoss = true;
+    this.messagePanel.setVisible(false);
+    this.messageText.setText('');
+
+    if (!this.textures.exists(TEXTURE_KEYS.level04LockTransition)) {
+      this.advanceToNextLevel();
+      return;
+    }
+
+    const camera = this.cameras.main;
+    const transitionImage = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXTURE_KEYS.level04LockTransition);
+    const source = this.textures.get(TEXTURE_KEYS.level04LockTransition).getSourceImage() as HTMLImageElement;
+    const coverScale = Math.max(GAME_WIDTH / source.width, GAME_HEIGHT / source.height);
+    transitionImage
+      .setScrollFactor(0)
+      .setDepth(1200)
+      .setScale(coverScale)
+      .setAlpha(0);
+
+    const flash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xe9f7ff, 0);
+    flash.setScrollFactor(0);
+    flash.setDepth(1201);
+
+    this.tweens.add({
+      targets: transitionImage,
+      alpha: 1,
+      scale: coverScale * 1.045,
+      x: GAME_WIDTH / 2 - 18,
+      duration: 2900,
+      ease: 'Sine.easeInOut',
+      onComplete: () => {
+        this.tweens.add({
+          targets: flash,
+          alpha: 0.86,
+          duration: 115,
+          yoyo: true,
+          ease: 'Sine.easeOut',
+          onComplete: () => {
+            camera.fadeOut(180, 233, 247, 255);
+            this.time.delayedCall(210, () => this.advanceToNextLevel());
+          },
+        });
+      },
+    });
   }
 
   private updateHud(): void {
