@@ -128,7 +128,7 @@ export class ShorelineScene extends Phaser.Scene {
   private endMarker!: Phaser.GameObjects.Rectangle;
   private endMarkerText!: Phaser.GameObjects.Text;
   private waterShimmers: WaterShimmer[] = [];
-  private tideIndicator!: Phaser.GameObjects.Arc;
+  private tideLiftGraphics!: Phaser.GameObjects.Graphics;
   private sparkIndicator!: Phaser.GameObjects.Arc;
   private debugGraphics!: Phaser.GameObjects.Graphics;
   private areDebugHitboxesVisible = false;
@@ -932,10 +932,8 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createPlayerPowerIndicators(): void {
-    this.tideIndicator = this.add.arc(0, 0, 28, 30, 150, false, 0x7fb4c9, 0);
-    this.tideIndicator.setStrokeStyle(3, 0x7fb4c9, 0.72);
-    this.tideIndicator.setDepth(19);
-    this.tideIndicator.setVisible(false);
+    this.tideLiftGraphics = this.add.graphics();
+    this.tideLiftGraphics.setDepth(18);
 
     this.sparkIndicator = this.add.arc(0, 0, 32, 205, 335, false, 0xd5a24f, 0);
     this.sparkIndicator.setStrokeStyle(2, 0xd5a24f, 0.76);
@@ -1955,8 +1953,50 @@ export class ShorelineScene extends Phaser.Scene {
     const hasTide = this.hasActiveTideLift();
     const hasSpark = this.hasActiveStorySpark();
 
-    this.tideIndicator.setPosition(this.player.x, footY - 14);
-    this.tideIndicator.setVisible(hasTide);
+    this.tideLiftGraphics.clear();
+    if (hasTide) {
+      const t = this.time.now;
+      const px = this.player.x;
+
+      const streaks = [
+        { xOff: -13, height: 42, width: 2.4, alpha: 0.48, phase: 0.0 },
+        { xOff: 0, height: 50, width: 2.0, alpha: 0.36, phase: 1.3 },
+        { xOff: 13, height: 38, width: 2.4, alpha: 0.44, phase: 2.1 },
+      ];
+      for (const streak of streaks) {
+        const sway = Math.sin(t * 0.004 + streak.phase) * 2.4;
+        this.tideLiftGraphics.lineStyle(streak.width, 0x67c6c2, streak.alpha);
+        this.tideLiftGraphics.lineBetween(
+          px + streak.xOff - sway * 0.25,
+          footY - 2,
+          px + streak.xOff + sway,
+          footY - streak.height,
+        );
+      }
+
+      this.tideLiftGraphics.lineStyle(1.2, 0xc5f5ee, 0.25);
+      const foamXs = [-11, -3, 6];
+      for (let i = 0; i < foamXs.length; i++) {
+        const fw = Math.sin(t * 0.0022 + i * 2.0);
+        this.tideLiftGraphics.lineBetween(px + foamXs[i] - 3, footY - 2 + fw, px + foamXs[i] + 4, footY - 5 + fw);
+      }
+
+      const bubbleDefs = [
+        { xOff: -16, speed: 0.0018, phase: 0.00 },
+        { xOff:   8, speed: 0.0022, phase: 0.30 },
+        { xOff:  -6, speed: 0.0015, phase: 0.60 },
+        { xOff:  16, speed: 0.0020, phase: 0.15 },
+        { xOff:   0, speed: 0.0025, phase: 0.80 },
+      ];
+      this.tideLiftGraphics.fillStyle(0x7fd8d5, 0.68);
+      for (const b of bubbleDefs) {
+        const cycle = (t * b.speed + b.phase) % 1.0;
+        const bx = px + b.xOff;
+        const by = footY - 4 - cycle * 46;
+        const r = Math.max(1, 2.8 - cycle * 0.6);
+        this.tideLiftGraphics.fillCircle(bx, by, r);
+      }
+    }
 
     this.sparkIndicator.setPosition(this.player.x, footY - 22);
     this.sparkIndicator.setVisible(hasSpark);
