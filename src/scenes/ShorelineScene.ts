@@ -174,6 +174,11 @@ export class ShorelineScene extends Phaser.Scene {
       frameHeight: 128,
     });
     this.load.json(TEXTURE_KEYS.tiderunnerAtlasMeta, ASSET_PATHS.tiderunnerAtlasJson);
+    this.load.spritesheet(TEXTURE_KEYS.lordMalefactoAtlas, ASSET_PATHS.lordMalefactoAtlasImage, {
+      frameWidth: 320,
+      frameHeight: 320,
+    });
+    this.load.json(TEXTURE_KEYS.lordMalefactoAtlasMeta, ASSET_PATHS.lordMalefactoAtlasJson);
     this.load.spritesheet(TEXTURE_KEYS.powerUpStatesAtlas, ASSET_PATHS.powerUpStatesAtlasImage, {
       frameWidth: 256,
       frameHeight: 256,

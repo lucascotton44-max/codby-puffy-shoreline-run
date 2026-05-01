@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
+import { TEXTURE_KEYS } from '../config/constants.js';
 import type { LordMalefactoDefinition } from '../config/levels.js';
 
 type LordMalefactoState = 'idle' | 'telegraph' | 'attackActive' | 'vulnerable' | 'hitStun' | 'defeated';
@@ -32,6 +33,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
   private hp: number;
   private bossState: LordMalefactoState = 'idle';
   private stateEndsAt = 0;
+  private readonly spriteBody?: Phaser.GameObjects.Image;
+  private readonly bodyPrimitives: Phaser.GameObjects.Rectangle[] = [];
 
   public constructor(scene: Phaser.Scene, definition: LordMalefactoDefinition) {
     const parts = LordMalefacto.createVisualParts(scene);
@@ -60,6 +63,19 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.body.setSize(BODY_WIDTH, BODY_HEIGHT);
     this.body.setOffset(-BODY_WIDTH / 2, -BODY_HEIGHT / 2);
     this.setDepth(11);
+
+    // Body primitives hidden when sprite is active; shown for vulnerable/hitStun feedback
+    this.bodyPrimitives = [
+      parts[2], parts[3], parts[4], parts[5], parts[6],
+      parts[7], parts[8], parts[13], parts[14], parts[15], parts[16],
+    ] as Phaser.GameObjects.Rectangle[];
+
+    if (scene.textures.exists(TEXTURE_KEYS.lordMalefactoAtlas)) {
+      this.spriteBody = scene.add.image(0, -14, TEXTURE_KEYS.lordMalefactoAtlas, 0);
+      this.spriteBody.setOrigin(0.5, 0.5);
+      this.spriteBody.setScale(0.75);
+      this.addAt(this.spriteBody, 1);
+    }
 
     this.flareZone = scene.add.rectangle(definition.x - 138, definition.y + 42, FLARE_WIDTH, FLARE_HEIGHT, 0xb65b2a, 0);
     scene.physics.add.existing(this.flareZone);
@@ -136,6 +152,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
 
   private enterState(nextState: LordMalefactoState, time: number): void {
     this.bossState = nextState;
+    this.syncBodyVisual(nextState);
     this.flareBody.enable = false;
     this.setPosition(this.baseX, this.baseY);
     this.body.reset(this.baseX, this.baseY);
@@ -242,6 +259,17 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       y: this.y + 34,
       duration: 360,
     });
+  }
+
+  private syncBodyVisual(state: LordMalefactoState): void {
+    if (!this.spriteBody) {
+      return;
+    }
+    const showPrimitives = state === 'vulnerable' || state === 'hitStun';
+    this.spriteBody.setVisible(!showPrimitives);
+    for (const part of this.bodyPrimitives) {
+      part.setVisible(showPrimitives);
+    }
   }
 
   private static createVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
