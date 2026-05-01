@@ -3,11 +3,12 @@
   "sources": [
     "lord_malefacto_idle_reference_v1_raw.png",
     "lord_malefacto_hit_reference_v1_raw.png",
-    "lord_malefacto_telegraph_reference_v1_raw.png"
+    "lord_malefacto_telegraph_reference_v1_raw.png",
+    "lord_malefacto_vulnerable_reference_v1_raw.png"
   ],
   "cellWidth": 320,
   "cellHeight": 320,
-  "columns": 3,
+  "columns": 4,
   "rows": 1,
   "animations": {
     "idle": [
@@ -63,6 +64,24 @@
           "area": 845900
         }
       }
+    ],
+    "vulnerable": [
+      {
+        "name": "lord_malefacto_vulnerable",
+        "animation": "vulnerable",
+        "index": 3,
+        "atlasX": 960,
+        "atlasY": 0,
+        "w": 320,
+        "h": 320,
+        "sourceBBox": {
+          "x": 322,
+          "y": 99,
+          "w": 637,
+          "h": 1084,
+          "area": 690508
+        }
+      }
     ]
   },
   "frames": [
@@ -112,6 +131,22 @@
         "w": 769,
         "h": 1100,
         "area": 845900
+      }
+    },
+    {
+      "name": "lord_malefacto_vulnerable",
+      "animation": "vulnerable",
+      "index": 3,
+      "atlasX": 960,
+      "atlasY": 0,
+      "w": 320,
+      "h": 320,
+      "sourceBBox": {
+        "x": 322,
+        "y": 99,
+        "w": 637,
+        "h": 1084,
+        "area": 690508
       }
     }
   ]
