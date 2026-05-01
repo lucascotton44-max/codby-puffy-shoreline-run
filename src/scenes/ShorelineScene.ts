@@ -73,6 +73,9 @@ type WaterShimmer = {
 const PRESENTATION_MATTE_Y = 14;
 const PRESENTATION_VIEW_HEIGHT = GAME_HEIGHT - PRESENTATION_MATTE_Y * 2;
 
+// Set true to hide control hints and dev labels for clean trailer/screen captures.
+const TRAILER_CAPTURE_MODE = false;
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -1131,6 +1134,11 @@ export class ShorelineScene extends Phaser.Scene {
     });
     this.hudHintText.setScrollFactor(0);
 
+    if (TRAILER_CAPTURE_MODE) {
+      this.hudTitleText.setVisible(false);
+      this.hudHintText.setVisible(false);
+    }
+
     this.messagePanel = this.add.rectangle(GAME_WIDTH / 2, 206, 620, 230, 0x172426, 0.88);
     this.messagePanel.setStrokeStyle(1, 0xd8ddd2, 0.28);
     this.messagePanel.setScrollFactor(0);
@@ -1193,6 +1201,11 @@ export class ShorelineScene extends Phaser.Scene {
       fontSize: '12px',
     });
     controls.setOrigin(0.5, 0.5);
+
+    if (TRAILER_CAPTURE_MODE) {
+      prompt.setVisible(false);
+      controls.setVisible(false);
+    }
 
     this.titleOverlay = this.add.container(0, 0, [shade, topRule, title, objective, lowerRule, prompt, controls]);
     this.titleOverlay.setDepth(900);
