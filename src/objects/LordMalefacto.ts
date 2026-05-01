@@ -265,11 +265,10 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     if (!this.spriteBody) {
       return;
     }
-    const showPrimitives = state === 'vulnerable';
-    this.spriteBody.setFrame(state === 'hitStun' ? 1 : state === 'telegraph' ? 2 : 0);
-    this.spriteBody.setVisible(!showPrimitives);
+    this.spriteBody.setFrame(state === 'hitStun' ? 1 : state === 'telegraph' ? 2 : state === 'vulnerable' ? 3 : 0);
+    this.spriteBody.setVisible(true);
     for (const part of this.bodyPrimitives) {
-      part.setVisible(showPrimitives);
+      part.setVisible(false);
     }
   }
 
