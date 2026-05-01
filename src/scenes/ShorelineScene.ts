@@ -1166,7 +1166,7 @@ export class ShorelineScene extends Phaser.Scene {
     const objective = this.add.text(
       GAME_WIDTH / 2,
       272,
-      'Collect the story fragments.\nMind the gaps. Ride the tide.\nReach CH 8.',
+      'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.',
       {
         align: 'center',
         color: COLORS.mutedText,
@@ -1703,7 +1703,7 @@ export class ShorelineScene extends Phaser.Scene {
       if (this.collectedFragments >= this.currentLevel.requiredFragments) {
         this.endLevel(true);
       } else {
-        this.messageText.setText(`Need ${this.currentLevel.requiredFragments - this.collectedFragments} more story fragment(s).`);
+        this.messageText.setText(`Need ${this.currentLevel.requiredFragments - this.collectedFragments} more Tide Relic(s).`);
         this.messagePanel.setVisible(true);
         this.time.delayedCall(900, () => {
           if (!this.isEnded) {
@@ -1736,7 +1736,7 @@ export class ShorelineScene extends Phaser.Scene {
           this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
           '',
           'You reached CH 8.',
-          `Fragments: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
+          `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
@@ -1746,7 +1746,7 @@ export class ShorelineScene extends Phaser.Scene {
           'GAME OVER',
           '',
           'The tide got the better of you.',
-          `Fragments: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
+          `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Score: ${this.score}`,
           '',
           'Press R to Try Again',
@@ -1813,7 +1813,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudTitleText.setText('COD B’Y & PUFFY: SHORELINE RUN');
     this.hudStatsText.setText(
       [
-        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   FRAG ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
+        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
         `POWER ${this.getPowerStatusText()}`,
         `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
@@ -1847,7 +1847,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (this.hasActiveStorySpark()) {
-      states.push(`FRAG MAGNET ${this.getRemainingSeconds(this.storySparkExpiresAt)}`);
+      states.push(`RELIC MAGNET ${this.getRemainingSeconds(this.storySparkExpiresAt)}`);
     }
 
     if (this.hasActiveTideRun()) {
