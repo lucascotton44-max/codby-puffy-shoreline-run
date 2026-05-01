@@ -1098,11 +1098,11 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.hudPanel = this.add.rectangle(338, 50, 640, 76, 0x172426, 0.68);
-    this.hudPanel.setStrokeStyle(1, 0xb9c0b5, 0.16);
+    this.hudPanel = this.add.rectangle(378, 56, 708, 88, 0x172426, 0.76);
+    this.hudPanel.setStrokeStyle(1, 0xb9c0b5, 0.24);
     this.hudPanel.setScrollFactor(0);
 
-    this.hudTitleText = this.add.text(24, 13, '', {
+    this.hudTitleText = this.add.text(24, 12, '', {
       color: COLORS.text,
       fontFamily: 'monospace',
       fontSize: '12px',
@@ -1113,12 +1113,13 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudStatsText = this.add.text(24, 33, '', {
       color: COLORS.text,
       fontFamily: 'monospace',
-      fontSize: '13px',
-      lineSpacing: 3,
+      fontSize: '12px',
+      fontStyle: 'bold',
+      lineSpacing: 4,
     });
     this.hudStatsText.setScrollFactor(0);
 
-    this.hudHintText = this.add.text(24, 66, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
+    this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
       color: COLORS.mutedText,
       fontFamily: 'monospace',
       fontSize: '10px',
@@ -1807,8 +1808,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudTitleText.setText('COD B’Y & PUFFY: SHORELINE RUN');
     this.hudStatsText.setText(
       [
-        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   FRAGS ${this.collectedFragments}/${this.currentLevel.totalFragments} NEED ${this.currentLevel.requiredFragments}`,
-        `POWER ${this.getPowerStatusText()}   SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}`,
+        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   FRAG ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
+        `POWER ${this.getPowerStatusText()}`,
+        `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
     );
   }
@@ -1836,18 +1838,18 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (this.hasActiveTideLift()) {
-      states.push(`Tide ${this.getRemainingSeconds(Math.max(this.tideLiftExpiresAt, this.tideGlideBoostUntil))}`);
+      states.push(`TIDE LIFT ${this.getRemainingSeconds(Math.max(this.tideLiftExpiresAt, this.tideGlideBoostUntil))}`);
     }
 
     if (this.hasActiveStorySpark()) {
-      states.push(`Spark ${this.getRemainingSeconds(this.storySparkExpiresAt)}`);
+      states.push(`FRAG MAGNET ${this.getRemainingSeconds(this.storySparkExpiresAt)}`);
     }
 
     if (this.hasActiveTideRun()) {
       states.push(`TIDERUNNER ${this.getRemainingSeconds(this.tideRunExpiresAt)}`);
     }
 
-    return states.length > 0 ? states.join('  ') : 'None';
+    return states.length > 0 ? states.join(' | ') : 'NONE';
   }
 
   private getRemainingSeconds(expiresAt: number): string {
