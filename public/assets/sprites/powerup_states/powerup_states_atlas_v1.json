@@ -3,7 +3,7 @@
   "source": "dev_assets/sprites/powerup_states/source",
   "cellWidth": 256,
   "cellHeight": 256,
-  "columns": 4,
+  "columns": 6,
   "rows": 1,
   "animations": {
     "powerup_state": [
@@ -69,6 +69,38 @@
           "w": 1024,
           "h": 600,
           "area": 614400
+        }
+      },
+      {
+        "name": "codby_fragmagnet",
+        "animation": "powerup_state",
+        "index": 4,
+        "atlasX": 1024,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 121,
+          "y": 108,
+          "w": 1103,
+          "h": 903,
+          "area": 996009
+        }
+      },
+      {
+        "name": "puffy_fragmagnet",
+        "animation": "powerup_state",
+        "index": 5,
+        "atlasX": 1280,
+        "atlasY": 0,
+        "w": 256,
+        "h": 256,
+        "sourceBBox": {
+          "x": 238,
+          "y": 126,
+          "w": 956,
+          "h": 851,
+          "area": 813556
         }
       }
     ]
@@ -136,6 +168,38 @@
         "w": 1024,
         "h": 600,
         "area": 614400
+      }
+    },
+    {
+      "name": "codby_fragmagnet",
+      "animation": "powerup_state",
+      "index": 4,
+      "atlasX": 1024,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 121,
+        "y": 108,
+        "w": 1103,
+        "h": 903,
+        "area": 996009
+      }
+    },
+    {
+      "name": "puffy_fragmagnet",
+      "animation": "powerup_state",
+      "index": 5,
+      "atlasX": 1280,
+      "atlasY": 0,
+      "w": 256,
+      "h": 256,
+      "sourceBBox": {
+        "x": 238,
+        "y": 126,
+        "w": 956,
+        "h": 851,
+        "area": 813556
       }
     }
   ]

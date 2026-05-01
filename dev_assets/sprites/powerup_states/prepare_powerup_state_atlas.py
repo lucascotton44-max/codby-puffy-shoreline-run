@@ -9,7 +9,7 @@ from PIL import Image
 
 CELL_WIDTH = 256
 CELL_HEIGHT = 256
-COLUMNS = 4
+COLUMNS = 6
 ROWS = 1
 INNER_PADDING = 18
 BASELINE_PADDING = 8
@@ -21,6 +21,8 @@ FRAMES = [
     ("puffy_kelpshield", "puffy_kelpshield_state_01_raw.png"),
     ("codby_tiderunner", "codby_tiderunner_state_01_raw.png"),
     ("puffy_tiderunner", "puffy_tiderunner_state_01_raw.png"),
+    ("codby_fragmagnet", "codby_fragmagnet_state_01_raw.png"),
+    ("puffy_fragmagnet", "puffy_fragmagnet_state_01_raw.png"),
 ]
 
 
