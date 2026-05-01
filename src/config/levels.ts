@@ -242,8 +242,8 @@ export const LEVELS: LevelDefinition[] = [
   {
     id: 'lord-malefacto-boss-level-04',
     name: 'Lord Malefacto',
-    backdropPath: ASSET_PATHS.stPetersCanalLevel03Backdrop,
-    backdropTextureKey: TEXTURE_KEYS.stPetersCanalLevel03Backdrop,
+    backdropPath: ASSET_PATHS.level04LockChamberArenaBackdrop,
+    backdropTextureKey: TEXTURE_KEYS.level04LockChamberArenaBackdrop,
     musicAudioKey: AUDIO_KEYS.level03CanalTheme,
     worldWidth: 1320,
     startX: START_X,
