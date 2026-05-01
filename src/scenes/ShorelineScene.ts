@@ -1927,6 +1927,10 @@ export class ShorelineScene extends Phaser.Scene {
       return `${prefix}_tiderunner`;
     }
 
+    if (this.hasActiveStorySpark()) {
+      return `${prefix}_fragmagnet`;
+    }
+
     return undefined;
   }
 
