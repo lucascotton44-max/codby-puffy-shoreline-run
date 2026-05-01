@@ -2,11 +2,12 @@
   "character": "lord_malefacto",
   "sources": [
     "lord_malefacto_idle_reference_v1_raw.png",
-    "lord_malefacto_hit_reference_v1_raw.png"
+    "lord_malefacto_hit_reference_v1_raw.png",
+    "lord_malefacto_telegraph_reference_v1_raw.png"
   ],
   "cellWidth": 320,
   "cellHeight": 320,
-  "columns": 2,
+  "columns": 3,
   "rows": 1,
   "animations": {
     "idle": [
@@ -44,6 +45,24 @@
           "area": 759124
         }
       }
+    ],
+    "telegraph": [
+      {
+        "name": "lord_malefacto_telegraph",
+        "animation": "telegraph",
+        "index": 2,
+        "atlasX": 640,
+        "atlasY": 0,
+        "w": 320,
+        "h": 320,
+        "sourceBBox": {
+          "x": 271,
+          "y": 86,
+          "w": 769,
+          "h": 1100,
+          "area": 845900
+        }
+      }
     ]
   },
   "frames": [
@@ -77,6 +96,22 @@
         "w": 692,
         "h": 1097,
         "area": 759124
+      }
+    },
+    {
+      "name": "lord_malefacto_telegraph",
+      "animation": "telegraph",
+      "index": 2,
+      "atlasX": 640,
+      "atlasY": 0,
+      "w": 320,
+      "h": 320,
+      "sourceBBox": {
+        "x": 271,
+        "y": 86,
+        "w": 769,
+        "h": 1100,
+        "area": 845900
       }
     }
   ]

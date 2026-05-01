@@ -9,7 +9,7 @@ from PIL import Image
 
 CELL_WIDTH = 320
 CELL_HEIGHT = 320
-COLUMNS = 2
+COLUMNS = 3
 ROWS = 1
 INNER_PADDING = 18
 BASELINE_PADDING = 8
@@ -17,8 +17,9 @@ BACKGROUND_DISTANCE_THRESHOLD = 54
 BACKGROUND_CHANNEL_SPREAD = 28
 
 FRAMES = [
-    {"name": "lord_malefacto_idle", "animation": "idle", "source": "lord_malefacto_idle_reference_v1_raw.png"},
-    {"name": "lord_malefacto_hit",  "animation": "hit",  "source": "lord_malefacto_hit_reference_v1_raw.png"},
+    {"name": "lord_malefacto_idle",      "animation": "idle",      "source": "lord_malefacto_idle_reference_v1_raw.png"},
+    {"name": "lord_malefacto_hit",       "animation": "hit",       "source": "lord_malefacto_hit_reference_v1_raw.png"},
+    {"name": "lord_malefacto_telegraph", "animation": "telegraph", "source": "lord_malefacto_telegraph_reference_v1_raw.png"},
 ]
 
 
