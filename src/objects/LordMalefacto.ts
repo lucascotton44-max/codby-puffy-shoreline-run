@@ -215,7 +215,6 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.vulnerableText.setVisible(true);
       this.vulnerableText.setText('VULNERABLE\nSTOMP NOW');
       this.stompCue.setVisible(true);
-      this.hitboxCue.setStrokeStyle(7, 0xf5fbff, 1);
       this.coat.setFillStyle(0xdceff5, 0.98);
       this.coat.setStrokeStyle(7, 0xffffff, 1);
       this.shoulder.setFillStyle(0xf5fbff, 0.98);
