@@ -1,9 +1,12 @@
 {
   "character": "lord_malefacto",
-  "source": "dev_assets/sprites/lord_malefacto/source/lord_malefacto_idle_reference_v1_raw.png",
+  "sources": [
+    "lord_malefacto_idle_reference_v1_raw.png",
+    "lord_malefacto_hit_reference_v1_raw.png"
+  ],
   "cellWidth": 320,
   "cellHeight": 320,
-  "columns": 1,
+  "columns": 2,
   "rows": 1,
   "animations": {
     "idle": [
@@ -23,6 +26,24 @@
           "area": 429570
         }
       }
+    ],
+    "hit": [
+      {
+        "name": "lord_malefacto_hit",
+        "animation": "hit",
+        "index": 1,
+        "atlasX": 320,
+        "atlasY": 0,
+        "w": 320,
+        "h": 320,
+        "sourceBBox": {
+          "x": 323,
+          "y": 73,
+          "w": 692,
+          "h": 1097,
+          "area": 759124
+        }
+      }
     ]
   },
   "frames": [
@@ -40,6 +61,22 @@
         "w": 430,
         "h": 999,
         "area": 429570
+      }
+    },
+    {
+      "name": "lord_malefacto_hit",
+      "animation": "hit",
+      "index": 1,
+      "atlasX": 320,
+      "atlasY": 0,
+      "w": 320,
+      "h": 320,
+      "sourceBBox": {
+        "x": 323,
+        "y": 73,
+        "w": 692,
+        "h": 1097,
+        "area": 759124
       }
     }
   ]

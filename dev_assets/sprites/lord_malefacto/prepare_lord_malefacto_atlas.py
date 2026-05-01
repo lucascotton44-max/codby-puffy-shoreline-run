@@ -9,15 +9,17 @@ from PIL import Image
 
 CELL_WIDTH = 320
 CELL_HEIGHT = 320
-COLUMNS = 1
+COLUMNS = 2
 ROWS = 1
 INNER_PADDING = 18
 BASELINE_PADDING = 8
 BACKGROUND_DISTANCE_THRESHOLD = 54
 BACKGROUND_CHANNEL_SPREAD = 28
 
-FRAME_NAME = "lord_malefacto_idle"
-SOURCE_NAME = "lord_malefacto_idle_reference_v1_raw.png"
+FRAMES = [
+    {"name": "lord_malefacto_idle", "animation": "idle", "source": "lord_malefacto_idle_reference_v1_raw.png"},
+    {"name": "lord_malefacto_hit",  "animation": "hit",  "source": "lord_malefacto_hit_reference_v1_raw.png"},
+]
 
 
 def clean_background(image: Image.Image) -> Image.Image:
@@ -88,56 +90,62 @@ def alpha_bbox(image: Image.Image) -> tuple[int, int, int, int]:
 def main() -> None:
     script_dir = Path(__file__).resolve().parent
     repo_root = script_dir.parents[2]
-    source_path = script_dir / "source" / SOURCE_NAME
     output_dir = repo_root / "public" / "assets" / "sprites" / "lord_malefacto"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    cleaned = clean_background(Image.open(source_path))
-    bbox = alpha_bbox(cleaned)
-    cropped = cleaned.crop(bbox)
-
+    atlas = Image.new("RGBA", (CELL_WIDTH * COLUMNS, CELL_HEIGHT * ROWS), (0, 0, 0, 0))
     max_width = CELL_WIDTH - INNER_PADDING * 2
     max_height = CELL_HEIGHT - INNER_PADDING * 2
-    scale = min(max_width / cropped.width, max_height / cropped.height)
-    scaled_size = (max(1, round(cropped.width * scale)), max(1, round(cropped.height * scale)))
-    scaled = cropped.resize(scaled_size, Image.Resampling.LANCZOS)
 
-    atlas = Image.new("RGBA", (CELL_WIDTH * COLUMNS, CELL_HEIGHT * ROWS), (0, 0, 0, 0))
-    x = (CELL_WIDTH - scaled.width) // 2
-    y = CELL_HEIGHT - scaled.height - BASELINE_PADDING
-    atlas.alpha_composite(scaled, (x, y))
+    frame_records: list[dict] = []
+    animations: dict[str, list[dict]] = {}
 
-    left, top, right, bottom = bbox
-    bbox_width = right - left
-    bbox_height = bottom - top
-    frame = {
-        "name": FRAME_NAME,
-        "animation": "idle",
-        "index": 0,
-        "atlasX": 0,
-        "atlasY": 0,
-        "w": CELL_WIDTH,
-        "h": CELL_HEIGHT,
-        "sourceBBox": {
-            "x": left,
-            "y": top,
-            "w": bbox_width,
-            "h": bbox_height,
-            "area": bbox_width * bbox_height,
-        },
-    }
+    for col, frame_def in enumerate(FRAMES):
+        source_path = script_dir / "source" / frame_def["source"]
+        cleaned = clean_background(Image.open(source_path))
+        bbox = alpha_bbox(cleaned)
+        cropped = cleaned.crop(bbox)
+
+        scale = min(max_width / cropped.width, max_height / cropped.height)
+        scaled_size = (max(1, round(cropped.width * scale)), max(1, round(cropped.height * scale)))
+        scaled = cropped.resize(scaled_size, Image.Resampling.LANCZOS)
+
+        cell_x = col * CELL_WIDTH
+        paste_x = cell_x + (CELL_WIDTH - scaled.width) // 2
+        paste_y = CELL_HEIGHT - scaled.height - BASELINE_PADDING
+        atlas.alpha_composite(scaled, (paste_x, paste_y))
+
+        left, top, right, bottom = bbox
+        bbox_width = right - left
+        bbox_height = bottom - top
+        record = {
+            "name": frame_def["name"],
+            "animation": frame_def["animation"],
+            "index": col,
+            "atlasX": cell_x,
+            "atlasY": 0,
+            "w": CELL_WIDTH,
+            "h": CELL_HEIGHT,
+            "sourceBBox": {
+                "x": left,
+                "y": top,
+                "w": bbox_width,
+                "h": bbox_height,
+                "area": bbox_width * bbox_height,
+            },
+        }
+        frame_records.append(record)
+        animations.setdefault(frame_def["animation"], []).append(record)
 
     metadata = {
         "character": "lord_malefacto",
-        "source": f"dev_assets/sprites/lord_malefacto/source/{SOURCE_NAME}",
+        "sources": [f["source"] for f in FRAMES],
         "cellWidth": CELL_WIDTH,
         "cellHeight": CELL_HEIGHT,
         "columns": COLUMNS,
         "rows": ROWS,
-        "animations": {
-            "idle": [frame],
-        },
-        "frames": [frame],
+        "animations": animations,
+        "frames": frame_records,
     }
 
     atlas.save(output_dir / "lord_malefacto_atlas_v1.png")
@@ -145,6 +153,10 @@ def main() -> None:
         json.dumps(metadata, indent=2) + "\n",
         encoding="utf-8",
     )
+
+    print(f"Atlas: {CELL_WIDTH * COLUMNS}x{CELL_HEIGHT * ROWS}px  {COLUMNS}x{ROWS} grid  {len(frame_records)} frames")
+    for rec in frame_records:
+        print(f"  [{rec['index']}] {rec['name']}  atlasX={rec['atlasX']}  sourceBBox {rec['sourceBBox']['w']}x{rec['sourceBBox']['h']}")
 
 
 if __name__ == "__main__":
