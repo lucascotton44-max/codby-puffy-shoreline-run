@@ -7,7 +7,7 @@ export type PowerUpKind = 'kelpShield' | 'tideLift' | 'storySpark' | 'tiderunner
 const POWER_UP_LABELS: Record<PowerUpKind, string> = {
   kelpShield: 'KELP',
   tideLift: 'TIDE',
-  storySpark: 'MAGNET',
+  storySpark: 'MAG',
   tiderunner: 'RUN',
 };
 
