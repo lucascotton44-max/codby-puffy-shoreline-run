@@ -10,14 +10,18 @@
     "w": 320,
     "h": 79
   },
-  "alphaCleanupMethod": "flood-fill from edges, distance threshold from median edge-sample background",
-  "backgroundDistanceThreshold": 24,
-  "backgroundChannelSpread": 14,
+  "alphaCleanupMethod": "pass 1: flood-fill from edges with raised thresholds to catch warm-grey fire-bleed fringe; pass 2: zero enclosed near-background bright low-saturation pixels unreachable from edges",
+  "backgroundDistanceThreshold": 65,
+  "backgroundChannelSpread": 55,
+  "secondaryBrightnessFloor": 90,
+  "secondarySaturationCeiling": 0.22,
+  "secondaryDistanceThreshold": 55,
   "cropPaddingPx": 14,
   "notes": [
     "Overlay this at the flare zone center (flareX, flareY) using setDisplaySize for hitbox alignment.",
     "Rectangle flareZone collision body is unchanged; this PNG is visual-only.",
     "If glow fringe clips, increase recommendedDisplaySize.w slightly.",
-    "If background fringing visible at edges, tighten BACKGROUND_DISTANCE_THRESHOLD."
+    "If background fringing visible at edges, tighten BACKGROUND_DISTANCE_THRESHOLD.",
+    "Second-pass cleanup zeros near-background bright low-saturation pixels not reachable by edge flood fill."
   ]
 }
