@@ -104,6 +104,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     if (scene.textures.exists(TEXTURE_KEYS.lordMalefactoFlareZoneFx)) {
       const fx = scene.add.image(flareX, flareY, TEXTURE_KEYS.lordMalefactoFlareZoneFx);
       fx.setOrigin(0.5, 0.5);
+      fx.setFlipX(true);
       fx.setDisplaySize(320, 79);
       fx.setDepth(9.5);
       fx.setAlpha(0);
