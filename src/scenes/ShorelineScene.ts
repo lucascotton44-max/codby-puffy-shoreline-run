@@ -213,6 +213,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.kelpShield, AUDIO_PATHS.kelpShield);
     this.load.audio(AUDIO_KEYS.tideLift, AUDIO_PATHS.tideLift);
     this.load.audio(AUDIO_KEYS.canalBoatTransition, AUDIO_PATHS.canalBoatTransition);
+    this.load.audio(AUDIO_KEYS.malefactoStompHit, AUDIO_PATHS.malefactoStompHit);
   }
 
   public create(): void {
@@ -1616,6 +1617,8 @@ export class ShorelineScene extends Phaser.Scene {
       this.getPlayerBody().setVelocity(bounceDirection * 125, -270);
       if (didDefeatBoss) {
         this.endLevel(true);
+      } else {
+        this.playSfx(AUDIO_KEYS.malefactoStompHit);
       }
       return;
     }

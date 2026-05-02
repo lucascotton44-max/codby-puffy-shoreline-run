@@ -56,6 +56,7 @@ export const AUDIO_PATHS = {
   kelpShield: 'assets/audio/sfx/kelp_shield.wav',
   tideLift: 'assets/audio/sfx/tide_lift.wav',
   canalBoatTransition: 'assets/audio/sfx/canal_boat_transition_v1.wav',
+  malefactoStompHit: 'assets/audio/sfx/malefacto_stomp_hit_v1.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -104,6 +105,7 @@ export const AUDIO_KEYS = {
   kelpShield: 'kelp-shield-sfx',
   tideLift: 'tide-lift-sfx',
   canalBoatTransition: 'canal-boat-transition-sfx',
+  malefactoStompHit: 'malefacto-stomp-hit-sfx',
 };
 
 export const COLORS = {
