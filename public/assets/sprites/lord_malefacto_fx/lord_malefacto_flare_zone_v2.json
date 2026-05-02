@@ -1,0 +1,23 @@
+{
+  "source": "lord_malefacto_flare_zone_reference_v2.png",
+  "outputWidth": 520,
+  "outputHeight": 129,
+  "recommendedOrigin": {
+    "x": 0.5,
+    "y": 0.5
+  },
+  "recommendedDisplaySize": {
+    "w": 320,
+    "h": 79
+  },
+  "alphaCleanupMethod": "flood-fill from edges, distance threshold from median edge-sample background",
+  "backgroundDistanceThreshold": 38,
+  "backgroundChannelSpread": 22,
+  "cropPaddingPx": 14,
+  "notes": [
+    "Overlay this at the flare zone center (flareX, flareY) using setDisplaySize for hitbox alignment.",
+    "Rectangle flareZone collision body is unchanged; this PNG is visual-only.",
+    "If glow fringe clips, increase recommendedDisplaySize.w slightly.",
+    "If background fringing visible at edges, tighten BACKGROUND_DISTANCE_THRESHOLD."
+  ]
+}
