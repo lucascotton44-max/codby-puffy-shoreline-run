@@ -32,6 +32,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
   private readonly stompCue: Phaser.GameObjects.Triangle;
   private readonly flareHalo: Phaser.GameObjects.Ellipse;
   private readonly flareCore: Phaser.GameObjects.Ellipse;
+  private readonly flareImage?: Phaser.GameObjects.Image;
   private flarePulseTween?: Phaser.Tweens.Tween;
   private hp: number;
   private bossState: LordMalefactoState = 'idle';
@@ -99,6 +100,16 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.flareCore = scene.add.ellipse(flareX + 88, flareY - 10, 84, 42, 0xf09830, 0);
     this.flareCore.setDepth(9);
     this.flareCore.setVisible(false);
+
+    if (scene.textures.exists(TEXTURE_KEYS.lordMalefactoFlareZoneFx)) {
+      const fx = scene.add.image(flareX, flareY, TEXTURE_KEYS.lordMalefactoFlareZoneFx);
+      fx.setOrigin(0.5, 0.5);
+      fx.setDisplaySize(320, 79);
+      fx.setDepth(9.5);
+      fx.setAlpha(0);
+      fx.setVisible(false);
+      this.flareImage = fx;
+    }
 
     this.enterState('idle', scene.time.now);
   }
@@ -189,6 +200,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.flareHalo.setVisible(false);
     this.flareCore.setAlpha(0);
     this.flareCore.setVisible(false);
+    this.flareImage?.setAlpha(0);
+    this.flareImage?.setVisible(false);
     this.vulnerableText.setVisible(false);
     this.stompCue.setVisible(false);
     this.stompCue.setFillStyle(0xd9f5ff, 0.95);
@@ -205,17 +218,26 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.lantern.setAlpha(1);
       this.lanternGlow.setAlpha(0.72);
       this.eyeLine.setFillStyle(0xd19745, 0.85);
-      this.flareZone.setFillStyle(0xd18434, 0.08);
-      this.flareZone.setStrokeStyle(2, 0xd8a156, 0.68);
-      this.flareZone.setAlpha(0.72);
-      this.flareZone.setVisible(true);
-      this.flareHalo.setFillStyle(0xd18434, 0.28);
-      this.flareHalo.setStrokeStyle(1, 0xffa040, 0.36);
-      this.flareHalo.setAlpha(0.72);
-      this.flareHalo.setVisible(true);
-      this.flareCore.setFillStyle(0xf09830, 0.36);
-      this.flareCore.setAlpha(0.72);
-      this.flareCore.setVisible(true);
+      if (this.flareImage) {
+        this.flareZone.setFillStyle(0xd18434, 0.04);
+        this.flareZone.setStrokeStyle(1, 0xd8a156, 0.32);
+        this.flareZone.setAlpha(0.6);
+        this.flareZone.setVisible(true);
+        this.flareImage.setAlpha(0.72);
+        this.flareImage.setVisible(true);
+      } else {
+        this.flareZone.setFillStyle(0xd18434, 0.08);
+        this.flareZone.setStrokeStyle(2, 0xd8a156, 0.68);
+        this.flareZone.setAlpha(0.72);
+        this.flareZone.setVisible(true);
+        this.flareHalo.setFillStyle(0xd18434, 0.28);
+        this.flareHalo.setStrokeStyle(1, 0xffa040, 0.36);
+        this.flareHalo.setAlpha(0.72);
+        this.flareHalo.setVisible(true);
+        this.flareCore.setFillStyle(0xf09830, 0.36);
+        this.flareCore.setAlpha(0.72);
+        this.flareCore.setVisible(true);
+      }
       return;
     }
 
@@ -224,25 +246,42 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.flareBody.enable = true;
       this.statusText.setText(`MALEFACTO ${this.getHealth()}  DANGER`);
       this.lanternGlow.setAlpha(0.95);
-      this.flareZone.setFillStyle(0xb65b2a, 0.18);
-      this.flareZone.setStrokeStyle(3, 0xffb35a, 0.94);
-      this.flareZone.setAlpha(0.9);
-      this.flareZone.setVisible(true);
-      this.flareHalo.setFillStyle(0xd18434, 0.52);
-      this.flareHalo.setStrokeStyle(2, 0xffb35a, 0.58);
-      this.flareHalo.setAlpha(0.9);
-      this.flareHalo.setVisible(true);
-      this.flareCore.setFillStyle(0xf5a030, 0.78);
-      this.flareCore.setAlpha(0.9);
-      this.flareCore.setVisible(true);
-      this.flarePulseTween = this.scene.tweens.add({
-        targets: this.flareHalo,
-        alpha: { from: 0.72, to: 1.0 },
-        duration: 400,
-        yoyo: true,
-        repeat: -1,
-        ease: 'Sine.easeInOut',
-      });
+      if (this.flareImage) {
+        this.flareZone.setFillStyle(0xb65b2a, 0.06);
+        this.flareZone.setStrokeStyle(2, 0xffb35a, 0.52);
+        this.flareZone.setAlpha(0.8);
+        this.flareZone.setVisible(true);
+        this.flareImage.setAlpha(0.9);
+        this.flareImage.setVisible(true);
+        this.flarePulseTween = this.scene.tweens.add({
+          targets: this.flareImage,
+          alpha: { from: 0.72, to: 1.0 },
+          duration: 400,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
+      } else {
+        this.flareZone.setFillStyle(0xb65b2a, 0.18);
+        this.flareZone.setStrokeStyle(3, 0xffb35a, 0.94);
+        this.flareZone.setAlpha(0.9);
+        this.flareZone.setVisible(true);
+        this.flareHalo.setFillStyle(0xd18434, 0.52);
+        this.flareHalo.setStrokeStyle(2, 0xffb35a, 0.58);
+        this.flareHalo.setAlpha(0.9);
+        this.flareHalo.setVisible(true);
+        this.flareCore.setFillStyle(0xf5a030, 0.78);
+        this.flareCore.setAlpha(0.9);
+        this.flareCore.setVisible(true);
+        this.flarePulseTween = this.scene.tweens.add({
+          targets: this.flareHalo,
+          alpha: { from: 0.72, to: 1.0 },
+          duration: 400,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut',
+        });
+      }
       return;
     }
 
