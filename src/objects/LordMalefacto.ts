@@ -26,6 +26,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
   private readonly head: Phaser.GameObjects.Ellipse;
   private readonly lantern: Phaser.GameObjects.Arc;
   private readonly lanternGlow: Phaser.GameObjects.Arc;
+  private readonly lanternHandle: Phaser.GameObjects.Arc;
+  private readonly lanternCore: Phaser.GameObjects.Rectangle;
   private readonly eyeLine: Phaser.GameObjects.Rectangle;
   private readonly statusText: Phaser.GameObjects.Text;
   private readonly vulnerableText: Phaser.GameObjects.Text;
@@ -55,6 +57,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.head = parts[7] as Phaser.GameObjects.Ellipse;
     this.lanternGlow = parts[9] as Phaser.GameObjects.Arc;
     this.lantern = parts[10] as Phaser.GameObjects.Arc;
+    this.lanternHandle = parts[11] as Phaser.GameObjects.Arc;
+    this.lanternCore = parts[12] as Phaser.GameObjects.Rectangle;
     this.eyeLine = parts[13] as Phaser.GameObjects.Rectangle;
     this.statusText = parts[17] as Phaser.GameObjects.Text;
     this.vulnerableText = parts[18] as Phaser.GameObjects.Text;
@@ -188,7 +192,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.shoulder.setFillStyle(0x25201d, 0.98);
     this.collar.setFillStyle(0x3a322a, 0.95);
     this.head.setFillStyle(0x1e1d1b, 0.98);
-    this.lanternGlow.setAlpha(0.12);
+    this.lanternGlow.setAlpha(0);
+    this.lanternCore.setAlpha(0);
     this.lantern.setAlpha(0.78);
     this.statusText.setColor('#d8ddd2');
     this.statusText.setText(`MALEFACTO ${this.getHealth()}`);
@@ -218,27 +223,25 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.statusText.setText(`MALEFACTO ${this.getHealth()}  FLARE`);
       this.lantern.setAlpha(1);
       this.lanternGlow.setAlpha(0.72);
+      this.lanternCore.setAlpha(0.68);
       this.eyeLine.setFillStyle(0xd19745, 0.85);
       if (this.flareImage) {
-        this.flareZone.setFillStyle(0xd18434, 0.04);
-        this.flareZone.setStrokeStyle(1, 0xd8a156, 0.32);
-        this.flareZone.setAlpha(0.6);
-        this.flareZone.setVisible(true);
         this.flareImage.setAlpha(0.72);
         this.flareImage.setVisible(true);
-      } else {
-        this.flareZone.setFillStyle(0xd18434, 0.08);
-        this.flareZone.setStrokeStyle(2, 0xd8a156, 0.68);
-        this.flareZone.setAlpha(0.72);
-        this.flareZone.setVisible(true);
-        this.flareHalo.setFillStyle(0xd18434, 0.28);
-        this.flareHalo.setStrokeStyle(1, 0xffa040, 0.36);
-        this.flareHalo.setAlpha(0.72);
-        this.flareHalo.setVisible(true);
-        this.flareCore.setFillStyle(0xf09830, 0.36);
-        this.flareCore.setAlpha(0.72);
-        this.flareCore.setVisible(true);
+        this.hideProceduralFlareVisuals();
+        return;
       }
+      this.flareZone.setFillStyle(0xd18434, 0.08);
+      this.flareZone.setStrokeStyle(2, 0xd8a156, 0.68);
+      this.flareZone.setAlpha(0.72);
+      this.flareZone.setVisible(true);
+      this.flareHalo.setFillStyle(0xd18434, 0.28);
+      this.flareHalo.setStrokeStyle(1, 0xffa040, 0.36);
+      this.flareHalo.setAlpha(0.72);
+      this.flareHalo.setVisible(true);
+      this.flareCore.setFillStyle(0xf09830, 0.36);
+      this.flareCore.setAlpha(0.72);
+      this.flareCore.setVisible(true);
       return;
     }
 
@@ -247,13 +250,11 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.flareBody.enable = true;
       this.statusText.setText(`MALEFACTO ${this.getHealth()}  DANGER`);
       this.lanternGlow.setAlpha(0.95);
+      this.lanternCore.setAlpha(0.68);
       if (this.flareImage) {
-        this.flareZone.setFillStyle(0xb65b2a, 0.06);
-        this.flareZone.setStrokeStyle(2, 0xffb35a, 0.52);
-        this.flareZone.setAlpha(0.8);
-        this.flareZone.setVisible(true);
         this.flareImage.setAlpha(0.9);
         this.flareImage.setVisible(true);
+        this.hideProceduralFlareVisuals();
         this.flarePulseTween = this.scene.tweens.add({
           targets: this.flareImage,
           alpha: { from: 0.72, to: 1.0 },
@@ -262,27 +263,27 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
           repeat: -1,
           ease: 'Sine.easeInOut',
         });
-      } else {
-        this.flareZone.setFillStyle(0xb65b2a, 0.18);
-        this.flareZone.setStrokeStyle(3, 0xffb35a, 0.94);
-        this.flareZone.setAlpha(0.9);
-        this.flareZone.setVisible(true);
-        this.flareHalo.setFillStyle(0xd18434, 0.52);
-        this.flareHalo.setStrokeStyle(2, 0xffb35a, 0.58);
-        this.flareHalo.setAlpha(0.9);
-        this.flareHalo.setVisible(true);
-        this.flareCore.setFillStyle(0xf5a030, 0.78);
-        this.flareCore.setAlpha(0.9);
-        this.flareCore.setVisible(true);
-        this.flarePulseTween = this.scene.tweens.add({
-          targets: this.flareHalo,
-          alpha: { from: 0.72, to: 1.0 },
-          duration: 400,
-          yoyo: true,
-          repeat: -1,
-          ease: 'Sine.easeInOut',
-        });
+        return;
       }
+      this.flareZone.setFillStyle(0xb65b2a, 0.18);
+      this.flareZone.setStrokeStyle(3, 0xffb35a, 0.94);
+      this.flareZone.setAlpha(0.9);
+      this.flareZone.setVisible(true);
+      this.flareHalo.setFillStyle(0xd18434, 0.52);
+      this.flareHalo.setStrokeStyle(2, 0xffb35a, 0.58);
+      this.flareHalo.setAlpha(0.9);
+      this.flareHalo.setVisible(true);
+      this.flareCore.setFillStyle(0xf5a030, 0.78);
+      this.flareCore.setAlpha(0.9);
+      this.flareCore.setVisible(true);
+      this.flarePulseTween = this.scene.tweens.add({
+        targets: this.flareHalo,
+        alpha: { from: 0.72, to: 1.0 },
+        duration: 400,
+        yoyo: true,
+        repeat: -1,
+        ease: 'Sine.easeInOut',
+      });
       return;
     }
 
@@ -340,6 +341,17 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     });
   }
 
+  private hideProceduralFlareVisuals(): void {
+    this.flareZone.setVisible(false);
+    this.flareZone.setAlpha(0);
+    this.flareZone.setFillStyle(0xb65b2a, 0);
+    this.flareZone.setStrokeStyle(0, 0x000000, 0);
+    this.flareHalo.setVisible(false);
+    this.flareHalo.setAlpha(0);
+    this.flareCore.setVisible(false);
+    this.flareCore.setAlpha(0);
+  }
+
   private syncBodyVisual(state: LordMalefactoState): void {
     if (!this.spriteBody) {
       return;
@@ -349,6 +361,10 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     for (const part of this.bodyPrimitives) {
       part.setVisible(false);
     }
+    this.lanternGlow.setVisible(false);
+    this.lantern.setVisible(false);
+    this.lanternHandle.setVisible(false);
+    this.lanternCore.setVisible(false);
   }
 
   private static createVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
