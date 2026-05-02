@@ -220,10 +220,9 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.lanternGlow.setAlpha(0.72);
       this.eyeLine.setFillStyle(0xd19745, 0.85);
       if (this.flareImage) {
-        this.flareZone.setFillStyle(0xd18434, 0.04);
-        this.flareZone.setStrokeStyle(1, 0xd8a156, 0.32);
-        this.flareZone.setAlpha(0.6);
-        this.flareZone.setVisible(true);
+        this.flareZone.setFillStyle(0xd18434, 0);
+        this.flareZone.setStrokeStyle(0, 0xd88a36, 0);
+        this.flareZone.setAlpha(0);
         this.flareImage.setAlpha(0.72);
         this.flareImage.setVisible(true);
       } else {
@@ -248,10 +247,9 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.statusText.setText(`MALEFACTO ${this.getHealth()}  DANGER`);
       this.lanternGlow.setAlpha(0.95);
       if (this.flareImage) {
-        this.flareZone.setFillStyle(0xb65b2a, 0.06);
-        this.flareZone.setStrokeStyle(2, 0xffb35a, 0.52);
-        this.flareZone.setAlpha(0.8);
-        this.flareZone.setVisible(true);
+        this.flareZone.setFillStyle(0xb65b2a, 0);
+        this.flareZone.setStrokeStyle(0, 0xd88a36, 0);
+        this.flareZone.setAlpha(0);
         this.flareImage.setAlpha(0.9);
         this.flareImage.setVisible(true);
         this.flarePulseTween = this.scene.tweens.add({
