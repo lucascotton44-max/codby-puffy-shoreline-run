@@ -55,6 +55,7 @@ export const AUDIO_PATHS = {
   powerupPickup: 'assets/audio/sfx/powerup_pickup.wav',
   kelpShield: 'assets/audio/sfx/kelp_shield.wav',
   tideLift: 'assets/audio/sfx/tide_lift.wav',
+  canalBoatTransition: 'assets/audio/sfx/canal_boat_transition_v1.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -102,6 +103,7 @@ export const AUDIO_KEYS = {
   powerupPickup: 'powerup-pickup-sfx',
   kelpShield: 'kelp-shield-sfx',
   tideLift: 'tide-lift-sfx',
+  canalBoatTransition: 'canal-boat-transition-sfx',
 };
 
 export const COLORS = {

@@ -212,6 +212,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.powerupPickup, AUDIO_PATHS.powerupPickup);
     this.load.audio(AUDIO_KEYS.kelpShield, AUDIO_PATHS.kelpShield);
     this.load.audio(AUDIO_KEYS.tideLift, AUDIO_PATHS.tideLift);
+    this.load.audio(AUDIO_KEYS.canalBoatTransition, AUDIO_PATHS.canalBoatTransition);
   }
 
   public create(): void {
@@ -1784,6 +1785,8 @@ export class ShorelineScene extends Phaser.Scene {
       this.advanceToNextLevel();
       return;
     }
+
+    this.playSfx(AUDIO_KEYS.canalBoatTransition);
 
     const camera = this.cameras.main;
     const transitionImage = this.add.image(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXTURE_KEYS.level04LockTransition);
