@@ -1,7 +1,7 @@
 {
   "source": "lord_malefacto_flare_zone_reference_v2.png",
   "outputWidth": 520,
-  "outputHeight": 129,
+  "outputHeight": 128,
   "recommendedOrigin": {
     "x": 0.5,
     "y": 0.5
@@ -11,8 +11,8 @@
     "h": 79
   },
   "alphaCleanupMethod": "flood-fill from edges, distance threshold from median edge-sample background",
-  "backgroundDistanceThreshold": 38,
-  "backgroundChannelSpread": 22,
+  "backgroundDistanceThreshold": 24,
+  "backgroundChannelSpread": 14,
   "cropPaddingPx": 14,
   "notes": [
     "Overlay this at the flare zone center (flareX, flareY) using setDisplaySize for hitbox alignment.",

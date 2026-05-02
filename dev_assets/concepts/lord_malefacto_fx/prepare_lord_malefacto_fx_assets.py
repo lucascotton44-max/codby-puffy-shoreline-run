@@ -11,8 +11,8 @@ SOURCE_FILE = "lord_malefacto_flare_zone_reference_v2.png"
 OUTPUT_STEM = "lord_malefacto_flare_zone_v2"
 
 # Background removal tuning — light grey concept background
-BACKGROUND_DISTANCE_THRESHOLD = 38
-BACKGROUND_CHANNEL_SPREAD = 22
+BACKGROUND_DISTANCE_THRESHOLD = 24
+BACKGROUND_CHANNEL_SPREAD = 14
 
 # Runtime output: scale cropped content so width fits within this budget
 TARGET_MAX_WIDTH = 520
