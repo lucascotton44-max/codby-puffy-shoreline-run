@@ -148,6 +148,8 @@ export class ShorelineScene extends Phaser.Scene {
   private storySparkExpiresAt = 0;
   private tideRunExpiresAt = 0;
   private isTransitioningToBoss = false;
+  private touchInput = { left: false, right: false, jumpJustDown: false, jumpHeld: false, switchJustDown: false };
+  private touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>() };
 
   public constructor() {
     super('ShorelineScene');
@@ -233,6 +235,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createTitleOverlay();
     this.createOverlaps();
     this.createDebugOverlay();
+    this.createTouchControls();
 
     this.cameras.main.startFollow(this.player, true, 0.12, 0.1, -120, 30);
 
@@ -253,6 +256,18 @@ export class ShorelineScene extends Phaser.Scene {
       this.registry.set('shorelineRestartCurrentLevel', true);
       this.stopCurrentMusic();
       this.scene.restart();
+      return;
+    }
+
+    if (this.isEnded && this.touchInput.jumpJustDown) {
+      this.touchInput.jumpJustDown = false;
+      if (this.didWinLevel && this.hasNextLevel()) {
+        this.advanceToNextLevel();
+      } else {
+        this.registry.set('shorelineRestartCurrentLevel', true);
+        this.stopCurrentMusic();
+        this.scene.restart();
+      }
       return;
     }
 
@@ -442,7 +457,11 @@ export class ShorelineScene extends Phaser.Scene {
       this.controls.two.isDown ||
       this.controls.restart.isDown ||
       this.controls.start.isDown ||
-      this.controls.debugHitboxes.isDown
+      this.controls.debugHitboxes.isDown ||
+      this.touchInput.left ||
+      this.touchInput.right ||
+      this.touchInput.jumpHeld ||
+      this.touchInput.jumpJustDown
     );
   }
 
@@ -1218,12 +1237,14 @@ export class ShorelineScene extends Phaser.Scene {
   private handleTitleInput(): void {
     const wantsStart =
       Phaser.Input.Keyboard.JustDown(this.controls.start) ||
-      Phaser.Input.Keyboard.JustDown(this.controls.space);
+      Phaser.Input.Keyboard.JustDown(this.controls.space) ||
+      this.touchInput.jumpJustDown;
 
     if (!wantsStart) {
       return;
     }
 
+    this.touchInput.jumpJustDown = false;
     this.startRun();
   }
 
@@ -1240,6 +1261,115 @@ export class ShorelineScene extends Phaser.Scene {
     this.debugGraphics = this.add.graphics();
     this.debugGraphics.setDepth(1000);
     this.debugGraphics.setVisible(false);
+  }
+
+  private createTouchControls(): void {
+    if (!this.sys.game.device.input.touch || TRAILER_CAPTURE_MODE) {
+      return;
+    }
+
+    // Support at least 4 simultaneous touches (left, right, jump, switch each get their own pointer).
+    this.input.addPointer(3);
+
+    // Prevent browser scroll/zoom from stealing touch events on the canvas.
+    const canvas = this.sys.game.canvas;
+    canvas.style.touchAction = 'none';
+    canvas.style.userSelect = 'none';
+
+    const DEPTH = 950;
+    const BG = 0x1a3a3c;
+    const BG_A = 0.52;
+    const TEXT: Phaser.Types.GameObjects.Text.TextStyle = {
+      color: '#c8d8d0', fontFamily: 'monospace', fontSize: '16px', fontStyle: 'bold',
+    };
+    const SMALL: Phaser.Types.GameObjects.Text.TextStyle = {
+      color: '#c8d8d0', fontFamily: 'monospace', fontSize: '13px', fontStyle: 'bold',
+    };
+
+    // makeBtn draws a visual rectangle + centered label.
+    // The interactive hit zone is set separately and is larger than the visual.
+    const makeBtn = (
+      x: number, y: number,
+      visW: number, visH: number,
+      hitW: number, hitH: number,
+      label: string, style: Phaser.Types.GameObjects.Text.TextStyle,
+    ): Phaser.GameObjects.Rectangle => {
+      const bg = this.add.rectangle(x, y, visW, visH, BG, BG_A).setScrollFactor(0).setDepth(DEPTH);
+      this.add.text(x, y, label, style).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(DEPTH + 1);
+      bg.setInteractive(
+        new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
+        Phaser.Geom.Rectangle.Contains,
+      );
+      return bg;
+    };
+
+    // LEFT — bottom-left cluster
+    // Visual 88×84; hit 124×124 (right edge of hit zone at x=134, gap before RIGHT).
+    const leftBtn = makeBtn(72, 478, 88, 84, 124, 124, '<', TEXT);
+    leftBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.left.add(ptr.id);
+      this.touchInput.left = true;
+      this.markAudioInteraction();
+    });
+    leftBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.left.delete(ptr.id);
+      this.touchInput.left = this.touchPointers.left.size > 0;
+    });
+    leftBtn.on('pointerout', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.left.delete(ptr.id);
+      this.touchInput.left = this.touchPointers.left.size > 0;
+    });
+
+    // RIGHT — bottom-left cluster (left edge of hit zone at x=136, 2px gap after LEFT).
+    // Visual 88×84; hit 124×124.
+    const rightBtn = makeBtn(198, 478, 88, 84, 124, 124, '>', TEXT);
+    rightBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.right.add(ptr.id);
+      this.touchInput.right = true;
+      this.markAudioInteraction();
+    });
+    rightBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.right.delete(ptr.id);
+      this.touchInput.right = this.touchPointers.right.size > 0;
+    });
+    rightBtn.on('pointerout', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.right.delete(ptr.id);
+      this.touchInput.right = this.touchPointers.right.size > 0;
+    });
+
+    // JUMP — bottom-right; right edge of hit zone at canvas edge (884+76=960).
+    // Visual 104×82; hit 152×122.
+    const jumpBtn = makeBtn(884, 479, 104, 82, 152, 122, 'JUMP', TEXT);
+    jumpBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.jump.add(ptr.id);
+      this.touchInput.jumpJustDown = true;
+      this.touchInput.jumpHeld = true;
+      this.markAudioInteraction();
+    });
+    jumpBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.jump.delete(ptr.id);
+      this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
+    });
+    jumpBtn.on('pointerout', (ptr: Phaser.Input.Pointer) => {
+      this.touchPointers.jump.delete(ptr.id);
+      this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
+    });
+
+    // SWITCH — above JUMP; bottom of hit zone at y=399, top of JUMP hit zone at y=418 (19px gap).
+    // Visual 116×64; hit 152×86. Fires once per tap (no hold tracking needed).
+    const switchBtn = makeBtn(884, 356, 116, 64, 152, 86, 'SWITCH', SMALL);
+    switchBtn.on('pointerdown', () => {
+      this.touchInput.switchJustDown = true;
+      this.markAudioInteraction();
+    });
+
+    // Tap anywhere on canvas to start (title screen) or restart/advance (game over / level complete).
+    // Only active when the scene is waiting for user action, not during live gameplay.
+    this.input.on('pointerdown', () => {
+      if (!this.isRunStarted || (this.isEnded && !this.isTransitioningToBoss)) {
+        this.touchInput.jumpJustDown = true;
+      }
+    });
   }
 
   private createOverlaps(): void {
@@ -1291,6 +1421,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.storySparkExpiresAt = 0;
     this.tideRunExpiresAt = 0;
     this.wasGliding = false;
+    this.touchInput = { left: false, right: false, jumpJustDown: false, jumpHeld: false, switchJustDown: false };
+    this.touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>() };
   }
 
   private resetCameraState(): void {
@@ -1311,6 +1443,11 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.two)) {
       this.switchCharacter('puffy');
+    }
+
+    if (this.touchInput.switchJustDown) {
+      this.touchInput.switchJustDown = false;
+      this.switchCharacter(this.activeCharacter === 'cod' ? 'puffy' : 'cod');
     }
   }
 
@@ -1345,12 +1482,14 @@ export class ShorelineScene extends Phaser.Scene {
     const character = CHARACTERS[this.activeCharacter];
     const body = this.getPlayerBody();
     const moveSpeed = character.moveSpeed * (this.hasActiveTideRun() ? GAMEPLAY_TUNING.powerUps.tiderunner.moveSpeedMultiplier : 1);
-    const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown;
-    const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown;
+    const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown || this.touchInput.left;
+    const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown || this.touchInput.right;
     const wantsJump =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.wasd.up) ||
-      Phaser.Input.Keyboard.JustDown(this.controls.space);
+      Phaser.Input.Keyboard.JustDown(this.controls.space) ||
+      this.touchInput.jumpJustDown;
+    this.touchInput.jumpJustDown = false;
 
     if (left) {
       body.setVelocityX(-moveSpeed);
@@ -1366,7 +1505,10 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     const isGliding =
-      this.activeCharacter === 'puffy' && this.controls.space.isDown && body.velocity.y > 40 && !body.blocked.down;
+      this.activeCharacter === 'puffy' &&
+      (this.controls.space.isDown || this.touchInput.jumpHeld) &&
+      body.velocity.y > 40 &&
+      !body.blocked.down;
 
     if (isGliding) {
       const glideMaxFallSpeed =
@@ -1410,7 +1552,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (!body.blocked.down) {
       const airborneKey =
-        this.activeCharacter === 'puffy' && this.controls.space.isDown && body.velocity.y > 0
+        this.activeCharacter === 'puffy' && (this.controls.space.isDown || this.touchInput.jumpHeld) && body.velocity.y > 0
           ? animationKeys.fall
           : body.velocity.y < 0
             ? animationKeys.jump
@@ -1758,7 +1900,7 @@ export class ShorelineScene extends Phaser.Scene {
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
-          ...(this.hasNextLevel() ? ['Press ENTER for Next Level', 'Press R to Run Again'] : ['Press R to Run Again']),
+          ...(this.hasNextLevel() ? ['Press ENTER or TAP for Next Level', 'Press R or TAP to Run Again'] : ['Press R or TAP to Run Again']),
         ]
       : [
           'GAME OVER',
@@ -1767,7 +1909,7 @@ export class ShorelineScene extends Phaser.Scene {
           `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Score: ${this.score}`,
           '',
-          'Press R to Try Again',
+          'Press R or TAP to Try Again',
         ];
 
     this.messageText.setText(summaryLines.join('\n'));
