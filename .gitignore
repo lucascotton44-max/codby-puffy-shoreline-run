@@ -4,3 +4,6 @@ dist/
 .chrome-check/
 .DS_Store
 .claude/
+
+# Premiere autosaves
+**/Adobe Premiere Pro Auto-Save/
