@@ -149,7 +149,13 @@ export class ShorelineScene extends Phaser.Scene {
   private tideRunExpiresAt = 0;
   private isTransitioningToBoss = false;
   private touchInput = { left: false, right: false, jumpJustDown: false, jumpHeld: false, switchJustDown: false };
-  private touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>() };
+  private touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>(), switch: new Set<number>() };
+  private jumpQueuedUntil = 0;
+  private switchQueuedUntil = 0;
+  private lastTouchSwitchAt = -1000;
+  private readonly TOUCH_JUMP_BUFFER_MS = 170;
+  private readonly TOUCH_SWITCH_BUFFER_MS = 170;
+  private readonly TOUCH_SWITCH_COOLDOWN_MS = 240;
 
   public constructor() {
     super('ShorelineScene');
@@ -1259,6 +1265,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.touchInput.jumpJustDown = false;
+    this.jumpQueuedUntil = 0;
     this.startRun();
   }
 
@@ -1278,6 +1285,32 @@ export class ShorelineScene extends Phaser.Scene {
     this.debugGraphics.setVisible(false);
   }
 
+  private queueTouchJump(): void {
+    this.touchInput.jumpJustDown = true;
+    this.touchInput.jumpHeld = true;
+    this.jumpQueuedUntil = this.time.now + this.TOUCH_JUMP_BUFFER_MS;
+    this.markAudioInteraction();
+  }
+
+  private queueTouchSwitch(): void {
+    const now = this.time.now;
+    if (now - this.lastTouchSwitchAt < this.TOUCH_SWITCH_COOLDOWN_MS) {
+      return;
+    }
+
+    this.touchInput.switchJustDown = true;
+    this.switchQueuedUntil = now + this.TOUCH_SWITCH_BUFFER_MS;
+    this.lastTouchSwitchAt = now;
+    this.markAudioInteraction();
+  }
+
+  private releaseTouchPointer(kind: 'left' | 'right' | 'jump' | 'switch', pointerId: number): void {
+    this.touchPointers[kind].delete(pointerId);
+    this.touchInput.left = this.touchPointers.left.size > 0;
+    this.touchInput.right = this.touchPointers.right.size > 0;
+    this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
+  }
+
   private createTouchControls(): void {
     if (!this.sys.game.device.input.touch || TRAILER_CAPTURE_MODE) {
       return;
@@ -1290,6 +1323,8 @@ export class ShorelineScene extends Phaser.Scene {
     const canvas = this.sys.game.canvas;
     canvas.style.touchAction = 'none';
     canvas.style.userSelect = 'none';
+    canvas.style.setProperty('-webkit-user-select', 'none');
+    canvas.style.setProperty('-webkit-touch-callout', 'none');
 
     const DEPTH = 950;
     const BG = 0x1a3a3c;
@@ -1362,31 +1397,39 @@ export class ShorelineScene extends Phaser.Scene {
       this.touchInput.right = this.touchPointers.right.size > 0;
     });
 
-    // JUMP — bottom-right; right edge of hit zone at canvas edge (884+76=960).
-    // Visual 104×82; hit 152×122.
-    const jumpBtn = makeBtn(884, 479, 104, 82, 152, 122, 'JUMP', TEXT);
-    jumpBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
-      this.touchPointers.jump.add(ptr.id);
-      this.touchInput.jumpJustDown = true;
-      this.touchInput.jumpHeld = true;
-      this.markAudioInteraction();
-    });
-    jumpBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
-      this.touchPointers.jump.delete(ptr.id);
-      this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
-    });
-    jumpBtn.on('pointerout', (ptr: Phaser.Input.Pointer) => {
-      this.touchPointers.jump.delete(ptr.id);
-      this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
-    });
+      // JUMP — bottom-right. Large forgiving hit zone; buffered so near-ground taps still fire.
+      const jumpBtn = makeBtn(876, 479, 116, 90, 168, 142, 'JUMP', TEXT);
+      jumpBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        this.touchPointers.jump.add(ptr.id);
+        this.queueTouchJump();
+      });
+      jumpBtn.on('pointerover', (ptr: Phaser.Input.Pointer) => {
+        if (!ptr.isDown) return;
+        this.touchPointers.jump.add(ptr.id);
+        this.queueTouchJump();
+      });
+      ['pointerup', 'pointerout', 'pointerupoutside', 'pointercancel'].forEach((eventName) => {
+        jumpBtn.on(eventName, (ptr: Phaser.Input.Pointer) => {
+          this.releaseTouchPointer('jump', ptr.id);
+        });
+      });
 
-    // SWITCH — above JUMP; bottom of hit zone at y=399, top of JUMP hit zone at y=418 (19px gap).
-    // Visual 116×64; hit 152×86. Fires once per tap (no hold tracking needed).
-    const switchBtn = makeBtn(884, 356, 116, 64, 152, 86, 'SWITCH', SMALL);
-    switchBtn.on('pointerdown', () => {
-      this.touchInput.switchJustDown = true;
-      this.markAudioInteraction();
-    });
+      // SWITCH — above JUMP. Large forgiving hit zone; buffered with cooldown to prevent double-switches.
+      const switchBtn = makeBtn(876, 356, 128, 70, 168, 102, 'SWITCH', SMALL);
+      switchBtn.on('pointerdown', (ptr: Phaser.Input.Pointer) => {
+        this.touchPointers.switch.add(ptr.id);
+        this.queueTouchSwitch();
+      });
+      switchBtn.on('pointerover', (ptr: Phaser.Input.Pointer) => {
+        if (!ptr.isDown) return;
+        this.touchPointers.switch.add(ptr.id);
+        this.queueTouchSwitch();
+      });
+      ['pointerup', 'pointerout', 'pointerupoutside', 'pointercancel'].forEach((eventName) => {
+        switchBtn.on(eventName, (ptr: Phaser.Input.Pointer) => {
+          this.releaseTouchPointer('switch', ptr.id);
+        });
+      });
 
     // Tap anywhere on canvas to start (title screen) or restart/advance (game over / level complete).
     // Only active when the scene is waiting for user action, not during live gameplay.
@@ -1447,7 +1490,10 @@ export class ShorelineScene extends Phaser.Scene {
     this.tideRunExpiresAt = 0;
     this.wasGliding = false;
     this.touchInput = { left: false, right: false, jumpJustDown: false, jumpHeld: false, switchJustDown: false };
-    this.touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>() };
+    this.touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>(), switch: new Set<number>() };
+    this.jumpQueuedUntil = 0;
+    this.switchQueuedUntil = 0;
+    this.lastTouchSwitchAt = -1000;
   }
 
   private resetCameraState(): void {
@@ -1470,8 +1516,10 @@ export class ShorelineScene extends Phaser.Scene {
       this.switchCharacter('puffy');
     }
 
-    if (this.touchInput.switchJustDown) {
+    const wantsTouchSwitch = this.touchInput.switchJustDown || this.switchQueuedUntil >= this.time.now;
+    if (wantsTouchSwitch) {
       this.touchInput.switchJustDown = false;
+      this.switchQueuedUntil = 0;
       this.switchCharacter(this.activeCharacter === 'cod' ? 'puffy' : 'cod');
     }
   }
@@ -1509,12 +1557,17 @@ export class ShorelineScene extends Phaser.Scene {
     const moveSpeed = character.moveSpeed * (this.hasActiveTideRun() ? GAMEPLAY_TUNING.powerUps.tiderunner.moveSpeedMultiplier : 1);
     const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown || this.touchInput.left;
     const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown || this.touchInput.right;
+    const inputNow = this.time.now;
     const wantsJump =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.wasd.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.space) ||
-      this.touchInput.jumpJustDown;
+      this.touchInput.jumpJustDown ||
+      this.jumpQueuedUntil >= inputNow;
     this.touchInput.jumpJustDown = false;
+    if (this.jumpQueuedUntil < inputNow) {
+      this.jumpQueuedUntil = 0;
+    }
 
     if (left) {
       body.setVelocityX(-moveSpeed);
@@ -1523,6 +1576,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (wantsJump && body.blocked.down) {
+      this.jumpQueuedUntil = 0;
       const tideJumpMultiplier = this.consumeTideLiftForJump();
       body.setVelocityY(-character.jumpSpeed * tideJumpMultiplier);
       this.wasGliding = false;
