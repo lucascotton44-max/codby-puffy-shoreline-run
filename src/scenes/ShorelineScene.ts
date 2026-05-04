@@ -379,14 +379,28 @@ export class ShorelineScene extends Phaser.Scene {
     const shouldKeepStoredLevel =
       this.registry.get('shorelineStartLevelImmediately') === true ||
       this.registry.get('shorelineRestartCurrentLevel') === true;
-    const levelIndex = shouldKeepStoredLevel && typeof storedLevelIndex === 'number' ? storedLevelIndex : 0;
+
+    let levelIndex: number;
+    if (shouldKeepStoredLevel && typeof storedLevelIndex === 'number') {
+      levelIndex = storedLevelIndex;
+    } else {
+      // Allow ?level=<id> in the URL to jump directly to a level for dev/test.
+      const urlLevelId = new URLSearchParams(window.location.search).get('level');
+      const urlLevelIndex = urlLevelId ? LEVELS.findIndex((l) => l.id === urlLevelId) : -1;
+      levelIndex = urlLevelIndex >= 0 ? urlLevelIndex : 0;
+    }
+
     this.currentLevelIndex = Phaser.Math.Clamp(Math.floor(levelIndex), 0, LEVELS.length - 1);
     this.currentLevel = LEVELS[this.currentLevelIndex];
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex);
   }
 
   private hasNextLevel(): boolean {
-    return this.currentLevelIndex < LEVELS.length - 1;
+    const nextIndex = this.currentLevelIndex + 1;
+    if (nextIndex >= LEVELS.length) return false;
+    // testOnly levels are not part of normal campaign progression.
+    if (LEVELS[nextIndex].testOnly) return false;
+    return true;
   }
 
   private advanceToNextLevel(): void {

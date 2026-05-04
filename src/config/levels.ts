@@ -73,6 +73,8 @@ export type LevelDefinition = {
   powerUps: PowerUpDefinition[];
   scuttleclaws: ScuttleclawDefinition[];
   boss?: LordMalefactoDefinition;
+  /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
+  testOnly?: boolean;
 };
 
 export const LEVELS: LevelDefinition[] = [
@@ -260,5 +262,56 @@ export const LEVELS: LevelDefinition[] = [
     powerUps: [],
     scuttleclaws: [],
     boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
+  },
+  // ── Dev / test slice — not part of campaign progression ──────────────────
+  {
+    id: 'bridge_crossing_1a',
+    name: "St. Peter's Canal — Bridge Crossing",
+    backdropPath: ASSET_PATHS.stPetersBridgeCrossingBackdrop,
+    backdropTextureKey: TEXTURE_KEYS.stPetersBridgeCrossingBackdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 3100,
+    startX: START_X,
+    endX: 2960,
+    totalFragments: 10,
+    requiredFragments: 8,
+    platforms: [
+      // Left canal bank approach
+      { x: 380, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      // Ramp step 1 — shallow rise from bank
+      { x: 890, y: 453, width: 260, height: 22, color: COLORS.dock },
+      // Ramp step 2 — mid rise
+      { x: 1120, y: 403, width: 200, height: 22, color: COLORS.dock },
+      // Bridge deck — long flat crossing
+      { x: 1680, y: 355, width: 900, height: 22, color: COLORS.dock },
+      // Right concrete support — descent step 1
+      { x: 2250, y: 403, width: 220, height: 22, color: COLORS.dock },
+      // Descent step 2 — toward towpath
+      { x: 2460, y: 453, width: 200, height: 22, color: COLORS.dock },
+      // Right bank / towpath exit
+      { x: 2720, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+    ],
+    hazards: [
+      // Canal water below the bridge and ramp sections
+      { x: 1220, y: 515, width: 1160, height: 54, kind: 'water' },
+    ],
+    fragments: [
+      { x: 280, y: 430 },
+      { x: 580, y: 430 },
+      { x: 890, y: 413 },
+      { x: 1120, y: 363 },
+      { x: 1370, y: 315 },
+      { x: 1570, y: 315 },
+      { x: 1770, y: 315 },
+      { x: 1970, y: 315 },
+      { x: 2450, y: 413 },
+      { x: 2700, y: 430 },
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 680, y: 430 },
+      { kind: 'tideLift', x: 1680, y: 295 },
+    ],
+    scuttleclaws: [],
+    testOnly: true,
   },
 ];
