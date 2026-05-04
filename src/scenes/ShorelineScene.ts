@@ -1250,6 +1250,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private startRun(): void {
     this.isRunStarted = true;
+    this.touchInput.jumpHeld = false;
     this.levelStartedAt = this.time.now;
     this.titleOverlay.setVisible(false);
     this.messagePanel.setVisible(false);
@@ -1311,6 +1312,11 @@ export class ShorelineScene extends Phaser.Scene {
       this.touchInput.left = true;
       this.markAudioInteraction();
     });
+    leftBtn.on('pointerover', (ptr: Phaser.Input.Pointer) => {
+      if (!ptr.isDown) return;
+      this.touchPointers.left.add(ptr.id);
+      this.touchInput.left = true;
+    });
     leftBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
       this.touchPointers.left.delete(ptr.id);
       this.touchInput.left = this.touchPointers.left.size > 0;
@@ -1327,6 +1333,11 @@ export class ShorelineScene extends Phaser.Scene {
       this.touchPointers.right.add(ptr.id);
       this.touchInput.right = true;
       this.markAudioInteraction();
+    });
+    rightBtn.on('pointerover', (ptr: Phaser.Input.Pointer) => {
+      if (!ptr.isDown) return;
+      this.touchPointers.right.add(ptr.id);
+      this.touchInput.right = true;
     });
     rightBtn.on('pointerup', (ptr: Phaser.Input.Pointer) => {
       this.touchPointers.right.delete(ptr.id);
