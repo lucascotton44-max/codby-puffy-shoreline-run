@@ -264,52 +264,76 @@ export const LEVELS: LevelDefinition[] = [
     boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
   },
   // ── Dev / test slice — not part of campaign progression ──────────────────
+  // Route: left bank → approach ledge → service ledge → timber fender →
+  //        bridge catwalk → timber fender → service ledge → approach ledge →
+  //        right towpath (CH 8 exit)
+  // All platforms reachable by Cod B'y (84 px max jump).
+  // Puffy glide helps across gaps but is never mandatory.
+  // Water hazard y=515 keeps top (488) 5 px below ground (483) — same rule as campaign levels.
+  // Left bank width=640 (right edge x=660) keeps the approach ledge (center x=830)
+  // visible at spawn — player immediately sees the canal entry beat ahead.
+  // Right bank width=900 (left edge x=2950) gives a clear, wide towpath landing
+  // before endX=3500 (CH 8 marker at 550 px into the bank).
   {
     id: 'bridge_crossing_1a',
     name: "St. Peter's Canal — Bridge Crossing",
     backdropPath: ASSET_PATHS.stPetersBridgeCrossingBackdrop,
     backdropTextureKey: TEXTURE_KEYS.stPetersBridgeCrossingBackdrop,
     musicAudioKey: AUDIO_KEYS.level03CanalTheme,
-    worldWidth: 3100,
+    worldWidth: 3900,
     startX: START_X,
-    endX: 2960,
+    endX: 3500,
     totalFragments: 10,
     requiredFragments: 8,
     platforms: [
-      // Left canal bank approach
-      { x: 380, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
-      // Ramp step 1 — shallow rise from bank
-      { x: 890, y: 453, width: 260, height: 22, color: COLORS.dock },
-      // Ramp step 2 — mid rise
-      { x: 1120, y: 403, width: 200, height: 22, color: COLORS.dock },
-      // Bridge deck — long flat crossing
-      { x: 1680, y: 355, width: 900, height: 22, color: COLORS.dock },
-      // Right concrete support — descent step 1
-      { x: 2250, y: 403, width: 220, height: 22, color: COLORS.dock },
-      // Descent step 2 — toward towpath
-      { x: 2460, y: 453, width: 200, height: 22, color: COLORS.dock },
-      // Right bank / towpath exit
-      { x: 2720, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      // Left bank — concrete towpath; player spawns here; right edge x=660 visible in spawn viewport
+      // x=340 w=640 → left x=20, right x=660
+      { x: 340, y: GROUND_Y + 26, width: 640, height: 70, color: COLORS.shore },
+      // Left approach ledge — 50 px gap / 43 px hop up from bank; visible from spawn; canal-wall entry step
+      // x=830 w=240 → left x=710, right x=950
+      { x: 830, y: 451, width: 240, height: 22, color: COLORS.shore },
+      // Left concrete service ledge — 50 px gap at same level; top of left canal wall
+      // x=1140 w=280 → left x=1000, right x=1280
+      { x: 1140, y: 451, width: 280, height: 22, color: COLORS.shore },
+      // Left timber fender — 50 px gap at same level; first plank crossing over canal
+      // x=1430 w=200 → left x=1330, right x=1530
+      { x: 1430, y: 451, width: 200, height: 22, color: COLORS.dock },
+      // Bridge maintenance catwalk — 30 px gap / 45 px hop up; wider under-bridge section
+      // x=1800 w=480 → left x=1560, right x=2040
+      { x: 1800, y: 406, width: 480, height: 22, color: COLORS.dock },
+      // Right timber fender — 40 px gap / 45 px walk-off drop from catwalk (no jump needed)
+      // x=2180 w=200 → left x=2080, right x=2280
+      { x: 2180, y: 451, width: 200, height: 22, color: COLORS.dock },
+      // Right concrete service ledge — 60 px gap at same level; top of right canal wall
+      // x=2480 w=280 → left x=2340, right x=2620
+      { x: 2480, y: 451, width: 280, height: 22, color: COLORS.shore },
+      // Right approach ledge — 50 px gap at same level; canal-wall exit step
+      // x=2790 w=240 → left x=2670, right x=2910
+      { x: 2790, y: 451, width: 240, height: 22, color: COLORS.shore },
+      // Right bank / towpath — 40 px gap / 43 px walk-off drop; wide landing before CH 8
+      // x=3400 w=900 → left x=2950, right x=3850; endX=3500 at 550 px inside bank
+      { x: 3400, y: GROUND_Y + 26, width: 900, height: 70, color: COLORS.shore },
     ],
     hazards: [
-      // Canal water below the bridge and ramp sections
-      { x: 1220, y: 515, width: 1160, height: 54, kind: 'water' },
+      // Canal water — spans exactly bank to bank; top y=488 is 5 px below ground surface y=483
+      // x=1805 w=2290 → left x=660 (left bank right edge), right x=2950 (right bank left edge)
+      { x: 1805, y: 515, width: 2290, height: 54, kind: 'water' },
     ],
     fragments: [
-      { x: 280, y: 430 },
-      { x: 580, y: 430 },
-      { x: 890, y: 413 },
-      { x: 1120, y: 363 },
-      { x: 1370, y: 315 },
-      { x: 1570, y: 315 },
-      { x: 1770, y: 315 },
-      { x: 1970, y: 315 },
-      { x: 2450, y: 413 },
-      { x: 2700, y: 430 },
+      { x: 200, y: 448 },   // left bank — early
+      { x: 480, y: 448 },   // left bank — mid; leads eye toward approach ledge ahead
+      { x: 830, y: 406 },   // above left approach ledge
+      { x: 1140, y: 406 },  // above left service ledge
+      { x: 1430, y: 406 },  // above left timber fender
+      { x: 1680, y: 360 },  // catwalk — entry; rewards the hop up
+      { x: 1900, y: 360 },  // catwalk — mid; encourages full traversal
+      { x: 2180, y: 406 },  // above right timber fender
+      { x: 2480, y: 406 },  // above right service ledge
+      { x: 3200, y: 448 },  // right bank — leads toward CH 8 at endX 3500
     ],
     powerUps: [
-      { kind: 'kelpShield', x: 680, y: 430 },
-      { kind: 'tideLift', x: 1680, y: 295 },
+      { kind: 'kelpShield', x: 570, y: 448 },  // left bank, last safe pickup before canal
+      { kind: 'tideLift', x: 1800, y: 356 },   // bridge catwalk centre
     ],
     scuttleclaws: [],
     testOnly: true,
