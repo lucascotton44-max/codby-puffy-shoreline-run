@@ -318,6 +318,9 @@ export const LEVELS: LevelDefinition[] = [
       // Canal water — spans exactly bank to bank; top y=488 is 5 px below ground surface y=483
       // x=1805 w=2290 → left x=660 (left bank right edge), right x=2950 (right bank left edge)
       { x: 1805, y: 515, width: 2290, height: 54, kind: 'water' },
+      // Rock debris — on left service ledge (top=440); y=421 matches 19px-above-top rule from campaign levels
+      // x=1160: 160px from ledge left edge (landing zone clear), 120px from ledge right edge (exit clear)
+      { x: 1160, y: 421, width: 48, height: 34, kind: 'rock' },
     ],
     fragments: [
       { x: 200, y: 448 },   // left bank — early
@@ -329,13 +332,17 @@ export const LEVELS: LevelDefinition[] = [
       { x: 1900, y: 360 },  // catwalk — mid; encourages full traversal
       { x: 2180, y: 406 },  // above right timber fender
       { x: 2480, y: 406 },  // above right service ledge
-      { x: 3200, y: 448 },  // right bank — leads toward CH 8 at endX 3500
+      { x: 3350, y: 448 },  // right bank — past Scuttleclaw patrol; reward after clearing the crab
     ],
     powerUps: [
       { kind: 'kelpShield', x: 570, y: 448 },  // left bank, last safe pickup before canal
       { kind: 'tideLift', x: 1800, y: 356 },   // bridge catwalk centre
     ],
-    scuttleclaws: [],
+    scuttleclaws: [
+      // Right towpath — ground level (y=GROUND_Y-20 matches campaign convention); mid-to-late beat
+      // patrol 3060–3260: 110px clear buffer from player landing zone (~2970); endX=3500 is 240px past patrol
+      { x: 3150, y: GROUND_Y - 20, minX: 3060, maxX: 3260, speed: 52, damage: 1 },
+    ],
     testOnly: true,
   },
 ];
