@@ -263,6 +263,58 @@ export const LEVELS: LevelDefinition[] = [
     scuttleclaws: [],
     boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
   },
+  // ── Dev / test slice — Level 1B backdrop stub; gameplay design TBD ─────────
+  // Route mirrors Level 1A shoreline pattern extended with a fourth ground
+  // section (~lock approach). Gameplay layout pass required before campaign use.
+  // Load via: ?level=shoreline-run-level-01b
+  {
+    id: 'shoreline-run-level-01b',
+    name: "St. Peter's Canal — Canal Edge to Locks",
+    backdropPath: ASSET_PATHS.level01bCanalEdgeToLocksBackdrop,
+    backdropTextureKey: TEXTURE_KEYS.level01bCanalEdgeToLocksBackdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 3200,
+    startX: START_X,
+    endX: 3060,
+    totalFragments: TOTAL_FRAGMENTS,
+    requiredFragments: REQUIRED_FRAGMENTS,
+    platforms: [
+      // Ground sections — concrete canal-edge towpath leading toward lock gates
+      { x: 375, y: GROUND_Y + 26, width: 750, height: 70, color: COLORS.shore },
+      { x: 1240, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
+      { x: 2050, y: GROUND_Y + 26, width: 920, height: 70, color: COLORS.shore },
+      { x: 2895, y: GROUND_Y + 26, width: 590, height: 70, color: COLORS.shore },
+      // Elevated dock platforms — same pattern as Level 1A
+      { x: 720, y: 390, width: 190, height: 22, color: COLORS.dock },
+      { x: 980, y: 338, width: 180, height: 22, color: COLORS.dock },
+      { x: 1510, y: 408, width: 210, height: 22, color: COLORS.dock },
+      { x: 1750, y: 350, width: 160, height: 22, color: COLORS.dock },
+      { x: 2230, y: 384, width: 220, height: 22, color: COLORS.dock },
+    ],
+    hazards: [
+      { x: 805, y: 515, width: 190, height: 54, kind: 'water' },
+      { x: 1645, y: 515, width: 240, height: 54, kind: 'water' },
+      { x: 2560, y: 515, width: 90, height: 54, kind: 'water' },
+    ],
+    fragments: [
+      { x: 230, y: 430 },
+      { x: 560, y: 430 },
+      { x: 720, y: 350 },
+      { x: 980, y: 298 },
+      { x: 1180, y: 430 },
+      { x: 1510, y: 368 },
+      { x: 1760, y: 310 },
+      { x: 2060, y: 430 },
+      { x: 2235, y: 344 },
+      { x: 2850, y: 430 },
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 620, y: 430 },
+      { kind: 'tideLift', x: 910, y: 298 },
+    ],
+    scuttleclaws: [],
+    testOnly: true,
+  },
   // ── Dev / test slice — not part of campaign progression ──────────────────
   // Route: left bank → approach ledge → service ledge → timber fender →
   //        bridge catwalk → timber fender → service ledge → approach ledge →
