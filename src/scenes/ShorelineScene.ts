@@ -1997,7 +1997,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private shouldPlayBossTransition(): boolean {
     const nextLevel = LEVELS[this.currentLevelIndex + 1];
-    return !this.isTransitioningToBoss && this.currentLevelIndex === 2 && Boolean(nextLevel?.boss);
+    return !this.isTransitioningToBoss && Boolean(nextLevel?.boss);
   }
 
   private startBossTransition(): void {

@@ -78,6 +78,7 @@ export type LevelDefinition = {
 };
 
 export const LEVELS: LevelDefinition[] = [
+  // ── Campaign 1 — Shoreline intro ─────────────────────────────────────────
   {
     id: 'shoreline-run-level-01',
     name: 'Shoreline Run',
@@ -125,214 +126,8 @@ export const LEVELS: LevelDefinition[] = [
     ],
     scuttleclaws: [],
   },
-  {
-    id: 'heritage-steps-level-02',
-    name: 'The Heritage Steps',
-    backdropPath: ASSET_PATHS.heritageStepsLevel02Backdrop,
-    backdropTextureKey: TEXTURE_KEYS.heritageStepsLevel02Backdrop,
-    musicAudioKey: AUDIO_KEYS.level02Theme,
-    worldWidth: 3300,
-    startX: START_X,
-    endX: 3160,
-    totalFragments: 12,
-    requiredFragments: 10,
-    platforms: [
-      { x: 360, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
-      { x: 1240, y: GROUND_Y + 26, width: 520, height: 70, color: COLORS.shore },
-      { x: 2100, y: GROUND_Y + 26, width: 660, height: 70, color: COLORS.shore },
-      { x: 3000, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
-      { x: 620, y: 420, width: 150, height: 22, color: COLORS.dock },
-      { x: 850, y: 374, width: 150, height: 22, color: COLORS.dock },
-      { x: 1080, y: 328, width: 160, height: 22, color: COLORS.dock },
-      { x: 1480, y: 402, width: 190, height: 22, color: COLORS.dock },
-      { x: 1780, y: 352, width: 170, height: 22, color: COLORS.dock },
-      { x: 2050, y: 306, width: 160, height: 22, color: COLORS.dock },
-      { x: 2380, y: 392, width: 200, height: 22, color: COLORS.dock },
-      { x: 2660, y: 338, width: 170, height: 22, color: COLORS.dock },
-      { x: 2940, y: 384, width: 190, height: 22, color: COLORS.dock },
-    ],
-    hazards: [
-      { x: 760, y: 515, width: 170, height: 54, kind: 'water' },
-      { x: 1580, y: 515, width: 260, height: 54, kind: 'water' },
-      { x: 2240, y: 515, width: 210, height: 54, kind: 'water' },
-      { x: 2850, y: 515, width: 180, height: 54, kind: 'water' },
-      { x: 1320, y: 464, width: 48, height: 34, kind: 'rock' },
-      { x: 1960, y: 464, width: 54, height: 34, kind: 'rock' },
-      { x: 2500, y: 368, width: 44, height: 44, kind: 'net' },
-      { x: 3060, y: 464, width: 50, height: 34, kind: 'rock' },
-    ],
-    fragments: [
-      { x: 220, y: 430 },
-      { x: 620, y: 382 },
-      { x: 850, y: 334 },
-      { x: 1080, y: 288 },
-      { x: 1240, y: 430 },
-      { x: 1480, y: 362 },
-      { x: 1780, y: 312 },
-      { x: 2050, y: 266 },
-      { x: 2260, y: 430 },
-      { x: 2380, y: 352 },
-      { x: 2660, y: 298 },
-      { x: 3040, y: 430 },
-    ],
-    powerUps: [
-      { kind: 'kelpShield', x: 1380, y: 430 },
-      { kind: 'tideLift', x: 970, y: 288 },
-      { kind: 'storySpark', x: 2320, y: 352 },
-    ],
-    scuttleclaws: [
-      { x: 1120, y: GROUND_Y - 20, minX: 1030, maxX: 1210, speed: 52, damage: 1 },
-    ],
-  },
-  {
-    id: 'st-peters-canal-level-03',
-    name: "St. Peter's Canal",
-    backdropPath: ASSET_PATHS.stPetersCanalLevel03Backdrop,
-    backdropTextureKey: TEXTURE_KEYS.stPetersCanalLevel03Backdrop,
-    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
-    worldWidth: 3450,
-    startX: START_X,
-    endX: 3310,
-    totalFragments: 12,
-    requiredFragments: 10,
-    platforms: [
-      { x: 390, y: GROUND_Y + 26, width: 780, height: 70, color: COLORS.shore },
-      { x: 1290, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
-      { x: 2140, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
-      { x: 3120, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
-      { x: 680, y: 402, width: 170, height: 22, color: COLORS.dock },
-      { x: 930, y: 354, width: 170, height: 22, color: COLORS.dock },
-      { x: 1180, y: 316, width: 160, height: 22, color: COLORS.dock },
-      { x: 1580, y: 392, width: 200, height: 22, color: COLORS.dock },
-      { x: 1880, y: 344, width: 170, height: 22, color: COLORS.dock },
-      { x: 2230, y: 386, width: 190, height: 22, color: COLORS.dock },
-      { x: 2540, y: 338, width: 180, height: 22, color: COLORS.dock },
-      { x: 2860, y: 382, width: 190, height: 22, color: COLORS.dock },
-    ],
-    hazards: [
-      { x: 830, y: 515, width: 160, height: 54, kind: 'water' },
-      { x: 1650, y: 515, width: 220, height: 54, kind: 'water' },
-      { x: 2580, y: 515, width: 240, height: 54, kind: 'water' },
-      { x: 1390, y: 464, width: 48, height: 34, kind: 'rock' },
-      { x: 2320, y: 464, width: 52, height: 34, kind: 'rock' },
-      { x: 2960, y: 358, width: 44, height: 44, kind: 'net' },
-    ],
-    fragments: [
-      { x: 240, y: 430 },
-      { x: 560, y: 430 },
-      { x: 680, y: 362 },
-      { x: 930, y: 314 },
-      { x: 1180, y: 276 },
-      { x: 1380, y: 430 },
-      { x: 1580, y: 352 },
-      { x: 1880, y: 304 },
-      { x: 2160, y: 430 },
-      { x: 2540, y: 298 },
-      { x: 2860, y: 342 },
-      { x: 3180, y: 430 },
-    ],
-    powerUps: [
-      { kind: 'kelpShield', x: 1460, y: 430 },
-      { kind: 'tiderunner', x: 1535, y: 430 },
-      { kind: 'tideLift', x: 1070, y: 276 },
-      { kind: 'storySpark', x: 2460, y: 298 },
-    ],
-    scuttleclaws: [
-      { x: 2050, y: GROUND_Y - 20, minX: 1940, maxX: 2180, speed: 56, damage: 1 },
-    ],
-  },
-  {
-    id: 'lord-malefacto-boss-level-04',
-    name: 'Lord Malefacto',
-    backdropPath: ASSET_PATHS.level04LockChamberArenaBackdrop,
-    backdropTextureKey: TEXTURE_KEYS.level04LockChamberArenaBackdrop,
-    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
-    worldWidth: 1320,
-    startX: START_X,
-    endX: 1200,
-    totalFragments: 0,
-    requiredFragments: 0,
-    platforms: [
-      { x: 660, y: GROUND_Y + 26, width: 1320, height: 70, color: COLORS.shore },
-      { x: 372, y: 402, width: 180, height: 22, color: COLORS.dock },
-      { x: 948, y: 402, width: 180, height: 22, color: COLORS.dock },
-    ],
-    hazards: [],
-    fragments: [],
-    powerUps: [],
-    scuttleclaws: [],
-    boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
-  },
-  // ── Dev / test slice — Level 1B canal-edge-to-locks ─────────────────────────
-  // Route: wide dirt towpath running alongside canal → lock gate (endX).
-  // Three 80px water gaps interrupt the path; each has a low dock platform
-  // (y=451, top=440) straddling the gap so the player can either jump the gap
-  // directly at ground level OR hop up 43px to the dock for elevated fragments.
-  // All hops are within Cod B'y's 84px max jump. No precision required.
-  // Load via: ?level=shoreline-run-level-01b
-  {
-    id: 'shoreline-run-level-01b',
-    name: "St. Peter's Canal — Canal Edge to Locks",
-    backdropPath: ASSET_PATHS.level01bCanalEdgeToLocksBackdrop,
-    backdropTextureKey: TEXTURE_KEYS.level01bCanalEdgeToLocksBackdrop,
-    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
-    worldWidth: 3200,
-    startX: START_X,
-    endX: 3060,
-    totalFragments: TOTAL_FRAGMENTS,
-    requiredFragments: REQUIRED_FRAGMENTS,
-    platforms: [
-      // Ground sections — dirt towpath; gaps are 80px (easily jumped or dock-hopped)
-      // Section 1: wide starting area x=0–900
-      { x: 450, y: GROUND_Y + 26, width: 900, height: 70, color: COLORS.shore },
-      // Section 2: canal-edge mid x=980–1620
-      { x: 1300, y: GROUND_Y + 26, width: 640, height: 70, color: COLORS.shore },
-      // Section 3: approaching lock x=1700–2420
-      { x: 2060, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
-      // Section 4: lock gate area x=2500–3200; endX=3060 is 560px inside
-      { x: 2850, y: GROUND_Y + 26, width: 700, height: 70, color: COLORS.shore },
-      // Low dock platforms — 43px hop from ground (top=440); straddle each water gap
-      // Each dock overlaps 50px into the adjacent ground sections on both sides
-      { x: 940, y: 451, width: 180, height: 22, color: COLORS.dock },   // gap 1: x=850–1030
-      { x: 1660, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 2: x=1570–1750
-      { x: 2460, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 3: x=2370–2550
-    ],
-    hazards: [
-      // Three canal-water breaks — 80px each; top=488 (5px below ground top 483)
-      { x: 940, y: 515, width: 80, height: 54, kind: 'water' },   // gap 1: x=900–980
-      { x: 1660, y: 515, width: 80, height: 54, kind: 'water' },  // gap 2: x=1620–1700
-      { x: 2460, y: 515, width: 80, height: 54, kind: 'water' },  // gap 3: x=2420–2500
-    ],
-    fragments: [
-      { x: 200,  y: 430 },  // section 1 — early towpath
-      { x: 560,  y: 430 },  // section 1 — mid towpath
-      { x: 840,  y: 406 },  // dock 1 left approach — 77px from ground (within Cod B'y jump)
-      { x: 1160, y: 430 },  // section 2 — canal edge
-      { x: 1420, y: 430 },  // section 2 — before gap 2
-      { x: 1660, y: 406 },  // dock 2 — reward for hopping up
-      { x: 1900, y: 430 },  // section 3 — lock approach early
-      { x: 2200, y: 430 },  // section 3 — lock approach late
-      { x: 2460, y: 406 },  // dock 3 — reward for hopping up
-      { x: 2820, y: 430 },  // section 4 — lock gate arrival
-    ],
-    powerUps: [
-      { kind: 'kelpShield', x: 400, y: 430 },   // section 1 — protection before first gap
-      { kind: 'tideLift',   x: 1340, y: 430 },  // section 2 — optional boost for dock fragments
-    ],
-    scuttleclaws: [],
-    testOnly: true,
-  },
-  // ── Dev / test slice — not part of campaign progression ──────────────────
-  // Route: left bank → approach ledge → service ledge → timber fender →
-  //        bridge catwalk → timber fender → service ledge → approach ledge →
-  //        right towpath (CH 8 exit)
-  // All platforms reachable by Cod B'y (84 px max jump).
-  // Puffy glide helps across gaps but is never mandatory.
-  // Water hazard y=515 keeps top (488) 5 px below ground (483) — same rule as campaign levels.
-  // Left bank width=640 (right edge x=660) keeps the approach ledge (center x=830)
-  // visible at spawn — player immediately sees the canal entry beat ahead.
-  // Right bank width=900 (left edge x=2950) gives a clear, wide towpath landing
-  // before endX=3500 (CH 8 marker at 550 px into the bank).
+  // ── Campaign 2 — Bridge crossing (St. Peter's Canal) ─────────────────────
+  // Also accessible directly via: ?level=bridge_crossing_1a
   {
     id: 'bridge_crossing_1a',
     name: "St. Peter's Canal — Bridge Crossing",
@@ -401,6 +196,208 @@ export const LEVELS: LevelDefinition[] = [
       // Right towpath — ground level (y=GROUND_Y-20 matches campaign convention); mid-to-late beat
       // patrol 3060–3260: 110px clear buffer from player landing zone (~2970); endX=3500 is 240px past patrol
       { x: 3150, y: GROUND_Y - 20, minX: 3060, maxX: 3260, speed: 52, damage: 1 },
+    ],
+  },
+  // ── Campaign 3 — Canal edge to locks ─────────────────────────────────────
+  // Also accessible directly via: ?level=shoreline-run-level-01b
+  // Route: wide dirt towpath running alongside canal → lock gate (endX).
+  // Three 80px water gaps interrupt the path; each has a low dock platform
+  // (y=451, top=440) straddling the gap so the player can either jump the gap
+  // directly at ground level OR hop up 43px to the dock for elevated fragments.
+  // All hops are within Cod B'y's 84px max jump. No precision required.
+  {
+    id: 'shoreline-run-level-01b',
+    name: "St. Peter's Canal — Canal Edge to Locks",
+    backdropPath: ASSET_PATHS.level01bCanalEdgeToLocksBackdrop,
+    backdropTextureKey: TEXTURE_KEYS.level01bCanalEdgeToLocksBackdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 3200,
+    startX: START_X,
+    endX: 3060,
+    totalFragments: TOTAL_FRAGMENTS,
+    requiredFragments: REQUIRED_FRAGMENTS,
+    platforms: [
+      // Ground sections — dirt towpath; gaps are 80px (easily jumped or dock-hopped)
+      // Section 1: wide starting area x=0–900
+      { x: 450, y: GROUND_Y + 26, width: 900, height: 70, color: COLORS.shore },
+      // Section 2: canal-edge mid x=980–1620
+      { x: 1300, y: GROUND_Y + 26, width: 640, height: 70, color: COLORS.shore },
+      // Section 3: approaching lock x=1700–2420
+      { x: 2060, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      // Section 4: lock gate area x=2500–3200; endX=3060 is 560px inside
+      { x: 2850, y: GROUND_Y + 26, width: 700, height: 70, color: COLORS.shore },
+      // Low dock platforms — 43px hop from ground (top=440); straddle each water gap
+      // Each dock overlaps 50px into the adjacent ground sections on both sides
+      { x: 940, y: 451, width: 180, height: 22, color: COLORS.dock },   // gap 1: x=850–1030
+      { x: 1660, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 2: x=1570–1750
+      { x: 2460, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 3: x=2370–2550
+    ],
+    hazards: [
+      // Three canal-water breaks — 80px each; top=488 (5px below ground top 483)
+      { x: 940, y: 515, width: 80, height: 54, kind: 'water' },   // gap 1: x=900–980
+      { x: 1660, y: 515, width: 80, height: 54, kind: 'water' },  // gap 2: x=1620–1700
+      { x: 2460, y: 515, width: 80, height: 54, kind: 'water' },  // gap 3: x=2420–2500
+    ],
+    fragments: [
+      { x: 200,  y: 430 },  // section 1 — early towpath
+      { x: 560,  y: 430 },  // section 1 — mid towpath
+      { x: 840,  y: 406 },  // dock 1 left approach — 77px from ground (within Cod B'y jump)
+      { x: 1160, y: 430 },  // section 2 — canal edge
+      { x: 1420, y: 430 },  // section 2 — before gap 2
+      { x: 1660, y: 406 },  // dock 2 — reward for hopping up
+      { x: 1900, y: 430 },  // section 3 — lock approach early
+      { x: 2200, y: 430 },  // section 3 — lock approach late
+      { x: 2460, y: 406 },  // dock 3 — reward for hopping up
+      { x: 2820, y: 430 },  // section 4 — lock gate arrival
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 400, y: 430 },   // section 1 — protection before first gap
+      { kind: 'tideLift',   x: 1340, y: 430 },  // section 2 — optional boost for dock fragments
+    ],
+    scuttleclaws: [],
+  },
+  // ── Campaign 4 — St. Peter's Canal ───────────────────────────────────────
+  {
+    id: 'st-peters-canal-level-03',
+    name: "St. Peter's Canal",
+    backdropPath: ASSET_PATHS.stPetersCanalLevel03Backdrop,
+    backdropTextureKey: TEXTURE_KEYS.stPetersCanalLevel03Backdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 3450,
+    startX: START_X,
+    endX: 3310,
+    totalFragments: 12,
+    requiredFragments: 10,
+    platforms: [
+      { x: 390, y: GROUND_Y + 26, width: 780, height: 70, color: COLORS.shore },
+      { x: 1290, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
+      { x: 2140, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      { x: 3120, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
+      { x: 680, y: 402, width: 170, height: 22, color: COLORS.dock },
+      { x: 930, y: 354, width: 170, height: 22, color: COLORS.dock },
+      { x: 1180, y: 316, width: 160, height: 22, color: COLORS.dock },
+      { x: 1580, y: 392, width: 200, height: 22, color: COLORS.dock },
+      { x: 1880, y: 344, width: 170, height: 22, color: COLORS.dock },
+      { x: 2230, y: 386, width: 190, height: 22, color: COLORS.dock },
+      { x: 2540, y: 338, width: 180, height: 22, color: COLORS.dock },
+      { x: 2860, y: 382, width: 190, height: 22, color: COLORS.dock },
+    ],
+    hazards: [
+      { x: 830, y: 515, width: 160, height: 54, kind: 'water' },
+      { x: 1650, y: 515, width: 220, height: 54, kind: 'water' },
+      { x: 2580, y: 515, width: 240, height: 54, kind: 'water' },
+      { x: 1390, y: 464, width: 48, height: 34, kind: 'rock' },
+      { x: 2320, y: 464, width: 52, height: 34, kind: 'rock' },
+      { x: 2960, y: 358, width: 44, height: 44, kind: 'net' },
+    ],
+    fragments: [
+      { x: 240, y: 430 },
+      { x: 560, y: 430 },
+      { x: 680, y: 362 },
+      { x: 930, y: 314 },
+      { x: 1180, y: 276 },
+      { x: 1380, y: 430 },
+      { x: 1580, y: 352 },
+      { x: 1880, y: 304 },
+      { x: 2160, y: 430 },
+      { x: 2540, y: 298 },
+      { x: 2860, y: 342 },
+      { x: 3180, y: 430 },
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 1460, y: 430 },
+      { kind: 'tiderunner', x: 1535, y: 430 },
+      { kind: 'tideLift', x: 1070, y: 276 },
+      { kind: 'storySpark', x: 2460, y: 298 },
+    ],
+    scuttleclaws: [
+      { x: 2050, y: GROUND_Y - 20, minX: 1940, maxX: 2180, speed: 56, damage: 1 },
+    ],
+  },
+  // ── Campaign 5 — Lord Malefacto boss (lock chamber arena) ────────────────
+  {
+    id: 'lord-malefacto-boss-level-04',
+    name: 'Lord Malefacto',
+    backdropPath: ASSET_PATHS.level04LockChamberArenaBackdrop,
+    backdropTextureKey: TEXTURE_KEYS.level04LockChamberArenaBackdrop,
+    musicAudioKey: AUDIO_KEYS.level03CanalTheme,
+    worldWidth: 1320,
+    startX: START_X,
+    endX: 1200,
+    totalFragments: 0,
+    requiredFragments: 0,
+    platforms: [
+      { x: 660, y: GROUND_Y + 26, width: 1320, height: 70, color: COLORS.shore },
+      { x: 372, y: 402, width: 180, height: 22, color: COLORS.dock },
+      { x: 948, y: 402, width: 180, height: 22, color: COLORS.dock },
+    ],
+    hazards: [],
+    fragments: [],
+    powerUps: [],
+    scuttleclaws: [],
+    boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
+  },
+  // ── Preserved / removed from current campaign — Heritage Steps ────────────
+  // Full definition kept intact; not in active progression.
+  // Restore to campaign by removing testOnly and inserting at the desired index.
+  // Also accessible directly via: ?level=heritage-steps-level-02
+  {
+    id: 'heritage-steps-level-02',
+    name: 'The Heritage Steps',
+    backdropPath: ASSET_PATHS.heritageStepsLevel02Backdrop,
+    backdropTextureKey: TEXTURE_KEYS.heritageStepsLevel02Backdrop,
+    musicAudioKey: AUDIO_KEYS.level02Theme,
+    worldWidth: 3300,
+    startX: START_X,
+    endX: 3160,
+    totalFragments: 12,
+    requiredFragments: 10,
+    platforms: [
+      { x: 360, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      { x: 1240, y: GROUND_Y + 26, width: 520, height: 70, color: COLORS.shore },
+      { x: 2100, y: GROUND_Y + 26, width: 660, height: 70, color: COLORS.shore },
+      { x: 3000, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      { x: 620, y: 420, width: 150, height: 22, color: COLORS.dock },
+      { x: 850, y: 374, width: 150, height: 22, color: COLORS.dock },
+      { x: 1080, y: 328, width: 160, height: 22, color: COLORS.dock },
+      { x: 1480, y: 402, width: 190, height: 22, color: COLORS.dock },
+      { x: 1780, y: 352, width: 170, height: 22, color: COLORS.dock },
+      { x: 2050, y: 306, width: 160, height: 22, color: COLORS.dock },
+      { x: 2380, y: 392, width: 200, height: 22, color: COLORS.dock },
+      { x: 2660, y: 338, width: 170, height: 22, color: COLORS.dock },
+      { x: 2940, y: 384, width: 190, height: 22, color: COLORS.dock },
+    ],
+    hazards: [
+      { x: 760, y: 515, width: 170, height: 54, kind: 'water' },
+      { x: 1580, y: 515, width: 260, height: 54, kind: 'water' },
+      { x: 2240, y: 515, width: 210, height: 54, kind: 'water' },
+      { x: 2850, y: 515, width: 180, height: 54, kind: 'water' },
+      { x: 1320, y: 464, width: 48, height: 34, kind: 'rock' },
+      { x: 1960, y: 464, width: 54, height: 34, kind: 'rock' },
+      { x: 2500, y: 368, width: 44, height: 44, kind: 'net' },
+      { x: 3060, y: 464, width: 50, height: 34, kind: 'rock' },
+    ],
+    fragments: [
+      { x: 220, y: 430 },
+      { x: 620, y: 382 },
+      { x: 850, y: 334 },
+      { x: 1080, y: 288 },
+      { x: 1240, y: 430 },
+      { x: 1480, y: 362 },
+      { x: 1780, y: 312 },
+      { x: 2050, y: 266 },
+      { x: 2260, y: 430 },
+      { x: 2380, y: 352 },
+      { x: 2660, y: 298 },
+      { x: 3040, y: 430 },
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 1380, y: 430 },
+      { kind: 'tideLift', x: 970, y: 288 },
+      { kind: 'storySpark', x: 2320, y: 352 },
+    ],
+    scuttleclaws: [
+      { x: 1120, y: GROUND_Y - 20, minX: 1030, maxX: 1210, speed: 52, damage: 1 },
     ],
     testOnly: true,
   },
