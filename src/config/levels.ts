@@ -263,9 +263,12 @@ export const LEVELS: LevelDefinition[] = [
     scuttleclaws: [],
     boss: { x: 1048, y: GROUND_Y - 78, hp: 3, damage: 1 },
   },
-  // ── Dev / test slice — Level 1B backdrop stub; gameplay design TBD ─────────
-  // Route mirrors Level 1A shoreline pattern extended with a fourth ground
-  // section (~lock approach). Gameplay layout pass required before campaign use.
+  // ── Dev / test slice — Level 1B canal-edge-to-locks ─────────────────────────
+  // Route: wide dirt towpath running alongside canal → lock gate (endX).
+  // Three 80px water gaps interrupt the path; each has a low dock platform
+  // (y=451, top=440) straddling the gap so the player can either jump the gap
+  // directly at ground level OR hop up 43px to the dock for elevated fragments.
+  // All hops are within Cod B'y's 84px max jump. No precision required.
   // Load via: ?level=shoreline-run-level-01b
   {
     id: 'shoreline-run-level-01b',
@@ -279,38 +282,42 @@ export const LEVELS: LevelDefinition[] = [
     totalFragments: TOTAL_FRAGMENTS,
     requiredFragments: REQUIRED_FRAGMENTS,
     platforms: [
-      // Ground sections — concrete canal-edge towpath leading toward lock gates
-      { x: 375, y: GROUND_Y + 26, width: 750, height: 70, color: COLORS.shore },
-      { x: 1240, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
-      { x: 2050, y: GROUND_Y + 26, width: 920, height: 70, color: COLORS.shore },
-      { x: 2895, y: GROUND_Y + 26, width: 590, height: 70, color: COLORS.shore },
-      // Elevated dock platforms — same pattern as Level 1A
-      { x: 720, y: 390, width: 190, height: 22, color: COLORS.dock },
-      { x: 980, y: 338, width: 180, height: 22, color: COLORS.dock },
-      { x: 1510, y: 408, width: 210, height: 22, color: COLORS.dock },
-      { x: 1750, y: 350, width: 160, height: 22, color: COLORS.dock },
-      { x: 2230, y: 384, width: 220, height: 22, color: COLORS.dock },
+      // Ground sections — dirt towpath; gaps are 80px (easily jumped or dock-hopped)
+      // Section 1: wide starting area x=0–900
+      { x: 450, y: GROUND_Y + 26, width: 900, height: 70, color: COLORS.shore },
+      // Section 2: canal-edge mid x=980–1620
+      { x: 1300, y: GROUND_Y + 26, width: 640, height: 70, color: COLORS.shore },
+      // Section 3: approaching lock x=1700–2420
+      { x: 2060, y: GROUND_Y + 26, width: 720, height: 70, color: COLORS.shore },
+      // Section 4: lock gate area x=2500–3200; endX=3060 is 560px inside
+      { x: 2850, y: GROUND_Y + 26, width: 700, height: 70, color: COLORS.shore },
+      // Low dock platforms — 43px hop from ground (top=440); straddle each water gap
+      // Each dock overlaps 50px into the adjacent ground sections on both sides
+      { x: 940, y: 451, width: 180, height: 22, color: COLORS.dock },   // gap 1: x=850–1030
+      { x: 1660, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 2: x=1570–1750
+      { x: 2460, y: 451, width: 180, height: 22, color: COLORS.dock },  // gap 3: x=2370–2550
     ],
     hazards: [
-      { x: 805, y: 515, width: 190, height: 54, kind: 'water' },
-      { x: 1645, y: 515, width: 240, height: 54, kind: 'water' },
-      { x: 2560, y: 515, width: 90, height: 54, kind: 'water' },
+      // Three canal-water breaks — 80px each; top=488 (5px below ground top 483)
+      { x: 940, y: 515, width: 80, height: 54, kind: 'water' },   // gap 1: x=900–980
+      { x: 1660, y: 515, width: 80, height: 54, kind: 'water' },  // gap 2: x=1620–1700
+      { x: 2460, y: 515, width: 80, height: 54, kind: 'water' },  // gap 3: x=2420–2500
     ],
     fragments: [
-      { x: 230, y: 430 },
-      { x: 560, y: 430 },
-      { x: 720, y: 350 },
-      { x: 980, y: 298 },
-      { x: 1180, y: 430 },
-      { x: 1510, y: 368 },
-      { x: 1760, y: 310 },
-      { x: 2060, y: 430 },
-      { x: 2235, y: 344 },
-      { x: 2850, y: 430 },
+      { x: 200,  y: 430 },  // section 1 — early towpath
+      { x: 560,  y: 430 },  // section 1 — mid towpath
+      { x: 840,  y: 406 },  // dock 1 left approach — 77px from ground (within Cod B'y jump)
+      { x: 1160, y: 430 },  // section 2 — canal edge
+      { x: 1420, y: 430 },  // section 2 — before gap 2
+      { x: 1660, y: 406 },  // dock 2 — reward for hopping up
+      { x: 1900, y: 430 },  // section 3 — lock approach early
+      { x: 2200, y: 430 },  // section 3 — lock approach late
+      { x: 2460, y: 406 },  // dock 3 — reward for hopping up
+      { x: 2820, y: 430 },  // section 4 — lock gate arrival
     ],
     powerUps: [
-      { kind: 'kelpShield', x: 620, y: 430 },
-      { kind: 'tideLift', x: 910, y: 298 },
+      { kind: 'kelpShield', x: 400, y: 430 },   // section 1 — protection before first gap
+      { kind: 'tideLift',   x: 1340, y: 430 },  // section 2 — optional boost for dock fragments
     ],
     scuttleclaws: [],
     testOnly: true,
