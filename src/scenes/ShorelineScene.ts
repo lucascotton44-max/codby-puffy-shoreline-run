@@ -749,13 +749,22 @@ export class ShorelineScene extends Phaser.Scene {
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
     const platform = this.add.rectangle(x, y, width, height, color);
+    const isBrasDor = this.currentLevel.id === 'bras-dor-below-level-05';
     const hasDockProp = color === COLORS.dock && this.hasTexture(TEXTURE_KEYS.dockPlankPlatformProp);
-    platform.setAlpha(hasDockProp ? 0 : color === COLORS.dock ? 0.94 : 0.82);
-    platform.setStrokeStyle(2, color === COLORS.dock ? 0x33291f : 0x3d4039, 0.78);
+
+    if (isBrasDor) {
+      platform.setAlpha(0);
+    } else {
+      platform.setAlpha(hasDockProp ? 0 : color === COLORS.dock ? 0.94 : 0.82);
+      platform.setStrokeStyle(2, color === COLORS.dock ? 0x33291f : 0x3d4039, 0.78);
+    }
+
     this.platforms.add(platform);
     (platform.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
 
-    if (color === COLORS.dock) {
+    if (isBrasDor) {
+      this.addBrasDorPlatformDressing(x, y, width, height, color);
+    } else if (color === COLORS.dock) {
       if (hasDockProp) {
         this.addPlatformProp(x, y, width, height);
       } else {
@@ -792,6 +801,92 @@ export class ShorelineScene extends Phaser.Scene {
     for (let pebbleX = x - width / 2 + 44; pebbleX < x + width / 2 - 32; pebbleX += 74) {
       this.add.ellipse(pebbleX, y - 27, 22, 7, 0x4e544f, 0.44);
       this.add.ellipse(pebbleX + 28, y - 25, 14, 5, 0x767366, 0.36);
+    }
+  }
+
+  private addBrasDorPlatformDressing(x: number, y: number, width: number, height: number, color: number): void {
+    const g = this.add.graphics();
+    const top = y - height / 2;
+    const left = x - width / 2;
+
+    if (color === COLORS.shore) {
+      // Large underwater stone shelf
+
+      // Main stone body — muted blue-grey slate
+      g.fillStyle(0x475d68, 0.90);
+      g.fillRect(left, top, width, height);
+
+      // Top surface — lighter walkable face
+      g.fillStyle(0x5e7a86, 0.54);
+      g.fillRect(left, top, width, 8);
+
+      // Thin highlight lip at crown
+      g.fillStyle(0x7898a4, 0.28);
+      g.fillRect(left, top, width, 2);
+
+      // Dark silt/shadow underside
+      g.fillStyle(0x222e36, 0.60);
+      g.fillRect(left, top + height - 20, width, 20);
+
+      // Side edge shading
+      g.fillStyle(0x263540, 0.40);
+      g.fillRect(left, top, 5, height);
+      g.fillRect(left + width - 5, top, 5, height);
+
+      // Stone grain seams
+      g.lineStyle(1, 0x2e3d48, 0.28);
+      g.lineBetween(left + 12, top + 26, left + width - 12, top + 26);
+      g.lineStyle(1, 0x2e3d48, 0.18);
+      g.lineBetween(left + 12, top + 48, left + width - 12, top + 48);
+
+      // Shell and pebble flecks along top
+      let si = 0;
+      for (let sx = left + 32; sx < left + width - 22; sx += 50 + (si % 3) * 18, si++) {
+        g.fillStyle(0xd2c8b0, 0.38);
+        g.fillEllipse(sx, top + 4, 14, 5);
+        g.fillStyle(0xbcb29a, 0.26);
+        g.fillEllipse(sx + 20, top + 5, 8, 3);
+      }
+
+    } else {
+      // COLORS.dock — submerged stone slab / ledge
+
+      // Main stone body — dark blue-grey
+      g.fillStyle(0x3c4f5c, 0.92);
+      g.fillRect(left, top, width, height);
+
+      // Top surface highlight
+      g.fillStyle(0x587888, 0.58);
+      g.fillRect(left, top, width, 5);
+
+      // Thin highlight lip
+      g.fillStyle(0x6e9098, 0.26);
+      g.fillRect(left, top, width, 2);
+
+      // Dark underside shadow
+      g.fillStyle(0x1e2c36, 0.55);
+      g.fillRect(left, top + height - 5, width, 5);
+
+      // Stone edge lines
+      g.lineStyle(1, 0x2a3a46, 0.55);
+      g.lineBetween(left, top, left + width, top);
+      g.lineStyle(1, 0x131e28, 0.42);
+      g.lineBetween(left, top + height, left + width, top + height);
+
+      // Vertical crack seam — suggests stone block joinery
+      if (width >= 140) {
+        const crackX = left + Math.floor(width * 0.42);
+        g.lineStyle(1, 0x182430, 0.32);
+        g.lineBetween(crackX, top + 2, crackX, top + height - 2);
+      }
+
+      // Shell and barnacle flecks
+      const fleckStep = Math.max(26, Math.floor(width / 5));
+      let fi = 0;
+      for (let fx = left + 14; fx < left + width - 10; fx += fleckStep, fi++) {
+        g.fillStyle(0xc2b99c, 0.28 + (fi % 2) * 0.10);
+        g.fillEllipse(fx, top + 3, 7 + (fi % 2) * 3, 3);
+      }
     }
   }
 
