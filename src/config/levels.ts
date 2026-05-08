@@ -403,7 +403,10 @@ export const LEVELS: LevelDefinition[] = [
   },
   // ── Test — Bras d'Or Below (shallow eelgrass) ─────────────────────────────
   // Accessible directly via: ?level=bras-dor-below-level-05
-  // Integration-pass only. No swimming, eelgrass, bubble vent, or current zones.
+  // No swimming, eelgrass, bubble vent, or current zones.
+  // Two routes: lower bridge path (43px hops on stone A→B, both characters) or
+  // upper ledge risk route (jump from stone B right edge, 76px hop, both characters).
+  // Upper ledge is past stone B so Cod B'y walks the lower route with full headroom.
   {
     id: 'bras-dor-below-level-05',
     name: "Bras d'Or Below",
@@ -416,36 +419,60 @@ export const LEVELS: LevelDefinition[] = [
     totalFragments: 8,
     requiredFragments: 6,
     platforms: [
-      // Section 1 — shallow shelf; player spawns here
-      { x: 375, y: GROUND_Y + 26, width: 700, height: 70, color: COLORS.shore },
-      // Section 2 — mid shelf
-      { x: 1240, y: GROUND_Y + 26, width: 580, height: 70, color: COLORS.shore },
-      // Section 3 — far shelf approaching exit
-      { x: 2040, y: GROUND_Y + 26, width: 920, height: 70, color: COLORS.shore },
-      // Elevated dock platforms
-      { x: 720, y: 402, width: 180, height: 22, color: COLORS.dock },
-      { x: 1010, y: 354, width: 160, height: 22, color: COLORS.dock },
-      { x: 1700, y: 402, width: 190, height: 22, color: COLORS.dock },
+      // Section 1 — start shelf; x=25–735; safe spawn zone
+      { x: 380, y: GROUND_Y + 26, width: 710, height: 70, color: COLORS.shore },
+      // Stepping stone A — lower bridge route; 43px hop from shelf 1 (top 483→440)
+      // center x=815 w=190 → left x=720, right x=910
+      { x: 815, y: 451, width: 190, height: 22, color: COLORS.dock },
+      // Upper ledge — risk/reward route; shifted past stone B so Cod B'y walks under it freely
+      // 76px hop from stone B right edge (top 440→364); reachable by both characters
+      // center x=1160 w=140 → left x=1090, right x=1230; starts 25px past stone B right (1065)
+      { x: 1160, y: 375, width: 140, height: 22, color: COLORS.dock },
+      // Stepping stone B — lower bridge route continues; overlaps stone A and shelf 2
+      // center x=975 w=180 → left x=885, right x=1065
+      { x: 975, y: 451, width: 180, height: 22, color: COLORS.dock },
+      // Section 2 — mid shelf; x=1010–1590
+      { x: 1300, y: GROUND_Y + 26, width: 580, height: 70, color: COLORS.shore },
+      // Gap 2 bridge dock — 43px hop; bridges 100px narrow trench
+      // center x=1640 w=170 → left x=1555, right x=1725
+      { x: 1640, y: 451, width: 170, height: 22, color: COLORS.dock },
+      // Section 3 — far shelf; x=1690–2610; spans endX=2550
+      { x: 2150, y: GROUND_Y + 26, width: 920, height: 70, color: COLORS.shore },
+      // Far upper ledge — 79px hop from ground; optional risk/reward (top 483→404)
+      // center x=2020 w=190 → left x=1925, right x=2115
+      { x: 2020, y: 415, width: 190, height: 22, color: COLORS.dock },
     ],
     hazards: [
-      // Water gaps between shelf sections
-      { x: 830, y: 515, width: 190, height: 54, kind: 'water' },
-      { x: 1710, y: 515, width: 220, height: 54, kind: 'water' },
+      // Trench 1 — wide deep-current gap; x=735–1008; impassable without bridge stones
+      { x: 872, y: 515, width: 273, height: 54, kind: 'water' },
+      // Trench 2 — narrow gap; x=1590–1690; jumpable directly or via bridge dock
+      { x: 1640, y: 515, width: 100, height: 54, kind: 'water' },
+      // Rock hazard — far shelf entry; x=1800; before crab patrol zone starts
+      { x: 1800, y: 464, width: 48, height: 34, kind: 'rock' },
+      // Rock hazard — mid shelf exit; x=1520; past scuttleclaw patrol; near shelf edge
+      { x: 1520, y: 464, width: 48, height: 34, kind: 'rock' },
     ],
     fragments: [
-      { x: 210, y: 430 },
-      { x: 510, y: 430 },
-      { x: 720, y: 362 },
-      { x: 1010, y: 314 },
-      { x: 1340, y: 430 },
-      { x: 1700, y: 362 },
-      { x: 2120, y: 430 },
-      { x: 2460, y: 430 },
+      { x: 210,  y: 430 },  // start shelf — early; safe
+      { x: 530,  y: 430 },  // start shelf — mid; draws player toward trench
+      { x: 815,  y: 406 },  // stone A — reward for bridge hop (34px above top=440)
+      { x: 1160, y: 330 },  // upper ledge — risk/reward (34px above top=364)
+      { x: 1150, y: 430 },  // mid shelf — clear landing zone after trench
+      { x: 1640, y: 406 },  // bridge dock — reward for gap 2 hop (34px above top=440)
+      { x: 1900, y: 430 },  // far shelf — entry; past rock hazard
+      { x: 2020, y: 370 },  // far upper ledge — risk/reward (34px above top=404)
     ],
     powerUps: [
-      { kind: 'kelpShield', x: 620, y: 430 },
+      { kind: 'kelpShield', x: 640,  y: 430 },  // start shelf; protection before trench
+      { kind: 'tideLift',   x: 1750, y: 430 },  // far shelf entry; helps upper ledge hop
+      { kind: 'storySpark', x: 1230, y: 430 },  // mid shelf; attracts nearby fragments
     ],
-    scuttleclaws: [],
+    scuttleclaws: [
+      // Mid shelf — placed past landing zone; player has shelf footing before crab appears
+      { x: 1320, y: GROUND_Y - 20, minX: 1150, maxX: 1490, speed: 52, damage: 1 },
+      // Far shelf — late pressure; 460px clear landing zone before patrol start
+      { x: 2380, y: GROUND_Y - 20, minX: 2180, maxX: 2490, speed: 52, damage: 1 },
+    ],
     testOnly: true,
   },
 ];
