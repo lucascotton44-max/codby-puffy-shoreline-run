@@ -56,6 +56,15 @@ export type LordMalefactoDefinition = {
   damage?: number;
 };
 
+export type BubbleVentDefinition = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Upward velocity cap applied while player is airborne inside the zone (px/s). */
+  boostVelocity: number;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -73,6 +82,7 @@ export type LevelDefinition = {
   powerUps: PowerUpDefinition[];
   scuttleclaws: ScuttleclawDefinition[];
   boss?: LordMalefactoDefinition;
+  bubbleVents?: BubbleVentDefinition[];
   /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
   testOnly?: boolean;
 };
@@ -472,6 +482,12 @@ export const LEVELS: LevelDefinition[] = [
       { x: 1320, y: GROUND_Y - 20, minX: 1150, maxX: 1490, speed: 52, damage: 1 },
       // Far shelf — late pressure; 460px clear landing zone before patrol start
       { x: 2380, y: GROUND_Y - 20, minX: 2180, maxX: 2490, speed: 52, damage: 1 },
+    ],
+    bubbleVents: [
+      // Seabed thermal in trench 1 — upward boost zone catching players who fall in
+      // Zone x=846–898, y=390–485; above water hazard top (488), below stone A surface (440)
+      // boostVelocity=290: less than a full jump (390); enough to recover to stone A height
+      { x: 872, y: 438, width: 52, height: 95, boostVelocity: 290 },
     ],
     testOnly: true,
   },

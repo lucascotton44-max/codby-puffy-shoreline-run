@@ -103,6 +103,10 @@ export class ShorelineScene extends Phaser.Scene {
   private powerUps!: Phaser.Physics.Arcade.Group;
   private scuttleclaws!: Phaser.Physics.Arcade.Group;
   private lordMalefacto?: LordMalefacto;
+  private ventZones: Phaser.GameObjects.Rectangle[] = [];
+  private ventGraphics!: Phaser.GameObjects.Graphics;
+  private readonly BUBBLE_VENT_BOOST_COOLDOWN_MS = 700;
+  private bubbleVentBoostAt = -10000;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -309,6 +313,7 @@ export class ShorelineScene extends Phaser.Scene {
         return true;
       });
       this.updateWaterShimmers(time);
+      this.updateBubbleVentVisual(time);
       this.updateScuttleclaws();
       this.syncPlayerDecorations();
       this.updateHud();
@@ -335,6 +340,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.updatePowerUpTimers(time);
     this.applyStorySparkAttraction();
     this.updateWaterShimmers(time);
+    this.updateBubbleVentVisual(time);
     this.updateScuttleclaws();
     this.lordMalefacto?.update(time);
     this.syncPlayerDecorations();
@@ -736,6 +742,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createBoss();
     this.createEndMarker();
     this.createStartZone();
+    this.createBubbleVents();
   }
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
@@ -950,6 +957,20 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createStartZone(): void {
     // Start-zone visualization lives in the H debug overlay for demo builds.
+  }
+
+  private createBubbleVents(): void {
+    this.ventZones = [];
+    this.ventGraphics = this.add.graphics();
+    this.ventGraphics.setDepth(1);
+
+    const vents = this.currentLevel.bubbleVents ?? [];
+    vents.forEach(({ x, y, width, height }) => {
+      const zone = this.add.rectangle(x, y, width, height, 0x7fd8d5, 0);
+      this.physics.add.existing(zone, true);
+      (zone.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
+      this.ventZones.push(zone);
+    });
   }
 
   private createPlayer(): void {
@@ -1457,6 +1478,12 @@ export class ShorelineScene extends Phaser.Scene {
       this.handleScuttleclawContact(scuttleclaw as Scuttleclaw);
     });
 
+    this.ventZones.forEach((zone, index) => {
+      this.physics.add.overlap(this.player, zone, () => {
+        this.handleBubbleVentContact(index);
+      });
+    });
+
     if (this.lordMalefacto) {
       this.physics.add.overlap(this.player, this.lordMalefacto as Phaser.GameObjects.GameObject, () => {
         this.handleBossContact();
@@ -1489,6 +1516,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.storySparkExpiresAt = 0;
     this.tideRunExpiresAt = 0;
     this.wasGliding = false;
+    this.bubbleVentBoostAt = -10000;
     this.touchInput = { left: false, right: false, jumpJustDown: false, jumpHeld: false, switchJustDown: false };
     this.touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>(), switch: new Set<number>() };
     this.jumpQueuedUntil = 0;
@@ -1796,6 +1824,52 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
+  private updateBubbleVentVisual(time: number): void {
+    this.ventGraphics.clear();
+    const vents = this.currentLevel.bubbleVents;
+    if (!vents?.length) return;
+
+    for (const vent of vents) {
+      const vx = vent.x;
+      const vTop = vent.y - vent.height / 2;
+      const vBottom = vent.y + vent.height / 2;
+      const vHeight = vent.height;
+
+      // Subtle upward column streaks
+      const streaks = [
+        { xOff: -8, width: 1.2, alpha: 0.20, phase: 0.0 },
+        { xOff:  0, width: 1.0, alpha: 0.16, phase: 1.1 },
+        { xOff:  8, width: 1.2, alpha: 0.18, phase: 2.3 },
+      ];
+      for (const s of streaks) {
+        const sway = Math.sin(time * 0.0026 + s.phase) * 2.0;
+        this.ventGraphics.lineStyle(s.width, 0x7fd8d5, s.alpha);
+        this.ventGraphics.lineBetween(vx + s.xOff - sway, vBottom, vx + s.xOff + sway, vTop + 12);
+      }
+
+      // Rising bubbles looping from bottom to top
+      const bubbles = [
+        { xOff: -10, speed: 0.0018, phase: 0.00 },
+        { xOff:   6, speed: 0.0022, phase: 0.38 },
+        { xOff:  -4, speed: 0.0015, phase: 0.71 },
+        { xOff:  11, speed: 0.0019, phase: 0.15 },
+      ];
+      this.ventGraphics.fillStyle(0x9ee8e4, 0.62);
+      for (const b of bubbles) {
+        const cycle = (time * b.speed + b.phase) % 1.0;
+        const bx = vx + b.xOff;
+        const by = vBottom - cycle * vHeight;
+        const r = Math.max(1, 2.6 - cycle * 0.8);
+        this.ventGraphics.fillCircle(bx, by, r);
+      }
+
+      // Base shimmer at vent mouth
+      const shimAlpha = 0.26 + Math.sin(time * 0.0032) * 0.09;
+      this.ventGraphics.lineStyle(2, 0xc5f5ee, shimAlpha);
+      this.ventGraphics.lineBetween(vx - 18, vBottom + 3, vx + 18, vBottom + 3);
+    }
+  }
+
   private updateScuttleclaws(): void {
     this.scuttleclaws.children.each((child) => {
       (child as Scuttleclaw).updatePatrol();
@@ -1824,6 +1898,24 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.damagePlayer(hazard.damage);
+  }
+
+  private handleBubbleVentContact(ventIndex: number): void {
+    if (!this.isRunStarted || this.isEnded) return;
+
+    const vent = this.currentLevel.bubbleVents?.[ventIndex];
+    if (!vent) return;
+
+    const body = this.getPlayerBody();
+    if (body.blocked.down) return;
+
+    const now = this.time.now;
+    if (now - this.bubbleVentBoostAt < this.BUBBLE_VENT_BOOST_COOLDOWN_MS) return;
+
+    if (body.velocity.y > -vent.boostVelocity) {
+      body.setVelocityY(-vent.boostVelocity);
+      this.bubbleVentBoostAt = now;
+    }
   }
 
   private handleBossContact(): void {
@@ -2315,6 +2407,13 @@ export class ShorelineScene extends Phaser.Scene {
         this.drawBodyRect(scuttleclaw.body, 0xff8a5c);
       }
       return true;
+    });
+
+    this.ventZones.forEach((zone) => {
+      const body = zone.body as Phaser.Physics.Arcade.StaticBody | undefined;
+      if (body) {
+        this.drawBodyRect(body, 0x7fd8d5);
+      }
     });
 
     if (this.lordMalefacto?.active && this.lordMalefacto.body.enable) {
