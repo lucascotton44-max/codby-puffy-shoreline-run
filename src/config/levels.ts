@@ -401,4 +401,51 @@ export const LEVELS: LevelDefinition[] = [
     ],
     testOnly: true,
   },
+  // ── Test — Bras d'Or Below (shallow eelgrass) ─────────────────────────────
+  // Accessible directly via: ?level=bras-dor-below-level-05
+  // Integration-pass only. No swimming, eelgrass, bubble vent, or current zones.
+  {
+    id: 'bras-dor-below-level-05',
+    name: "Bras d'Or Below",
+    backdropPath: ASSET_PATHS.brasDorBelowLevel05Backdrop,
+    backdropTextureKey: TEXTURE_KEYS.brasDorBelowLevel05Backdrop,
+    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
+    worldWidth: WORLD_WIDTH,
+    startX: START_X,
+    endX: END_X,
+    totalFragments: 8,
+    requiredFragments: 6,
+    platforms: [
+      // Section 1 — shallow shelf; player spawns here
+      { x: 375, y: GROUND_Y + 26, width: 700, height: 70, color: COLORS.shore },
+      // Section 2 — mid shelf
+      { x: 1240, y: GROUND_Y + 26, width: 580, height: 70, color: COLORS.shore },
+      // Section 3 — far shelf approaching exit
+      { x: 2040, y: GROUND_Y + 26, width: 920, height: 70, color: COLORS.shore },
+      // Elevated dock platforms
+      { x: 720, y: 402, width: 180, height: 22, color: COLORS.dock },
+      { x: 1010, y: 354, width: 160, height: 22, color: COLORS.dock },
+      { x: 1700, y: 402, width: 190, height: 22, color: COLORS.dock },
+    ],
+    hazards: [
+      // Water gaps between shelf sections
+      { x: 830, y: 515, width: 190, height: 54, kind: 'water' },
+      { x: 1710, y: 515, width: 220, height: 54, kind: 'water' },
+    ],
+    fragments: [
+      { x: 210, y: 430 },
+      { x: 510, y: 430 },
+      { x: 720, y: 362 },
+      { x: 1010, y: 314 },
+      { x: 1340, y: 430 },
+      { x: 1700, y: 362 },
+      { x: 2120, y: 430 },
+      { x: 2460, y: 430 },
+    ],
+    powerUps: [
+      { kind: 'kelpShield', x: 620, y: 430 },
+    ],
+    scuttleclaws: [],
+    testOnly: true,
+  },
 ];
