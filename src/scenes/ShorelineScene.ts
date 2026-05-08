@@ -107,6 +107,7 @@ export class ShorelineScene extends Phaser.Scene {
   private ventGraphics!: Phaser.GameObjects.Graphics;
   private readonly BUBBLE_VENT_BOOST_COOLDOWN_MS = 700;
   private bubbleVentBoostAt = -10000;
+  private eelgrassGraphics!: Phaser.GameObjects.Graphics;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -743,6 +744,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createEndMarker();
     this.createStartZone();
     this.createBubbleVents();
+    this.createEelgrassVisuals();
   }
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
@@ -971,6 +973,50 @@ export class ShorelineScene extends Phaser.Scene {
       (zone.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
       this.ventZones.push(zone);
     });
+  }
+
+  private createEelgrassVisuals(): void {
+    this.eelgrassGraphics = this.add.graphics();
+    this.eelgrassGraphics.setDepth(2);
+
+    const zones = this.currentLevel.eelgrassZones ?? [];
+    for (const zone of zones) {
+      const left = zone.x - zone.width / 2;
+      const base = zone.y + zone.height / 2;
+
+      // Ground-level tint — dark green strip anchors the blades and signals dense vegetation
+      this.eelgrassGraphics.fillStyle(0x1b3d24, 0.22);
+      this.eelgrassGraphics.fillRect(left, base - 40, zone.width, 40);
+
+      // Grass blades — taller than the first pass so tips reach ankle/shin height on both characters
+      const bladeCount = Math.floor(zone.width / 7);
+      const step = zone.width / bladeCount;
+      for (let i = 0; i < bladeCount; i++) {
+        const bx = left + (i + 0.5) * step;
+        const bladeH = 42 + (i % 4) * 4;  // 42 / 46 / 50 / 54 px
+        const lean = ((i % 5) - 2) * 3;    // -6 / -3 / 0 / +3 / +6 px
+        this.eelgrassGraphics.lineStyle(2.5, 0x4a8c57, 0.80);
+        this.eelgrassGraphics.lineBetween(bx, base, bx + lean, base - bladeH);
+      }
+    }
+  }
+
+  private getActiveEelgrassMultiplier(): number {
+    const zones = this.currentLevel.eelgrassZones;
+    if (!zones?.length) return 1;
+    const px = this.player.x;
+    const py = this.player.y;
+    for (const zone of zones) {
+      if (
+        px >= zone.x - zone.width / 2 &&
+        px <= zone.x + zone.width / 2 &&
+        py >= zone.y - zone.height / 2 &&
+        py <= zone.y + zone.height / 2
+      ) {
+        return zone.slowMultiplier;
+      }
+    }
+    return 1;
   }
 
   private createPlayer(): void {
@@ -1582,7 +1628,7 @@ export class ShorelineScene extends Phaser.Scene {
   private handleMovement(): void {
     const character = CHARACTERS[this.activeCharacter];
     const body = this.getPlayerBody();
-    const moveSpeed = character.moveSpeed * (this.hasActiveTideRun() ? GAMEPLAY_TUNING.powerUps.tiderunner.moveSpeedMultiplier : 1);
+    const moveSpeed = character.moveSpeed * (this.hasActiveTideRun() ? GAMEPLAY_TUNING.powerUps.tiderunner.moveSpeedMultiplier : 1) * this.getActiveEelgrassMultiplier();
     const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown || this.touchInput.left;
     const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown || this.touchInput.right;
     const inputNow = this.time.now;
@@ -2414,6 +2460,13 @@ export class ShorelineScene extends Phaser.Scene {
       if (body) {
         this.drawBodyRect(body, 0x7fd8d5);
       }
+    });
+
+    (this.currentLevel.eelgrassZones ?? []).forEach((zone) => {
+      this.debugGraphics.fillStyle(0x44ff44, 0.10);
+      this.debugGraphics.fillRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
+      this.debugGraphics.lineStyle(3, 0x44ff44, 1.0);
+      this.debugGraphics.strokeRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
     });
 
     if (this.lordMalefacto?.active && this.lordMalefacto.body.enable) {

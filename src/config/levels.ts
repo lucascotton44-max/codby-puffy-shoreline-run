@@ -65,6 +65,15 @@ export type BubbleVentDefinition = {
   boostVelocity: number;
 };
 
+export type EelgrassZoneDefinition = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Horizontal speed multiplier while inside the zone (0–1). */
+  slowMultiplier: number;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -83,6 +92,7 @@ export type LevelDefinition = {
   scuttleclaws: ScuttleclawDefinition[];
   boss?: LordMalefactoDefinition;
   bubbleVents?: BubbleVentDefinition[];
+  eelgrassZones?: EelgrassZoneDefinition[];
   /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
   testOnly?: boolean;
 };
@@ -413,7 +423,7 @@ export const LEVELS: LevelDefinition[] = [
   },
   // ── Test — Bras d'Or Below (shallow eelgrass) ─────────────────────────────
   // Accessible directly via: ?level=bras-dor-below-level-05
-  // No swimming, eelgrass, bubble vent, or current zones.
+  // No swimming or current zones. Bubble vent in trench 1. Eelgrass slow-zone on shelf 2 entry.
   // Two routes: lower bridge path (43px hops on stone A→B, both characters) or
   // upper ledge risk route (jump from stone B right edge, 76px hop, both characters).
   // Upper ledge is past stone B so Cod B'y walks the lower route with full headroom.
@@ -488,6 +498,12 @@ export const LEVELS: LevelDefinition[] = [
       // Zone x=846–898, y=390–485; above water hazard top (488), below stone A surface (440)
       // boostVelocity=290: less than a full jump (390); enough to recover to stone A height
       { x: 872, y: 438, width: 52, height: 95, boostVelocity: 290 },
+    ],
+    eelgrassZones: [
+      // Dense eelgrass patch — shelf 2 entry; x=1015–1145, before scuttleclaw patrol (minX=1150)
+      // Zone y=420–500; player center on ground ≈452 (Cod) / 459 (Puffy); both fully caught
+      // slowMultiplier=0.72: mild 28% drag; noticeable but controls stay responsive on mobile
+      { x: 1080, y: 460, width: 130, height: 80, slowMultiplier: 0.72 },
     ],
     testOnly: true,
   },
