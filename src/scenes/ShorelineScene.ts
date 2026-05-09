@@ -133,6 +133,7 @@ export class ShorelineScene extends Phaser.Scene {
   private hudHintText!: Phaser.GameObjects.Text;
   private isMobileLayout = false;
   private suppressNextTouchAction = false;
+  private isDirectTestLevel = false;
   private titleOverlay!: Phaser.GameObjects.Container;
   private messagePanel!: Phaser.GameObjects.Rectangle;
   private messageText!: Phaser.GameObjects.Text;
@@ -267,9 +268,13 @@ export class ShorelineScene extends Phaser.Scene {
     this.handleAudioInput();
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.restart)) {
-      this.registry.set('shorelineRestartCurrentLevel', true);
-      this.stopCurrentMusic();
-      this.scene.restart();
+      if (this.isEnded && this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
+        this.restartFromLevelOne();
+      } else {
+        this.registry.set('shorelineRestartCurrentLevel', true);
+        this.stopCurrentMusic();
+        this.scene.restart();
+      }
       return;
     }
 
@@ -277,6 +282,8 @@ export class ShorelineScene extends Phaser.Scene {
       this.touchInput.jumpJustDown = false;
       if (this.didWinLevel && this.hasNextLevel()) {
         this.advanceToNextLevel();
+      } else if (this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
+        this.restartFromLevelOne();
       } else {
         this.registry.set('shorelineRestartCurrentLevel', true);
         this.stopCurrentMusic();
@@ -403,6 +410,7 @@ export class ShorelineScene extends Phaser.Scene {
       // Allow ?level=<id> in the URL to jump directly to a level for dev/test.
       const urlLevelId = new URLSearchParams(window.location.search).get('level');
       const urlLevelIndex = urlLevelId ? LEVELS.findIndex((l) => l.id === urlLevelId) : -1;
+      this.isDirectTestLevel = urlLevelIndex >= 0;
       levelIndex = urlLevelIndex >= 0 ? urlLevelIndex : 0;
     }
 
@@ -417,6 +425,11 @@ export class ShorelineScene extends Phaser.Scene {
     // testOnly levels are not part of normal campaign progression.
     if (LEVELS[nextIndex].testOnly) return false;
     return true;
+  }
+
+  private restartFromLevelOne(): void {
+    this.stopCurrentMusic();
+    this.scene.restart();
   }
 
   private advanceToNextLevel(): void {
@@ -2394,7 +2407,7 @@ export class ShorelineScene extends Phaser.Scene {
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
-          ...(this.hasNextLevel() ? ['ENTER / TAP: Next Level', 'R: Replay'] : ['R / TAP: Run Again']),
+          ...(this.hasNextLevel() ? ['ENTER / TAP: Next Level', 'R: Replay'] : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run'])),
         ]
       : [
           'GAME OVER',
