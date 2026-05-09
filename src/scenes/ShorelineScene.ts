@@ -131,6 +131,8 @@ export class ShorelineScene extends Phaser.Scene {
   private hudTitleText!: Phaser.GameObjects.Text;
   private hudStatsText!: Phaser.GameObjects.Text;
   private hudHintText!: Phaser.GameObjects.Text;
+  private isMobileLayout = false;
+  private suppressNextTouchAction = false;
   private titleOverlay!: Phaser.GameObjects.Container;
   private messagePanel!: Phaser.GameObjects.Rectangle;
   private messageText!: Phaser.GameObjects.Text;
@@ -1412,55 +1414,128 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    this.hudPanel = this.add.rectangle(378, 56, 708, 88, 0x172426, 0.76);
-    this.hudPanel.setStrokeStyle(1, 0xb9c0b5, 0.24);
-    this.hudPanel.setScrollFactor(0);
+    const hasTouch =
+      navigator.maxTouchPoints > 0 ||
+      window.matchMedia('(pointer: coarse)').matches ||
+      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+      this.sys.game.device.input.touch;
+    this.isMobileLayout = hasTouch;
 
-    this.hudTitleText = this.add.text(24, 12, '', {
-      color: COLORS.text,
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      fontStyle: 'bold',
-    });
-    this.hudTitleText.setScrollFactor(0);
+    if (this.isMobileLayout) {
+      // Compact full-width strip at top of screen for touch devices.
+      this.hudPanel = this.add.rectangle(480, 24, 960, 48, 0x172426, 0.82);
+      this.hudPanel.setStrokeStyle(1, 0xb9c0b5, 0.18);
+      this.hudPanel.setScrollFactor(0);
 
-    this.hudStatsText = this.add.text(24, 33, '', {
-      color: COLORS.text,
-      fontFamily: 'monospace',
-      fontSize: '12px',
-      fontStyle: 'bold',
-      lineSpacing: 4,
-    });
-    this.hudStatsText.setScrollFactor(0);
-
-    this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
-      color: COLORS.mutedText,
-      fontFamily: 'monospace',
-      fontSize: '10px',
-    });
-    this.hudHintText.setScrollFactor(0);
-
-    if (TRAILER_CAPTURE_MODE) {
+      this.hudTitleText = this.add.text(0, 0, '', {
+        color: COLORS.text, fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+      });
+      this.hudTitleText.setScrollFactor(0);
       this.hudTitleText.setVisible(false);
+
+      this.hudStatsText = this.add.text(10, 17, '', {
+        color: COLORS.text, fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold',
+      });
+      this.hudStatsText.setScrollFactor(0);
+
+      this.hudHintText = this.add.text(0, 0, '', {
+        color: COLORS.mutedText, fontFamily: 'monospace', fontSize: '10px',
+      });
+      this.hudHintText.setScrollFactor(0);
       this.hudHintText.setVisible(false);
+    } else {
+      // Desktop HUD: existing layout.
+      this.hudPanel = this.add.rectangle(378, 56, 708, 88, 0x172426, 0.76);
+      this.hudPanel.setStrokeStyle(1, 0xb9c0b5, 0.24);
+      this.hudPanel.setScrollFactor(0);
+
+      this.hudTitleText = this.add.text(24, 12, '', {
+        color: COLORS.text,
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        fontStyle: 'bold',
+      });
+      this.hudTitleText.setScrollFactor(0);
+
+      this.hudStatsText = this.add.text(24, 33, '', {
+        color: COLORS.text,
+        fontFamily: 'monospace',
+        fontSize: '12px',
+        fontStyle: 'bold',
+        lineSpacing: 4,
+      });
+      this.hudStatsText.setScrollFactor(0);
+
+      this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
+        color: COLORS.mutedText,
+        fontFamily: 'monospace',
+        fontSize: '10px',
+      });
+      this.hudHintText.setScrollFactor(0);
+
+      if (TRAILER_CAPTURE_MODE) {
+        this.hudTitleText.setVisible(false);
+        this.hudHintText.setVisible(false);
+      }
     }
 
-    this.messagePanel = this.add.rectangle(GAME_WIDTH / 2, 206, 620, 230, 0x172426, 0.88);
+    this.createFullscreenButton();
+
+    const overlayY = this.isMobileLayout ? 185 : 206;
+    const overlayW = this.isMobileLayout ? 576 : 620;
+    const overlayH = this.isMobileLayout ? 210 : 230;
+    const overlayFontSize = this.isMobileLayout ? '15px' : '22px';
+    const overlayLineSpacing = this.isMobileLayout ? 5 : 8;
+
+    this.messagePanel = this.add.rectangle(GAME_WIDTH / 2, overlayY, overlayW, overlayH, 0x172426, 0.88);
     this.messagePanel.setStrokeStyle(1, 0xd8ddd2, 0.28);
     this.messagePanel.setScrollFactor(0);
     this.messagePanel.setVisible(false);
-    this.messageText = this.add.text(GAME_WIDTH / 2, 206, '', {
+
+    this.messageText = this.add.text(GAME_WIDTH / 2, overlayY, '', {
       align: 'center',
       color: COLORS.text,
       fontFamily: 'monospace',
-      fontSize: '22px',
+      fontSize: overlayFontSize,
       fontStyle: 'bold',
-      lineSpacing: 8,
+      lineSpacing: overlayLineSpacing,
     });
     this.messageText.setOrigin(0.5, 0.5);
     this.messageText.setScrollFactor(0);
 
     this.updateHud();
+  }
+
+  private createFullscreenButton(): void {
+    const x = GAME_WIDTH - 28;
+    const y = this.isMobileLayout ? 24 : 16;
+
+    const btn = this.add.rectangle(x, y, 44, 28, 0x1a3a3c, 0.72);
+    btn.setStrokeStyle(1, 0xb9c0b5, 0.40);
+    btn.setScrollFactor(0);
+    btn.setDepth(800);
+    btn.setInteractive();
+
+    const label = this.add.text(x, y, 'FS', {
+      color: '#a8bfb8',
+      fontFamily: 'monospace',
+      fontSize: '13px',
+      fontStyle: 'bold',
+    });
+    label.setOrigin(0.5, 0.5);
+    label.setScrollFactor(0);
+    label.setDepth(801);
+
+    btn.on('pointerover', () => btn.setFillStyle(0x2a5050, 0.85));
+    btn.on('pointerout', () => btn.setFillStyle(0x1a3a3c, 0.72));
+    btn.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.suppressNextTouchAction = true;
+      const target = (this.sys.game.canvas.parentElement ?? this.sys.game.canvas) as HTMLElement;
+      const isFs = !!(document.fullscreenElement || (document as any).webkitFullscreenElement);
+      const p = isFs ? document.exitFullscreen?.() : target.requestFullscreen?.();
+      p?.catch(() => {});
+    });
   }
 
   private createTitleOverlay(): void {
@@ -1698,6 +1773,10 @@ export class ShorelineScene extends Phaser.Scene {
     // Tap anywhere on canvas to start (title screen) or restart/advance (game over / level complete).
     // Only active when the scene is waiting for user action, not during live gameplay.
     this.input.on('pointerdown', () => {
+      if (this.suppressNextTouchAction) {
+        this.suppressNextTouchAction = false;
+        return;
+      }
       if (!this.isRunStarted || (this.isEnded && !this.isTransitioningToBoss)) {
         this.touchInput.jumpJustDown = true;
       }
@@ -2387,6 +2466,16 @@ export class ShorelineScene extends Phaser.Scene {
 
   private updateHud(): void {
     const character = CHARACTERS[this.activeCharacter];
+
+    if (this.isMobileLayout) {
+      const powerText = this.getPowerStatusText();
+      const powerSuffix = powerText !== "NONE" ? `  PWR ${powerText}` : "";
+      this.hudStatsText.setText(
+        `${character.label}  HP ${Math.max(0, this.health)}/${character.maxHealth}  RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
+      );
+      return;
+    }
+
     this.hudTitleText.setText('COD B’Y & PUFFY: SHORELINE RUN');
     this.hudStatsText.setText(
       [
