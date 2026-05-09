@@ -108,6 +108,7 @@ export class ShorelineScene extends Phaser.Scene {
   private readonly BUBBLE_VENT_BOOST_COOLDOWN_MS = 700;
   private bubbleVentBoostAt = -10000;
   private eelgrassGraphics!: Phaser.GameObjects.Graphics;
+  private currentZoneGraphics!: Phaser.GameObjects.Graphics;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -745,6 +746,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createStartZone();
     this.createBubbleVents();
     this.createEelgrassVisuals();
+    this.createCurrentZoneVisuals();
   }
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
@@ -1112,6 +1114,106 @@ export class ShorelineScene extends Phaser.Scene {
       }
     }
     return 1;
+  }
+
+  /** Applies a gentle rightward nudge while the player overlaps a current zone.
+   *  Runs after all input-driven velocity decisions each frame.
+   *  - Adds 20 px/s per frame toward the zone's velocityBias (target speed).
+   *  - Stops adding once player velocity already meets or exceeds the target.
+   *  - Player input fully overrides: going left is only ~11 % slower (Cod) or ~8 % (Puffy).
+   *  - On exit the addition stops immediately; body drag returns velocity to 0 within ~3 frames. */
+  private applyCurrentZonePush(): void {
+    if (!this.isRunStarted || this.isEnded) return;
+    const zones = this.currentLevel.currentZones;
+    if (!zones?.length) return;
+    const px = this.player.x;
+    const py = this.player.y;
+    const body = this.getPlayerBody();
+    for (const zone of zones) {
+      if (
+        px >= zone.x - zone.width / 2 &&
+        px <= zone.x + zone.width / 2 &&
+        py >= zone.y - zone.height / 2 &&
+        py <= zone.y + zone.height / 2
+      ) {
+        const bias = zone.velocityBias;
+        const vx = body.velocity.x;
+        if (bias > 0 && vx < bias) {
+          body.setVelocityX(Math.min(vx + 20, bias));
+        } else if (bias < 0 && vx > bias) {
+          body.setVelocityX(Math.max(vx - 20, bias));
+        }
+        break;
+      }
+    }
+  }
+
+  /** Draws organic underwater flow cues for each current zone.
+   *  Depth 1 — rendered above platforms, below player and collectibles.
+   *  No filled rectangle in normal view. Uses a seeded PRNG so the visual
+   *  is deterministic every load without requiring external state.
+   *  H/debug rectangle is drawn separately in drawDebugOverlay and is unchanged. */
+  private createCurrentZoneVisuals(): void {
+    this.currentZoneGraphics = this.add.graphics();
+    this.currentZoneGraphics.setDepth(1);
+
+    const zones = this.currentLevel.currentZones ?? [];
+    for (const zone of zones) {
+      const left   = zone.x - zone.width  / 2;
+      const top    = zone.y - zone.height / 2;
+      const right  = zone.x + zone.width  / 2;
+      const g      = this.currentZoneGraphics;
+
+      // Seeded PRNG — deterministic per zone, identical each run
+      let seed = (zone.x * 31 + zone.y * 17 + zone.width) | 0;
+      const rand = (): number => {
+        seed = (Math.imul(seed, 1664525) + 1013904223) | 0;
+        return (seed >>> 0) / 0x100000000;
+      };
+
+      // Bare background tint — 4% alpha, imperceptible as a rectangle,
+      // just enough to very slightly cool the water colour in the zone
+      g.fillStyle(0x4a90a4, 0.04);
+      g.fillRect(left, top, zone.width, zone.height);
+
+      // --- Organic flow streaks ---
+      // Staggered starts, varied lengths and alpha.  No lines share the same
+      // x-bounds, so the zone reads as flowing water rather than a UI box.
+      for (let i = 0; i < 18; i++) {
+        const ry     = top + 5 + rand() * (zone.height - 10);
+        // Start biased to left half so streaks trail rightward across the zone
+        const xStart = left + rand() * (zone.width * 0.45);
+        const len    = zone.width * (0.28 + rand() * 0.60);
+        const xEnd   = Math.min(xStart + len, right - 3);
+        const thick  = rand() < 0.38 ? 2 : 1;
+        const alpha  = 0.22 + rand() * 0.28;
+        const colour = rand() < 0.55 ? 0x56a0b4 : 0x4888a0;
+
+        g.lineStyle(thick, colour, alpha);
+        g.lineBetween(xStart, ry, xEnd, ry);
+      }
+
+      // --- Silt / tiny-fleck dashes — particles carried by current ---
+      for (let i = 0; i < 14; i++) {
+        const ry     = top + 5 + rand() * (zone.height - 10);
+        const xStart = left + 6 + rand() * (zone.width - 14);
+        const len    = 3 + rand() * 8;           // 3 – 11 px
+        const alpha  = 0.12 + rand() * 0.14;     // 12 – 26 %
+
+        g.lineStyle(1, 0x70c0d2, alpha);
+        g.lineBetween(xStart, ry, xStart + len, ry);
+      }
+
+      // --- Tiny bubble / mote dots ---
+      for (let i = 0; i < 6; i++) {
+        const bx    = left + 8 + rand() * (zone.width  - 16);
+        const by    = top  + 5 + rand() * (zone.height - 10);
+        const alpha = 0.10 + rand() * 0.12;      // 10 – 22 %
+
+        g.fillStyle(0x88d0e0, alpha);
+        g.fillRect(bx, by, 2, 2);                // 2×2 px mote
+      }
+    }
   }
 
   private createPlayer(): void {
@@ -1775,6 +1877,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.wasGliding = isGliding;
+    this.applyCurrentZonePush();
     this.updateCharacterAnimation(left, right);
   }
 
@@ -2561,6 +2664,13 @@ export class ShorelineScene extends Phaser.Scene {
       this.debugGraphics.fillStyle(0x44ff44, 0.10);
       this.debugGraphics.fillRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
       this.debugGraphics.lineStyle(3, 0x44ff44, 1.0);
+      this.debugGraphics.strokeRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
+    });
+
+    (this.currentLevel.currentZones ?? []).forEach((zone) => {
+      this.debugGraphics.fillStyle(0x00d0f0, 0.10);
+      this.debugGraphics.fillRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
+      this.debugGraphics.lineStyle(2, 0x00d0f0, 0.90);
       this.debugGraphics.strokeRect(zone.x - zone.width / 2, zone.y - zone.height / 2, zone.width, zone.height);
     });
 

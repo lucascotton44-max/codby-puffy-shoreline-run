@@ -74,6 +74,16 @@ export type EelgrassZoneDefinition = {
   slowMultiplier: number;
 };
 
+export type CurrentZoneDefinition = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  /** Target rightward drift speed (px/s). Player input remains fully effective;
+   *  the nudge stops once player velocity already exceeds this value in that direction. */
+  velocityBias: number;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -93,6 +103,7 @@ export type LevelDefinition = {
   boss?: LordMalefactoDefinition;
   bubbleVents?: BubbleVentDefinition[];
   eelgrassZones?: EelgrassZoneDefinition[];
+  currentZones?: CurrentZoneDefinition[];
   /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
   testOnly?: boolean;
 };
@@ -504,6 +515,14 @@ export const LEVELS: LevelDefinition[] = [
       // Zone y=420–500; player center on ground ≈452 (Cod) / 459 (Puffy); both fully caught
       // slowMultiplier=0.72: mild 28% drag; noticeable but controls stay responsive on mobile
       { x: 1080, y: 460, width: 130, height: 80, slowMultiplier: 0.72 },
+    ],
+    currentZones: [
+      // Gentle rightward current — far-shelf open water, assists approach toward upper ledge
+      // x=1850–2100, y=390–470; well past all teaching moments (eelgrass, bubble vent, trench 2)
+      // Clear of rock hazard (right edge x=1824), scuttleclaw 2 patrol (minX=2180)
+      // Players on far upper ledge have centre y≈373–380, above zone top (y=390) — not in current
+      // velocityBias=40: target ~32 px/s drift; 11% resistance vs left input (Cod); completable either way
+      { x: 1975, y: 430, width: 250, height: 80, velocityBias: 40 },
     ],
     testOnly: true,
   },
