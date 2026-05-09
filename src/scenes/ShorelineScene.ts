@@ -1482,10 +1482,10 @@ export class ShorelineScene extends Phaser.Scene {
     this.createFullscreenButton();
 
     const overlayY = this.isMobileLayout ? 185 : 206;
-    const overlayW = this.isMobileLayout ? 576 : 620;
-    const overlayH = this.isMobileLayout ? 210 : 230;
-    const overlayFontSize = this.isMobileLayout ? '15px' : '22px';
-    const overlayLineSpacing = this.isMobileLayout ? 5 : 8;
+    const overlayW = this.isMobileLayout ? 576 : 560;
+    const overlayH = this.isMobileLayout ? 210 : 200;
+    const overlayFontSize = this.isMobileLayout ? '15px' : '19px';
+    const overlayLineSpacing = this.isMobileLayout ? 5 : 5;
 
     this.messagePanel = this.add.rectangle(GAME_WIDTH / 2, overlayY, overlayW, overlayH, 0x172426, 0.88);
     this.messagePanel.setStrokeStyle(1, 0xd8ddd2, 0.28);
@@ -2394,7 +2394,7 @@ export class ShorelineScene extends Phaser.Scene {
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
-          ...(this.hasNextLevel() ? ['Press ENTER or TAP for Next Level', 'Press R or TAP to Run Again'] : ['Press R or TAP to Run Again']),
+          ...(this.hasNextLevel() ? ['ENTER / TAP: Next Level', 'R: Replay'] : ['R / TAP: Run Again']),
         ]
       : [
           'GAME OVER',
@@ -2403,10 +2403,14 @@ export class ShorelineScene extends Phaser.Scene {
           `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Score: ${this.score}`,
           '',
-          'Press R or TAP to Try Again',
+          'R / TAP: Try Again',
         ];
 
     this.messageText.setText(summaryLines.join('\n'));
+    this.hudPanel.setVisible(false);
+    this.hudTitleText.setVisible(false);
+    this.hudStatsText.setVisible(false);
+    this.hudHintText.setVisible(false);
     this.messagePanel.setVisible(true);
   }
 
