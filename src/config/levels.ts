@@ -155,7 +155,10 @@ export const LEVELS: LevelDefinition[] = [
       { kind: 'tideLift', x: 910, y: 298 },
       { kind: 'storySpark', x: 1685, y: 310 },
     ],
-    scuttleclaws: [],
+    scuttleclaws: [
+      // First campaign enemy — late section 3; slow speed; player has 440px run-up before patrol
+      { x: 2120, y: GROUND_Y - 20, minX: 2030, maxX: 2230, speed: 44, damage: 1 },
+    ],
   },
   // ── Campaign 2 — Bridge crossing (St. Peter's Canal) ─────────────────────
   // Also accessible directly via: ?level=bridge_crossing_1a
@@ -206,6 +209,11 @@ export const LEVELS: LevelDefinition[] = [
       // Rock debris — on left service ledge (top=440); y=421 matches 19px-above-top rule from campaign levels
       // x=1160: 160px from ledge left edge (landing zone clear), 120px from ledge right edge (exit clear)
       { x: 1160, y: 421, width: 48, height: 34, kind: 'rock' },
+      // Rock on catwalk (top=395); y=376 follows 19px-above-top rule; TideLift at 1800 rewards clearing it
+      // Fragment at 1680 is 170px left (clear approach); fragment at 1900 is 50px right (post-rock reward)
+      { x: 1850, y: 376, width: 48, height: 34, kind: 'rock' },
+      // Rock on right service ledge (mirrors left side); fragment at 2480 is 60px left — collectible first
+      { x: 2540, y: 421, width: 48, height: 34, kind: 'rock' },
     ],
     fragments: [
       { x: 200, y: 448 },   // left bank — early
@@ -268,6 +276,8 @@ export const LEVELS: LevelDefinition[] = [
       { x: 940, y: 515, width: 80, height: 54, kind: 'water' },   // gap 1: x=900–980
       { x: 1660, y: 515, width: 80, height: 54, kind: 'water' },  // gap 2: x=1620–1700
       { x: 2460, y: 515, width: 80, height: 54, kind: 'water' },  // gap 3: x=2420–2500
+      // Ground rock — mid section 3 (x=1700–2420); 150px clear each side; breaks flat-path feel
+      { x: 2050, y: 464, width: 48, height: 34, kind: 'rock' },
     ],
     fragments: [
       { x: 200,  y: 430 },  // section 1 — early towpath
@@ -285,7 +295,10 @@ export const LEVELS: LevelDefinition[] = [
       { kind: 'kelpShield', x: 400, y: 430 },   // section 1 — protection before first gap
       { kind: 'tideLift',   x: 1340, y: 430 },  // section 2 — optional boost for dock fragments
     ],
-    scuttleclaws: [],
+    scuttleclaws: [
+      // Section 4 — 140px landing zone before patrol; fragment at 2820 within zone (deliberate collect)
+      { x: 2750, y: GROUND_Y - 20, minX: 2640, maxX: 2870, speed: 46, damage: 1 },
+    ],
   },
   // ── Campaign 4 — St. Peter's Canal ───────────────────────────────────────
   {
