@@ -1485,7 +1485,7 @@ export class ShorelineScene extends Phaser.Scene {
       });
       this.hudStatsText.setScrollFactor(0);
 
-      this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
+      this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | R Restart', {
         color: COLORS.mutedText,
         fontFamily: 'monospace',
         fontSize: '10px',
@@ -1594,7 +1594,7 @@ export class ShorelineScene extends Phaser.Scene {
     });
     prompt.setOrigin(0.5, 0.5);
 
-    const controls = this.add.text(GAME_WIDTH / 2, 424, '1 Cod B’y | 2 Puffy | H Debug | M Music | N SFX', {
+    const controls = this.add.text(GAME_WIDTH / 2, 424, '1 Cod B’y | 2 Puffy | R Restart', {
       align: 'center',
       color: COLORS.mutedText,
       fontFamily: 'monospace',
@@ -2409,7 +2409,7 @@ export class ShorelineScene extends Phaser.Scene {
           this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
           '',
           this.hasNextLevel() ? `${this.getCompletionLevelLabel()} cleared.` : (this.isDirectTestLevel ? `${this.getCompletionLevelLabel()} complete.` : 'Run complete.'),
-          `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
+          ...(this.currentLevel.totalFragments > 0 ? [`Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`] : []),
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
@@ -2419,7 +2419,7 @@ export class ShorelineScene extends Phaser.Scene {
           'GAME OVER',
           '',
           'The tide got the better of you.',
-          `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
+          ...(this.currentLevel.totalFragments > 0 ? [`Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`] : []),
           `Score: ${this.score}`,
           '',
           'R / TAP: Try Again',
