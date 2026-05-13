@@ -2402,7 +2402,7 @@ export class ShorelineScene extends Phaser.Scene {
       ? [
           this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
           '',
-          'You reached CH 8.',
+          this.hasNextLevel() ? `${this.currentLevel.name} cleared.` : (this.isDirectTestLevel ? `${this.currentLevel.name} complete.` : 'Run complete.'),
           `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
