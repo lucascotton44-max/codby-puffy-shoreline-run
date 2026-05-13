@@ -427,6 +427,12 @@ export class ShorelineScene extends Phaser.Scene {
     return true;
   }
 
+  private getCompletionLevelLabel(): string {
+    const name = this.currentLevel.name;
+    const dashIdx = name.lastIndexOf('—');
+    return dashIdx >= 0 ? name.slice(dashIdx + 1).trim() : name;
+  }
+
   private restartFromLevelOne(): void {
     this.stopCurrentMusic();
     this.scene.restart();
@@ -2402,7 +2408,7 @@ export class ShorelineScene extends Phaser.Scene {
       ? [
           this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
           '',
-          this.hasNextLevel() ? `${this.currentLevel.name} cleared.` : (this.isDirectTestLevel ? `${this.currentLevel.name} complete.` : 'Run complete.'),
+          this.hasNextLevel() ? `${this.getCompletionLevelLabel()} cleared.` : (this.isDirectTestLevel ? `${this.getCompletionLevelLabel()} complete.` : 'Run complete.'),
           `Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
