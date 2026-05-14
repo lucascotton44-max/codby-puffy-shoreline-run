@@ -2404,16 +2404,19 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    const hasNextLevel = this.hasNextLevel();
+    const completionLabel = this.getCompletionLevelLabel();
+
     const summaryLines = didWin
       ? [
-          this.hasNextLevel() ? 'LEVEL COMPLETE' : 'DEMO COMPLETE',
+          hasNextLevel ? `${completionLabel} Cleared` : 'DEMO COMPLETE',
           '',
-          this.hasNextLevel() ? `${this.getCompletionLevelLabel()} cleared.` : (this.isDirectTestLevel ? `${this.getCompletionLevelLabel()} complete.` : 'Run complete.'),
+          ...(hasNextLevel ? [] : [this.isDirectTestLevel ? `${completionLabel} complete.` : 'Run complete.']),
           ...(this.currentLevel.totalFragments > 0 ? [`Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`] : []),
           `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
           `Score: ${this.score}`,
           '',
-          ...(this.hasNextLevel() ? ['ENTER / TAP: Next Level', 'R: Replay'] : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run'])),
+          ...(hasNextLevel ? ['ENTER / TAP: Next Level', 'R: Replay'] : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run'])),
         ]
       : [
           'GAME OVER',
