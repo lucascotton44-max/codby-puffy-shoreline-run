@@ -36,6 +36,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
   private readonly flareCore: Phaser.GameObjects.Ellipse;
   private readonly flareImage?: Phaser.GameObjects.Image;
   private flarePulseTween?: Phaser.Tweens.Tween;
+  private hitFeedbackTween?: Phaser.Tweens.Tween;
   private hp: number;
   private bossState: LordMalefactoState = 'idle';
   private stateEndsAt = 0;
@@ -171,11 +172,35 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
 
     if (this.hp <= 0) {
       this.enterState('defeated', time);
+      this.playHitFeedback();
       return true;
     }
 
     this.enterState('hitStun', time);
+    this.playHitFeedback();
     return false;
+  }
+
+  private playHitFeedback(): void {
+    // Kill any in-flight hit-feedback tween so repeated hits don't leave a stale alpha.
+    if (this.hitFeedbackTween) {
+      this.hitFeedbackTween.stop();
+      this.hitFeedbackTween = undefined;
+    }
+    // For hitStun: alpha is 0.82 — spike to 1 then return, giving a visible impact flash.
+    // For defeated: alpha is 1 — no flash needed; the defeat fade tween runs unimpeded.
+    const restAlpha = this.alpha;
+    if (restAlpha >= 1) {
+      return;
+    }
+    this.setAlpha(1);
+    this.hitFeedbackTween = this.scene.tweens.add({
+      targets: this,
+      alpha: restAlpha,
+      duration: 110,
+      ease: 'Sine.easeOut',
+      onComplete: () => { this.hitFeedbackTween = undefined; },
+    });
   }
 
   private enterState(nextState: LordMalefactoState, time: number): void {

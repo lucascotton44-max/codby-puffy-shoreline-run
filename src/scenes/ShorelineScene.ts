@@ -2270,10 +2270,10 @@ export class ShorelineScene extends Phaser.Scene {
       const didDefeatBoss = boss.takeHit(this.time.now);
       const bounceDirection = this.player.x < boss.x ? -1 : 1;
       this.getPlayerBody().setVelocity(bounceDirection * 125, -270);
+      this.playSfx(AUDIO_KEYS.malefactoStompHit);
+      this.cameras.main.shake(90, 0.003);
       if (didDefeatBoss) {
         this.endLevel(true);
-      } else {
-        this.playSfx(AUDIO_KEYS.malefactoStompHit);
       }
       return;
     }
