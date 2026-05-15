@@ -109,6 +109,7 @@ export class ShorelineScene extends Phaser.Scene {
   private bubbleVentBoostAt = -10000;
   private eelgrassGraphics!: Phaser.GameObjects.Graphics;
   private currentZoneGraphics!: Phaser.GameObjects.Graphics;
+  private chalkTrigger?: Phaser.GameObjects.Rectangle;
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
@@ -271,9 +272,7 @@ export class ShorelineScene extends Phaser.Scene {
       if (this.isEnded && this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
         this.restartFromLevelOne();
       } else {
-        this.registry.set('shorelineRestartCurrentLevel', true);
-        this.stopCurrentMusic();
-        this.scene.restart();
+        this.restartCurrentLevelOrReturnFromSecretRoute();
       }
       return;
     }
@@ -285,9 +284,7 @@ export class ShorelineScene extends Phaser.Scene {
       } else if (this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
         this.restartFromLevelOne();
       } else {
-        this.registry.set('shorelineRestartCurrentLevel', true);
-        this.stopCurrentMusic();
-        this.scene.restart();
+        this.restartCurrentLevelOrReturnFromSecretRoute();
       }
       return;
     }
@@ -399,9 +396,11 @@ export class ShorelineScene extends Phaser.Scene {
 
   private selectCurrentLevel(): void {
     const storedLevelIndex = this.registry.get('shorelineCurrentLevelIndex');
+    const isSecretRoute = this.registry.get('shorelineSecretRoute') === true;
     const shouldKeepStoredLevel =
       this.registry.get('shorelineStartLevelImmediately') === true ||
-      this.registry.get('shorelineRestartCurrentLevel') === true;
+      this.registry.get('shorelineRestartCurrentLevel') === true ||
+      isSecretRoute;
 
     let levelIndex: number;
     if (shouldKeepStoredLevel && typeof storedLevelIndex === 'number') {
@@ -416,6 +415,9 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.currentLevelIndex = Phaser.Math.Clamp(Math.floor(levelIndex), 0, LEVELS.length - 1);
     this.currentLevel = LEVELS[this.currentLevelIndex];
+    this.isDirectTestLevel = this.isDirectTestLevel || isSecretRoute || this.currentLevel.testOnly === true;
+    this.registry.set('shorelineSecretReturnToMain', isSecretRoute);
+    this.registry.set('shorelineSecretRoute', false);
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex);
   }
 
@@ -434,6 +436,24 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private restartFromLevelOne(): void {
+    this.stopCurrentMusic();
+    this.scene.restart();
+  }
+
+  private restartCurrentLevelOrReturnFromSecretRoute(): void {
+    const shouldReturnToMain =
+      this.currentLevel.secretLevel === true && this.registry.get('shorelineSecretReturnToMain') === true;
+
+    if (shouldReturnToMain) {
+      this.registry.set('shorelineSecretReturnToMain', false);
+      this.registry.set('shorelineSecretRoute', false);
+      this.registry.set('shorelineCurrentLevelIndex', 0);
+      this.stopCurrentMusic();
+      this.scene.restart();
+      return;
+    }
+
+    this.registry.set('shorelineRestartCurrentLevel', true);
     this.stopCurrentMusic();
     this.scene.restart();
   }
@@ -765,6 +785,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createBoss();
     this.createEndMarker();
     this.createStartZone();
+    this.createChalkTrigger();
     this.createBubbleVents();
     this.createEelgrassVisuals();
     this.createCurrentZoneVisuals();
@@ -1077,6 +1098,33 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createStartZone(): void {
     // Start-zone visualization lives in the H debug overlay for demo builds.
+  }
+
+  private createChalkTrigger(): void {
+    const chalkTrigger = this.currentLevel.chalkTrigger;
+    if (!chalkTrigger) {
+      this.chalkTrigger = undefined;
+      return;
+    }
+
+    this.chalkTrigger = this.add.rectangle(
+      chalkTrigger.x,
+      chalkTrigger.y,
+      chalkTrigger.width,
+      chalkTrigger.height,
+      0xd8ddd2,
+      0,
+    );
+    this.physics.add.existing(this.chalkTrigger, true);
+
+    const sketch = this.add.graphics();
+    sketch.setDepth(5);
+    sketch.lineStyle(2, 0xd8ddd2, 0.42);
+    sketch.strokeCircle(chalkTrigger.x - 6, chalkTrigger.y - 3, 8);
+    sketch.lineBetween(chalkTrigger.x + 2, chalkTrigger.y + 2, chalkTrigger.x + 12, chalkTrigger.y - 12);
+    sketch.lineBetween(chalkTrigger.x + 2, chalkTrigger.y + 2, chalkTrigger.x + 12, chalkTrigger.y + 12);
+    sketch.lineStyle(1, 0xd8ddd2, 0.28);
+    sketch.strokeRect(chalkTrigger.x - 15, chalkTrigger.y - 20, 30, 40);
   }
 
   private createBubbleVents(): void {
@@ -1558,14 +1606,20 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createTitleOverlay(): void {
+    const titleText = this.currentLevel.secretLevel ? "CALVIN'S CREATURE ROOM" : "COD B\u2019Y & PUFFY\nSHORELINE RUN";
+    const objectiveText = this.currentLevel.secretLevel
+      ? 'A secret page behind the shoreline.'
+      : 'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.';
+    const footerText = this.currentLevel.secretLevel ? 'Sucka Free.' : '1 Cod B\u2019y | 2 Puffy | R Restart';
+
     const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0f1819, 0.58);
     const topRule = this.add.rectangle(GAME_WIDTH / 2, 126, 430, 1, 0xd8ddd2, 0.34);
     const lowerRule = this.add.rectangle(GAME_WIDTH / 2, 332, 430, 1, 0xd8ddd2, 0.28);
-    const title = this.add.text(GAME_WIDTH / 2, 180, "COD B’Y & PUFFY\nSHORELINE RUN", {
+    const title = this.add.text(GAME_WIDTH / 2, 180, titleText, {
       align: 'center',
       color: COLORS.text,
       fontFamily: 'monospace',
-      fontSize: '39px',
+      fontSize: this.currentLevel.secretLevel ? '34px' : '39px',
       fontStyle: 'bold',
       lineSpacing: 11,
     });
@@ -1574,7 +1628,7 @@ export class ShorelineScene extends Phaser.Scene {
     const objective = this.add.text(
       GAME_WIDTH / 2,
       272,
-      'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.',
+      objectiveText,
       {
         align: 'center',
         color: COLORS.mutedText,
@@ -1594,7 +1648,7 @@ export class ShorelineScene extends Phaser.Scene {
     });
     prompt.setOrigin(0.5, 0.5);
 
-    const controls = this.add.text(GAME_WIDTH / 2, 424, '1 Cod B’y | 2 Puffy | R Restart', {
+    const controls = this.add.text(GAME_WIDTH / 2, 424, footerText, {
       align: 'center',
       color: COLORS.mutedText,
       fontFamily: 'monospace',
@@ -1819,6 +1873,12 @@ export class ShorelineScene extends Phaser.Scene {
       this.handleScuttleclawContact(scuttleclaw as Scuttleclaw);
     });
 
+    if (this.chalkTrigger) {
+      this.physics.add.overlap(this.player, this.chalkTrigger, () => {
+        this.enterSecretLevel();
+      });
+    }
+
     this.ventZones.forEach((zone, index) => {
       this.physics.add.overlap(this.player, zone, () => {
         this.handleBubbleVentContact(index);
@@ -1834,6 +1894,23 @@ export class ShorelineScene extends Phaser.Scene {
         this.handleBossFlareContact();
       });
     }
+  }
+
+  private enterSecretLevel(): void {
+    if (this.isEnded || this.isTransitioningToBoss) {
+      return;
+    }
+
+    const targetLevelId = this.currentLevel.chalkTrigger?.targetLevelId;
+    const targetLevelIndex = targetLevelId ? LEVELS.findIndex((level) => level.id === targetLevelId) : -1;
+    if (targetLevelIndex < 0) {
+      return;
+    }
+
+    this.registry.set('shorelineCurrentLevelIndex', targetLevelIndex);
+    this.registry.set('shorelineSecretRoute', true);
+    this.stopCurrentMusic();
+    this.scene.restart();
   }
 
   private resetRunState(): void {
@@ -2774,6 +2851,10 @@ export class ShorelineScene extends Phaser.Scene {
         this.drawBodyRect(body, 0x7fd8d5);
       }
     });
+
+    if (this.chalkTrigger?.body) {
+      this.drawBodyRect(this.chalkTrigger.body as Phaser.Physics.Arcade.StaticBody, 0xd8ddd2);
+    }
 
     (this.currentLevel.eelgrassZones ?? []).forEach((zone) => {
       this.debugGraphics.fillStyle(0x44ff44, 0.10);

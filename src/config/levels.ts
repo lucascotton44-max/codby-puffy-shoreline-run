@@ -84,6 +84,14 @@ export type CurrentZoneDefinition = {
   velocityBias: number;
 };
 
+export type ChalkTriggerDefinition = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  targetLevelId: string;
+};
+
 export type LevelDefinition = {
   id: string;
   name: string;
@@ -104,6 +112,9 @@ export type LevelDefinition = {
   bubbleVents?: BubbleVentDefinition[];
   eelgrassZones?: EelgrassZoneDefinition[];
   currentZones?: CurrentZoneDefinition[];
+  chalkTrigger?: ChalkTriggerDefinition;
+  /** Hidden tribute slice; not part of normal campaign progression. */
+  secretLevel?: boolean;
   /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
   testOnly?: boolean;
 };
@@ -159,6 +170,13 @@ export const LEVELS: LevelDefinition[] = [
       // First campaign enemy — late section 3; slow speed; player has 440px run-up before patrol
       { x: 2120, y: GROUND_Y - 20, minX: 2030, maxX: 2230, speed: 44, damage: 1 },
     ],
+    chalkTrigger: {
+      x: 42,
+      y: GROUND_Y - 32,
+      width: 28,
+      height: 44,
+      targetLevelId: 'calvins-creature-room',
+    },
   },
   // ── Campaign 2 — Bridge crossing (St. Peter's Canal) ─────────────────────
   // Also accessible directly via: ?level=bridge_crossing_1a
@@ -537,6 +555,31 @@ export const LEVELS: LevelDefinition[] = [
       // velocityBias=40: target ~32 px/s drift; 11% resistance vs left input (Cod); completable either way
       { x: 1975, y: 430, width: 250, height: 80, velocityBias: 40 },
     ],
+    testOnly: true,
+  },
+  // Secret test tribute - Calvin's Creature Room. Routing skeleton only.
+  {
+    id: 'calvins-creature-room',
+    name: "Calvin's Creature Room",
+    backdropPath: ASSET_PATHS.shorelineRunLevel01Backdrop,
+    backdropTextureKey: TEXTURE_KEYS.shorelineRunLevel01Backdrop,
+    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
+    worldWidth: 1800,
+    startX: START_X,
+    endX: 1620,
+    totalFragments: 0,
+    requiredFragments: 0,
+    platforms: [
+      { x: 900, y: GROUND_Y + 26, width: 1800, height: 70, color: COLORS.shore },
+      { x: 520, y: 408, width: 190, height: 22, color: COLORS.dock },
+      { x: 850, y: 360, width: 180, height: 22, color: COLORS.dock },
+      { x: 1180, y: 408, width: 190, height: 22, color: COLORS.dock },
+    ],
+    hazards: [],
+    fragments: [],
+    powerUps: [],
+    scuttleclaws: [],
+    secretLevel: true,
     testOnly: true,
   },
 ];
