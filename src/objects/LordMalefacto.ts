@@ -212,6 +212,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.setAlpha(1);
     this.setScale(VISUAL_SCALE);
     this.hitboxCue.setStrokeStyle(3, 0x121616, 0.45);
+    this.hideSpriteHitboxCue();
     this.coat.setFillStyle(0x161616, 0.98);
     this.coat.setStrokeStyle(4, 0x050505, 0.96);
     this.shoulder.setFillStyle(0x25201d, 0.98);
@@ -341,6 +342,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.vulnerableText.setVisible(true);
       this.vulnerableText.setText('STUNNED');
       this.hitboxCue.setStrokeStyle(6, 0xffffff, 0.85);
+      this.hideSpriteHitboxCue();
       this.coat.setFillStyle(0xffffff, 0.95);
       this.coat.setStrokeStyle(6, 0xffffff, 0.9);
       this.setAlpha(0.82);
@@ -375,6 +377,13 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.flareHalo.setAlpha(0);
     this.flareCore.setVisible(false);
     this.flareCore.setAlpha(0);
+  }
+
+  /** Suppress hitboxCue stroke when the sprite body is active (no debug rect in demo). */
+  private hideSpriteHitboxCue(): void {
+    if (this.spriteBody) {
+      this.hitboxCue.setStrokeStyle(0, 0x000000, 0);
+    }
   }
 
   private syncBodyVisual(state: LordMalefactoState): void {
