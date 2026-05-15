@@ -561,8 +561,8 @@ export const LEVELS: LevelDefinition[] = [
   {
     id: 'calvins-creature-room',
     name: "Calvin's Creature Room",
-    backdropPath: ASSET_PATHS.shorelineRunLevel01Backdrop,
-    backdropTextureKey: TEXTURE_KEYS.shorelineRunLevel01Backdrop,
+    backdropPath: ASSET_PATHS.calvinsCreatureRoomRainyHalifaxPlaceholder,
+    backdropTextureKey: TEXTURE_KEYS.calvinsCreatureRoomRainyHalifaxPlaceholder,
     musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
     worldWidth: 1800,
     startX: START_X,
