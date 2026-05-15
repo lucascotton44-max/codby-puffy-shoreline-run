@@ -1568,7 +1568,7 @@ export class ShorelineScene extends Phaser.Scene {
       });
       this.hudStatsText.setScrollFactor(0);
 
-      this.hudHintText = this.add.text(24, 81, '1 Cod B’y | 2 Puffy | R Restart', {
+      this.hudHintText = this.add.text(24, 81, '', {
         color: COLORS.mutedText,
         fontFamily: 'monospace',
         fontSize: '10px',
@@ -2604,24 +2604,42 @@ export class ShorelineScene extends Phaser.Scene {
 
   private updateHud(): void {
     const character = CHARACTERS[this.activeCharacter];
+    const characterLabel = this.getHudCharacterLabel();
 
     if (this.isMobileLayout) {
       const powerText = this.getPowerStatusText();
       const powerSuffix = powerText !== "NONE" ? `  PWR ${powerText}` : "";
       this.hudStatsText.setText(
-        `${character.label}  HP ${Math.max(0, this.health)}/${character.maxHealth}  RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
+        `${characterLabel}  HP ${Math.max(0, this.health)}/${character.maxHealth}  RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
       );
       return;
     }
 
-    this.hudTitleText.setText('COD B’Y & PUFFY: SHORELINE RUN');
+    this.hudTitleText.setText(this.getHudTitleText());
+    this.hudHintText.setText(this.getHudSwitchHintText());
     this.hudStatsText.setText(
       [
-        `CHAR ${character.label}   HP ${Math.max(0, this.health)}/${character.maxHealth}   RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
+        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
         `POWER ${this.getPowerStatusText()}`,
         `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
     );
+  }
+
+  private getHudCharacterLabel(): string {
+    if (this.currentLevel.secretLevel === true) {
+      return this.activeCharacter === 'cod' ? 'EARTH EYES BART' : 'RED BART';
+    }
+
+    return CHARACTERS[this.activeCharacter].label;
+  }
+
+  private getHudTitleText(): string {
+    return this.currentLevel.secretLevel === true ? "CALVIN'S CREATURE ROOM" : 'COD B\u2019Y & PUFFY: SHORELINE RUN';
+  }
+
+  private getHudSwitchHintText(): string {
+    return this.currentLevel.secretLevel === true ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
   }
 
   private getElapsedSeconds(): number {
