@@ -216,6 +216,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.storySparkIcon, ASSET_PATHS.storySparkIcon);
     this.load.image(TEXTURE_KEYS.level04LockTransition, ASSET_PATHS.level04LockTransition);
     this.load.image(TEXTURE_KEYS.lordMalefactoFlareZoneFx, ASSET_PATHS.lordMalefactoFlareZoneFx);
+    this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlaceholder, ASSET_PATHS.calvinEarthEyesBartPlaceholder);
+    this.load.image(TEXTURE_KEYS.calvinRedBartPlaceholder, ASSET_PATHS.calvinRedBartPlaceholder);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
     this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
     this.load.audio(AUDIO_KEYS.level03CanalTheme, AUDIO_PATHS.level03CanalTheme);
@@ -1325,6 +1327,12 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createCharacterVisual(characterKey: CharacterKey): Phaser.GameObjects.Container | Phaser.GameObjects.Sprite {
+    const calvinVisual = this.createCalvinCreatureVisual(characterKey);
+    if (calvinVisual) {
+      this.playerVisualMode = 'placeholder';
+      return calvinVisual;
+    }
+
     const sprite = this.createSpriteCharacterVisual(characterKey);
     if (sprite) {
       this.playerVisualMode = 'sprite';
@@ -1335,6 +1343,33 @@ export class ShorelineScene extends Phaser.Scene {
     const parts =
       characterKey === 'cod' ? this.createCodByVisualParts() : this.createPuffyVisualParts();
     const visual = this.add.container(this.player.x, this.player.y, parts);
+    visual.setDepth(20);
+    return visual;
+  }
+
+  private isCalvinCreatureRoom(): boolean {
+    return this.currentLevel.secretLevel === true;
+  }
+
+  private createCalvinCreatureVisual(characterKey: CharacterKey): Phaser.GameObjects.Container | null {
+    if (!this.isCalvinCreatureRoom()) {
+      return null;
+    }
+
+    const textureKey =
+      characterKey === 'cod'
+        ? TEXTURE_KEYS.calvinEarthEyesBartPlaceholder
+        : TEXTURE_KEYS.calvinRedBartPlaceholder;
+    if (!this.textures.exists(textureKey)) {
+      return null;
+    }
+
+    const character = CHARACTERS[characterKey];
+    const image = this.add.image(0, character.height / 2 + 1, textureKey);
+    image.setOrigin(0.5, 1);
+    image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
+
+    const visual = this.add.container(this.player.x, this.player.y, [image]);
     visual.setDepth(20);
     return visual;
   }
