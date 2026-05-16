@@ -31,12 +31,13 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   private readonly minX: number;
   private readonly maxX: number;
   private readonly speed: number;
+  private readonly variant?: ScuttleclawDefinition['variant'];
   private readonly sprite?: Phaser.GameObjects.Sprite;
   private direction = 1;
 
   public constructor(scene: Phaser.Scene, definition: ScuttleclawDefinition) {
     Scuttleclaw.createAnimations(scene);
-    const parts = Scuttleclaw.createVisualParts(scene);
+    const parts = Scuttleclaw.createVisualParts(scene, definition.variant);
     super(scene, definition.x, definition.y, parts);
 
     this.sprite = parts.find((part): part is Phaser.GameObjects.Sprite => part instanceof Phaser.GameObjects.Sprite);
@@ -44,15 +45,19 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     this.maxX = Math.max(definition.minX, definition.maxX);
     this.speed = Math.max(1, Math.abs(definition.speed ?? DEFAULT_SPEED));
     this.damage = Math.max(1, Math.floor(definition.damage ?? DEFAULT_DAMAGE));
+    this.variant = definition.variant;
 
     scene.add.existing(this);
     scene.physics.add.existing(this);
 
     this.body.setSize(BODY_WIDTH, BODY_HEIGHT);
     this.body.setOffset(-BODY_WIDTH / 2, -BODY_HEIGHT / 2);
-    this.body.setAllowGravity(true);
+    this.body.setAllowGravity(this.variant !== 'melt');
     this.body.setDragX(0);
     this.body.setImmovable(true);
+    if (this.variant === 'melt') {
+      this.body.setVelocityY(0);
+    }
     this.body.setVelocityX(this.speed);
     this.setDepth(9);
     this.playAnimation(WALK_ANIMATION_KEY);
@@ -95,7 +100,14 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     });
   }
 
-  private static createVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
+  private static createVisualParts(
+    scene: Phaser.Scene,
+    variant?: ScuttleclawDefinition['variant'],
+  ): Phaser.GameObjects.GameObject[] {
+    if (variant === 'melt') {
+      return Scuttleclaw.createMeltVisualParts(scene);
+    }
+
     if (scene.textures.exists(TEXTURE_KEYS.scuttleclawAtlas)) {
       const shadow = scene.add.ellipse(0, 16, 74, 10, 0x131817, 0.32);
       const sprite = scene.add.sprite(0, 20, TEXTURE_KEYS.scuttleclawAtlas, 2);
@@ -132,6 +144,28 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     const rightEye = scene.add.ellipse(12, -12, 5, 5, 0x050505, 1);
 
     return [shadow, ...rearLegs, leftClaw, rightClaw, chippedTip, body, shellBand, shellRidge, leftEye, rightEye];
+  }
+
+  private static createMeltVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
+    const shadow = scene.add.ellipse(0, 14, 68, 11, 0x050809, 0.38);
+
+    const body = scene.add.ellipse(0, 2, 54, 25, 0x0b1217, 0.95);
+    body.setStrokeStyle(1, 0xd8ddd2, 0.16);
+
+    const leftSpill = scene.add.ellipse(-21, 5, 24, 15, 0x101a20, 0.82);
+    const rightSpill = scene.add.ellipse(22, 4, 21, 13, 0x070d11, 0.78);
+    const frontDrip = scene.add.ellipse(-4, 11, 30, 9, 0x111b21, 0.7);
+
+    const leftEye = scene.add.ellipse(-9, -4, 4, 3, 0xd8ddd2, 0.78);
+    const rightEye = scene.add.ellipse(8, -5, 4, 3, 0xd8ddd2, 0.72);
+
+    const scratches = scene.add.graphics();
+    scratches.lineStyle(1, 0xd8ddd2, 0.22);
+    scratches.lineBetween(-18, -10, -11, -15);
+    scratches.lineBetween(0, -11, 4, -17);
+    scratches.lineBetween(15, -8, 22, -13);
+
+    return [shadow, leftSpill, rightSpill, frontDrip, body, leftEye, rightEye, scratches];
   }
 
   private static createAnimations(scene: Phaser.Scene): void {

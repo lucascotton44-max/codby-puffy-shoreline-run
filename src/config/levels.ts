@@ -47,6 +47,7 @@ export type ScuttleclawDefinition = {
   maxX: number;
   speed?: number;
   damage?: number;
+  variant?: 'melt';
 };
 
 export type LordMalefactoDefinition = {
@@ -637,7 +638,17 @@ export const LEVELS: LevelDefinition[] = [
       { x: 3860, y: 368 },
     ],
     powerUps: [],
-    scuttleclaws: [],
+    scuttleclaws: [
+      {
+        x: 1980,
+        y: 392,
+        minX: 1915,
+        maxX: 2045,
+        speed: 30,
+        damage: 1,
+        variant: 'melt',
+      },
+    ],
     secretLevel: true,
     testOnly: true,
   },
