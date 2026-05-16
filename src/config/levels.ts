@@ -564,27 +564,68 @@ export const LEVELS: LevelDefinition[] = [
     backdropPath: ASSET_PATHS.calvinsCreatureRoomRainyHalifaxPlaceholder,
     backdropTextureKey: TEXTURE_KEYS.calvinsCreatureRoomRainyHalifaxPlaceholder,
     musicAudioKey: AUDIO_KEYS.calvinsCreatureRoomThemeLoop,
-    worldWidth: 1800,
+    worldWidth: 4200,
     startX: START_X,
-    endX: 1620,
+    endX: 4000,
     totalFragments: 8,
     requiredFragments: 8,
     platforms: [
-      { x: 900, y: GROUND_Y + 26, width: 1800, height: 70, color: COLORS.shore },
-      { x: 520, y: 408, width: 190, height: 22, color: COLORS.dock },
-      { x: 850, y: 360, width: 180, height: 22, color: COLORS.dock },
-      { x: 1180, y: 408, width: 190, height: 22, color: COLORS.dock },
+      { x: 2100, y: GROUND_Y + 26, width: 4200, height: 70, color: COLORS.shore },
+
+      // Screen 1 — Safe Arrival
+      { x: 430, y: 412, width: 220, height: 22, color: COLORS.dock },
+
+      // Screen 2 — Low Dock Hop
+      { x: 700, y: 408, width: 220, height: 22, color: COLORS.dock },
+      { x: 960, y: 370, width: 230, height: 22, color: COLORS.dock },
+
+      // Screen 3 — High Climb
+      { x: 1200, y: 402, width: 240, height: 22, color: COLORS.dock },
+      { x: 1440, y: 338, width: 230, height: 22, color: COLORS.dock },
+      { x: 1680, y: 282, width: 260, height: 22, color: COLORS.dock },
+
+      // Screen 4 — Recovery Lane
+      { x: 1980, y: 414, width: 300, height: 22, color: COLORS.dock },
+      { x: 2180, y: 356, width: 230, height: 22, color: COLORS.dock },
+
+      // Screen 5 — Optional Red Bart Glide Advantage
+      { x: 2400, y: 286, width: 280, height: 22, color: COLORS.dock },
+      { x: 2660, y: 352, width: 260, height: 22, color: COLORS.dock },
+      { x: 2940, y: 416, width: 300, height: 22, color: COLORS.dock },
+
+      // Screen 6 — Final Climb
+      { x: 3220, y: 402, width: 280, height: 22, color: COLORS.dock },
+      { x: 3480, y: 342, width: 250, height: 22, color: COLORS.dock },
+      { x: 3740, y: 304, width: 260, height: 22, color: COLORS.dock },
+
+      // Screen 7 — Creature Door Payoff
+      { x: 3920, y: 410, width: 300, height: 22, color: COLORS.dock },
     ],
     hazards: [],
     fragments: [
+      // S01 — Safe first pickup
       { x: 180, y: GROUND_Y - 64 },
-      { x: 340, y: GROUND_Y - 72 },
-      { x: 520, y: 366 },
-      { x: 850, y: 318 },
-      { x: 1180, y: 366 },
-      { x: 1020, y: GROUND_Y - 92 },
-      { x: 1350, y: GROUND_Y - 78 },
-      { x: 1510, y: GROUND_Y - 96 },
+
+      // S02 — Low dock hop reward
+      { x: 700, y: 366 },
+
+      // S03 — Forward confirmation
+      { x: 1200, y: 360 },
+
+      // S04 — High climb reward
+      { x: 1680, y: 240 },
+
+      // S05 — Recovery reward
+      { x: 2180, y: 314 },
+
+      // S06 — Optional glide-value reward
+      { x: 2660, y: 310 },
+
+      // S07 — Final buildup reward
+      { x: 3220, y: 360 },
+
+      // S08 — Near-door payoff
+      { x: 3860, y: 368 },
     ],
     powerUps: [],
     scuttleclaws: [],
