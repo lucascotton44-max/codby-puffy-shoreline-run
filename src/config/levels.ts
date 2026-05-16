@@ -563,7 +563,7 @@ export const LEVELS: LevelDefinition[] = [
     name: "Calvin's Creature Room",
     backdropPath: ASSET_PATHS.calvinsCreatureRoomRainyHalifaxPlaceholder,
     backdropTextureKey: TEXTURE_KEYS.calvinsCreatureRoomRainyHalifaxPlaceholder,
-    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
+    musicAudioKey: AUDIO_KEYS.calvinsCreatureRoomThemeLoop,
     worldWidth: 1800,
     startX: START_X,
     endX: 1620,
