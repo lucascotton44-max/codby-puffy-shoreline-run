@@ -1069,6 +1069,11 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.endMarker = this.add.rectangle(this.currentLevel.endX, GROUND_Y - 62, 34, 124, COLORS.marker, 0);
+    if (this.currentLevel.secretLevel === true) {
+      this.createCreatureDoorMarker();
+      return;
+    }
+
     if (this.hasTexture(TEXTURE_KEYS.ch8BeaconMarkerProp)) {
       this.endMarkerVisual = this.add.image(this.currentLevel.endX, GROUND_Y - 76, TEXTURE_KEYS.ch8BeaconMarkerProp);
       this.endMarkerVisual.setDisplaySize(96, 162);
@@ -1095,6 +1100,31 @@ export class ShorelineScene extends Phaser.Scene {
       color: COLORS.text,
       fontFamily: 'monospace',
       fontSize: '14px',
+      fontStyle: 'bold',
+    });
+  }
+
+  private createCreatureDoorMarker(): void {
+    const isUnlocked = this.collectedFragments >= this.currentLevel.requiredFragments;
+    const chalkAlpha = isUnlocked ? 0.76 : 0.38;
+    const door = this.add.graphics();
+    door.lineStyle(3, 0xd8ddd2, chalkAlpha);
+    door.strokeRoundedRect(-28, -70, 56, 112, 18);
+    door.lineStyle(1, 0xd8ddd2, chalkAlpha * 0.62);
+    door.strokeRoundedRect(-20, -60, 40, 96, 14);
+    door.lineBetween(-18, -36, 18, -42);
+    door.lineBetween(-18, -12, 16, -18);
+    door.lineBetween(-12, 12, 18, 6);
+    door.fillStyle(0xd8ddd2, chalkAlpha * 0.78);
+    door.fillCircle(16, -8, 2.2);
+
+    this.endMarkerVisual = this.add.container(this.currentLevel.endX, GROUND_Y - 82, [door]);
+    this.endMarkerVisual.setDepth(4);
+
+    this.endMarkerText = this.add.text(this.currentLevel.endX - 20, GROUND_Y - 172, 'DOOR', {
+      color: COLORS.mutedText,
+      fontFamily: 'monospace',
+      fontSize: '11px',
       fontStyle: 'bold',
     });
   }
@@ -2490,7 +2520,7 @@ export class ShorelineScene extends Phaser.Scene {
       if (this.collectedFragments >= this.currentLevel.requiredFragments) {
         this.endLevel(true);
       } else {
-        this.messageText.setText(`Need ${this.currentLevel.requiredFragments - this.collectedFragments} more Tide Relic(s).`);
+        this.messageText.setText(this.getIncompleteEndpointMessage());
         this.messagePanel.setVisible(true);
         this.time.delayedCall(900, () => {
           if (!this.isEnded) {
@@ -2522,16 +2552,7 @@ export class ShorelineScene extends Phaser.Scene {
     const completionLabel = this.getCompletionLevelLabel();
 
     const summaryLines = didWin
-      ? [
-          hasNextLevel ? `${completionLabel} Cleared` : 'DEMO COMPLETE',
-          '',
-          ...(hasNextLevel ? [] : [this.isDirectTestLevel ? `${completionLabel} complete.` : 'Run complete.']),
-          ...(this.currentLevel.totalFragments > 0 ? [`Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`] : []),
-          `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
-          `Score: ${this.score}`,
-          '',
-          ...(hasNextLevel ? ['ENTER / TAP: Next Level', 'R: Replay'] : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run'])),
-        ]
+      ? this.getLevelCompleteSummaryLines(hasNextLevel, completionLabel)
       : [
           'GAME OVER',
           '',
@@ -2548,6 +2569,45 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudStatsText.setVisible(false);
     this.hudHintText.setVisible(false);
     this.messagePanel.setVisible(true);
+  }
+
+  private getIncompleteEndpointMessage(): string {
+    if (this.currentLevel.secretLevel === true) {
+      return 'The door is still missing pieces.';
+    }
+
+    return `Need ${this.currentLevel.requiredFragments - this.collectedFragments} more Tide Relic(s).`;
+  }
+
+  private getLevelCompleteSummaryLines(hasNextLevel: boolean, completionLabel: string): string[] {
+    const restartLines = hasNextLevel
+      ? ['ENTER / TAP: Next Level', 'R: Replay']
+      : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run']);
+
+    if (this.currentLevel.secretLevel === true) {
+      return [
+        'SKETCHBOOK COMPLETE',
+        '',
+        'Every creature made it home.',
+        `Sketches: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
+        'Sucka Free',
+        `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
+        `Score: ${this.score}`,
+        '',
+        ...restartLines,
+      ];
+    }
+
+    return [
+      hasNextLevel ? `${completionLabel} Cleared` : 'DEMO COMPLETE',
+      '',
+      ...(hasNextLevel ? [] : [this.isDirectTestLevel ? `${completionLabel} complete.` : 'Run complete.']),
+      ...(this.currentLevel.totalFragments > 0 ? [`Tide Relics: ${this.collectedFragments}/${this.currentLevel.totalFragments}`] : []),
+      `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
+      `Score: ${this.score}`,
+      '',
+      ...restartLines,
+    ];
   }
 
   private shouldPlayBossTransition(): boolean {
