@@ -997,6 +997,11 @@ export class ShorelineScene extends Phaser.Scene {
     height: number,
     kind: HazardKind,
   ): void {
+    if (kind === 'blackSketchPuddle') {
+      this.addBlackSketchPuddleHazardDetail(x, y, width, height);
+      return;
+    }
+
     if (this.addHazardProp(x, y, width, height, kind)) {
       return;
     }
@@ -1028,6 +1033,36 @@ export class ShorelineScene extends Phaser.Scene {
     this.add.rectangle(x - 7, y - 3, 7, height + 10, 0x8e684a, 0.96).setRotation(0.18);
     this.add.rectangle(x + 11, y - 2, 6, height, 0x453a2e, 0.86).setRotation(-0.24);
     this.add.arc(x + 3, y + 7, 22, 208, 328, false, 0xd8d2bd, 0.5).setStrokeStyle(3, 0xd8d2bd, 0.5);
+  }
+
+  private addBlackSketchPuddleHazardDetail(x: number, y: number, width: number, height: number): void {
+    const shadow = this.add.ellipse(x + 5, y + 5, width + 22, height + 12, 0x070b0d, 0.38);
+    shadow.setDepth(1.6);
+
+    const body = this.add.ellipse(x, y, width, height, 0x0b1217, 0.88);
+    body.setDepth(1.7);
+
+    const leftSpill = this.add.ellipse(x - width * 0.34, y + 1, width * 0.28, height * 0.62, 0x101a20, 0.72);
+    leftSpill.setDepth(1.72);
+
+    const rightSpill = this.add.ellipse(x + width * 0.31, y - 3, width * 0.24, height * 0.48, 0x070d11, 0.62);
+    rightSpill.setDepth(1.72);
+
+    const frontDrip = this.add.ellipse(x - width * 0.08, y + height * 0.34, width * 0.38, height * 0.34, 0x111b21, 0.56);
+    frontDrip.setDepth(1.73);
+
+    const brokenEdge = this.add.ellipse(x - width * 0.2, y - 2, width * 0.34, height * 0.28, 0x1a262c, 0.28);
+    brokenEdge.setDepth(1.74);
+
+    const scratches = this.add.graphics();
+    scratches.setDepth(1.8);
+    scratches.lineStyle(1, 0xd8ddd2, 0.18);
+    scratches.lineBetween(x - width * 0.43, y - 3, x - width * 0.28, y - 6);
+    scratches.lineBetween(x - width * 0.1, y - height * 0.42, x + width * 0.08, y - height * 0.36);
+    scratches.lineBetween(x + width * 0.24, y + 2, x + width * 0.4, y - 1);
+    scratches.lineStyle(1, 0x2a3940, 0.46);
+    scratches.lineBetween(x - width * 0.26, y + 5, x - width * 0.02, y + 8);
+    scratches.lineBetween(x + width * 0.08, y + 7, x + width * 0.28, y + 4);
   }
 
   private addHazardProp(

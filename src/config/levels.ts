@@ -601,7 +601,16 @@ export const LEVELS: LevelDefinition[] = [
       // Screen 7 — Creature Door Payoff
       { x: 3920, y: 410, width: 300, height: 22, color: COLORS.dock },
     ],
-    hazards: [],
+    hazards: [
+      // Puddle 1 - recovery platform teaching hazard.
+      { x: 2030, y: 400, width: 120, height: 22, kind: 'blackSketchPuddle' },
+
+      // Puddle 2 - glide/catch platform consequence.
+      { x: 2660, y: 338, width: 135, height: 22, kind: 'blackSketchPuddle' },
+
+      // Puddle 3 - final buildup pressure before the door payoff.
+      { x: 3220, y: 388, width: 115, height: 22, kind: 'blackSketchPuddle' },
+    ],
     fragments: [
       // S01 — Safe first pickup
       { x: 180, y: GROUND_Y - 64 },

@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { COLORS } from '../config/constants.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 
-export type HazardKind = 'water' | 'rock' | 'net';
+export type HazardKind = 'water' | 'rock' | 'net' | 'blackSketchPuddle';
 
 export class HazardZone extends Phaser.GameObjects.Rectangle {
   public declare readonly body: Phaser.Physics.Arcade.StaticBody;
