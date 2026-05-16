@@ -1365,7 +1365,8 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     const character = CHARACTERS[characterKey];
-    const image = this.add.image(0, character.height / 2 + 1, textureKey);
+    const calvinVisualYOffset = characterKey === 'cod' ? -10 : 0;
+    const image = this.add.image(0, character.height / 2 + 1 + calvinVisualYOffset, textureKey);
     image.setOrigin(0.5, 1);
     image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
 
