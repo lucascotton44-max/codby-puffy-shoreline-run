@@ -2563,12 +2563,44 @@ export class ShorelineScene extends Phaser.Scene {
           'R / TAP: Try Again',
         ];
 
+    this.applyEndMessageLayout(didWin);
     this.messageText.setText(summaryLines.join('\n'));
     this.hudPanel.setVisible(false);
     this.hudTitleText.setVisible(false);
     this.hudStatsText.setVisible(false);
     this.hudHintText.setVisible(false);
     this.messagePanel.setVisible(true);
+  }
+
+  private applyEndMessageLayout(didWin: boolean): void {
+    if (didWin && this.currentLevel.secretLevel === true) {
+      this.applyCalvinCompletionMessageLayout();
+      return;
+    }
+
+    const overlayY = this.isMobileLayout ? 185 : 206;
+    const overlayW = this.isMobileLayout ? 576 : 560;
+    const overlayH = this.isMobileLayout ? 210 : 200;
+    const overlayFontSize = this.isMobileLayout ? '15px' : '19px';
+
+    this.messagePanel.setPosition(GAME_WIDTH / 2, overlayY);
+    this.messagePanel.setSize(overlayW, overlayH);
+    this.messageText.setPosition(GAME_WIDTH / 2, overlayY);
+    this.messageText.setFontSize(overlayFontSize);
+    this.messageText.setLineSpacing(5);
+  }
+
+  private applyCalvinCompletionMessageLayout(): void {
+    const overlayY = this.isMobileLayout ? 196 : 216;
+    const overlayW = this.isMobileLayout ? 592 : 584;
+    const overlayH = this.isMobileLayout ? 234 : 240;
+    const fontSize = this.isMobileLayout ? '14px' : '16px';
+
+    this.messagePanel.setPosition(GAME_WIDTH / 2, overlayY);
+    this.messagePanel.setSize(overlayW, overlayH);
+    this.messageText.setPosition(GAME_WIDTH / 2, overlayY + 4);
+    this.messageText.setFontSize(fontSize);
+    this.messageText.setLineSpacing(2);
   }
 
   private getIncompleteEndpointMessage(): string {
