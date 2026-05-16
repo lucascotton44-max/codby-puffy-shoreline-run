@@ -2607,12 +2607,13 @@ export class ShorelineScene extends Phaser.Scene {
   private updateHud(): void {
     const character = CHARACTERS[this.activeCharacter];
     const characterLabel = this.getHudCharacterLabel();
+    const collectibleLabel = this.getCollectibleHudLabel();
 
     if (this.isMobileLayout) {
       const powerText = this.getPowerStatusText();
       const powerSuffix = powerText !== "NONE" ? `  PWR ${powerText}` : "";
       this.hudStatsText.setText(
-        `${characterLabel}  HP ${Math.max(0, this.health)}/${character.maxHealth}  RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
+        `${characterLabel}  HP ${Math.max(0, this.health)}/${character.maxHealth}  ${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
       );
       return;
     }
@@ -2621,7 +2622,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudHintText.setText(this.getHudSwitchHintText());
     this.hudStatsText.setText(
       [
-        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   RELIC ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
+        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
         `POWER ${this.getPowerStatusText()}`,
         `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
@@ -2642,6 +2643,10 @@ export class ShorelineScene extends Phaser.Scene {
 
   private getHudSwitchHintText(): string {
     return this.currentLevel.secretLevel === true ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
+  }
+
+  private getCollectibleHudLabel(): string {
+    return this.currentLevel.secretLevel === true ? 'SKETCH' : 'RELIC';
   }
 
   private getElapsedSeconds(): number {
