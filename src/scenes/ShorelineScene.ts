@@ -1183,20 +1183,37 @@ export class ShorelineScene extends Phaser.Scene {
     const isUnlocked = this.collectedFragments >= this.currentLevel.requiredFragments;
     const chalkAlpha = isUnlocked ? 0.76 : 0.38;
     const door = this.add.graphics();
+    door.fillStyle(0x070b0d, isUnlocked ? 0.34 : 0.24);
+    door.fillRoundedRect(-26, -68, 52, 110, 17);
+
     door.lineStyle(3, 0xd8ddd2, chalkAlpha);
-    door.strokeRoundedRect(-28, -70, 56, 112, 18);
-    door.lineStyle(1, 0xd8ddd2, chalkAlpha * 0.62);
-    door.strokeRoundedRect(-20, -60, 40, 96, 14);
-    door.lineBetween(-18, -36, 18, -42);
-    door.lineBetween(-18, -12, 16, -18);
-    door.lineBetween(-12, 12, 18, 6);
-    door.fillStyle(0xd8ddd2, chalkAlpha * 0.78);
-    door.fillCircle(16, -8, 2.2);
+    door.lineBetween(-29, 38, -27, -40);
+    door.lineBetween(-26, -40, -18, -61);
+    door.lineBetween(-17, -63, 1, -70);
+    door.lineBetween(2, -69, 20, -61);
+    door.lineBetween(21, -60, 28, -38);
+    door.lineBetween(28, -36, 29, 38);
+
+    door.lineStyle(2, 0xd8ddd2, chalkAlpha * 0.56);
+    door.lineBetween(-19, 34, -18, -34);
+    door.lineBetween(-16, -43, -4, -53);
+    door.lineBetween(-1, -55, 13, -48);
+    door.lineBetween(16, -42, 18, 33);
+
+    door.lineStyle(1, 0xd8ddd2, chalkAlpha * 0.28);
+    door.lineBetween(-23, -30, -10, -35);
+    door.lineBetween(-22, -7, 9, -15);
+    door.lineBetween(-17, 13, 16, 5);
+    door.lineBetween(-30, 45, 31, 42);
+    door.lineBetween(-20, 50, 22, 47);
+
+    door.fillStyle(0xd8ddd2, chalkAlpha * 0.62);
+    door.fillCircle(15, -6, 2);
 
     this.endMarkerVisual = this.add.container(this.currentLevel.endX, GROUND_Y - 82, [door]);
     this.endMarkerVisual.setDepth(4);
 
-    this.endMarkerText = this.add.text(this.currentLevel.endX - 20, GROUND_Y - 172, 'DOOR', {
+    this.endMarkerText = this.add.text(this.currentLevel.endX - 20, GROUND_Y - 172, '', {
       color: COLORS.mutedText,
       fontFamily: 'monospace',
       fontSize: '11px',
