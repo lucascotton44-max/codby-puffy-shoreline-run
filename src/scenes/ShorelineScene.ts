@@ -817,6 +817,9 @@ export class ShorelineScene extends Phaser.Scene {
       } else {
         this.addDockDetail(x, y, width);
       }
+      if (this.currentLevel.id === 'calvins-creature-room') {
+        this.addCalvinSketchDockDressing(x, y, width, height);
+      }
     } else {
       this.addShoreSurfaceDetail(x, y, width);
     }
@@ -840,6 +843,43 @@ export class ShorelineScene extends Phaser.Scene {
     this.add.rectangle(x, y - 14, width - 18, 4, 0xa08b6d, 0.55);
     this.add.rectangle(x - width / 2 + 22, y + 27, 11, 54, 0x4b3b2d, 0.92);
     this.add.rectangle(x + width / 2 - 22, y + 27, 11, 54, 0x4b3b2d, 0.92);
+  }
+
+  private addCalvinSketchDockDressing(x: number, y: number, width: number, height: number): void {
+    const top = y - height / 2;
+    const undersideY = y + height / 2 + 4;
+    const supportBaseY = Math.min(GROUND_Y + 8, undersideY + Phaser.Math.Clamp(GROUND_Y - undersideY, 46, 148));
+    const supportXs = [x - width * 0.36, x, x + width * 0.36];
+
+    const supports = this.add.graphics();
+    supports.setDepth(0.5);
+    supports.fillStyle(0x0f1516, 0.34);
+    supports.fillRoundedRect(x - width / 2 + 8, undersideY - 2, width - 16, 10, 3);
+    supports.lineStyle(5, 0x101718, 0.42);
+    supportXs.forEach((supportX, index) => {
+      const lean = index === 1 ? 0 : (index === 0 ? -4 : 4);
+      supports.lineBetween(supportX, undersideY, supportX + lean, supportBaseY);
+    });
+    supports.lineStyle(2, 0x273131, 0.36);
+    supports.lineBetween(x - width / 2 + 22, supportBaseY - 18, x + width / 2 - 22, supportBaseY - 34);
+
+    const chalk = this.add.graphics();
+    chalk.setDepth(1.05);
+    chalk.lineStyle(2, 0xd8ddd2, 0.32);
+    chalk.lineBetween(x - width / 2 + 10, top + 4, x + width / 2 - 12, top + 1);
+    chalk.lineStyle(1, 0xd8ddd2, 0.22);
+    chalk.lineBetween(x - width / 2 + 8, undersideY + 4, x + width / 2 - 10, undersideY + 2);
+
+    const markCount = Phaser.Math.Clamp(Math.floor(width / 58), 2, 4);
+    for (let i = 0; i < markCount; i += 1) {
+      const t = (i + 1) / (markCount + 1);
+      const markX = x - width / 2 + width * t;
+      const slant = ((Math.floor(x + width + i * 17) % 2) * 2 - 1) * 4;
+      chalk.lineBetween(markX - 5, top + 10, markX + slant, top + 16);
+      if ((Math.floor(x + i * 31) % 3) === 0) {
+        chalk.lineBetween(markX + 3, top + 9, markX - slant, top + 14);
+      }
+    }
   }
 
   private addShoreSurfaceDetail(x: number, y: number, width: number): void {
