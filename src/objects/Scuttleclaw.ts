@@ -33,6 +33,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   private readonly speed: number;
   private readonly variant?: ScuttleclawDefinition['variant'];
   private readonly sprite?: Phaser.GameObjects.Sprite;
+  private readonly facingVisual?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
   private direction = 1;
 
   public constructor(scene: Phaser.Scene, definition: ScuttleclawDefinition) {
@@ -41,6 +42,8 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     super(scene, definition.x, definition.y, parts);
 
     this.sprite = parts.find((part): part is Phaser.GameObjects.Sprite => part instanceof Phaser.GameObjects.Sprite);
+    this.facingVisual = parts.find((part): part is Phaser.GameObjects.Image | Phaser.GameObjects.Sprite =>
+      part instanceof Phaser.GameObjects.Image || part instanceof Phaser.GameObjects.Sprite);
     this.minX = Math.min(definition.minX, definition.maxX);
     this.maxX = Math.max(definition.minX, definition.maxX);
     this.speed = Math.max(1, Math.abs(definition.speed ?? DEFAULT_SPEED));
@@ -59,6 +62,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
       this.body.setVelocityY(0);
     }
     this.body.setVelocityX(this.speed);
+    this.applyFacingDirection();
     this.setDepth(9);
     this.playAnimation(WALK_ANIMATION_KEY);
   }
@@ -77,6 +81,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     }
 
     this.body.setVelocityX(this.speed * this.direction);
+    this.applyFacingDirection();
     this.playAnimation(WALK_ANIMATION_KEY);
   }
 
@@ -147,6 +152,14 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   }
 
   private static createMeltVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
+    if (scene.textures.exists(TEXTURE_KEYS.calvinMeltPatrolSprite)) {
+      const shadow = scene.add.ellipse(0, 14, 72, 10, 0x050809, 0.34);
+      const sprite = scene.add.image(0, 22, TEXTURE_KEYS.calvinMeltPatrolSprite);
+      sprite.setOrigin(0.5, 1);
+      sprite.setDisplaySize(102, 64);
+      return [shadow, sprite];
+    }
+
     const shadow = scene.add.ellipse(0, 14, 68, 11, 0x050809, 0.38);
 
     const body = scene.add.ellipse(0, 2, 54, 25, 0x0b1217, 0.95);
@@ -209,6 +222,14 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
       frameRate,
       repeat: -1,
     });
+  }
+
+  private applyFacingDirection(): void {
+    if (this.variant !== 'melt') {
+      return;
+    }
+
+    this.facingVisual?.setFlipX(this.direction < 0);
   }
 
   private playAnimation(animationKey: string): void {

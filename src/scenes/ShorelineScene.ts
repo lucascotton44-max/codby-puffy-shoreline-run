@@ -218,6 +218,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.lordMalefactoFlareZoneFx, ASSET_PATHS.lordMalefactoFlareZoneFx);
     this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlaceholder, ASSET_PATHS.calvinEarthEyesBartPlaceholder);
     this.load.image(TEXTURE_KEYS.calvinRedBartPlaceholder, ASSET_PATHS.calvinRedBartPlaceholder);
+    this.load.image(TEXTURE_KEYS.calvinMeltPatrolSprite, ASSET_PATHS.calvinMeltPatrolSprite);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
     this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
     this.load.audio(AUDIO_KEYS.level03CanalTheme, AUDIO_PATHS.level03CanalTheme);
