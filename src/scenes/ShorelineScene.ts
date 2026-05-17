@@ -113,6 +113,7 @@ export class ShorelineScene extends Phaser.Scene {
   private player!: Phaser.GameObjects.Rectangle;
   private playerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Sprite;
   private playerVisualMode: VisualMode = 'placeholder';
+  private playerFacingDirection = 1;
   private powerUpStateVisual?: Phaser.GameObjects.Sprite;
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
@@ -218,6 +219,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.lordMalefactoFlareZoneFx, ASSET_PATHS.lordMalefactoFlareZoneFx);
     this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlaceholder, ASSET_PATHS.calvinEarthEyesBartPlaceholder);
     this.load.image(TEXTURE_KEYS.calvinRedBartPlaceholder, ASSET_PATHS.calvinRedBartPlaceholder);
+    this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlayer, ASSET_PATHS.calvinEarthEyesBartPlayer);
+    this.load.image(TEXTURE_KEYS.calvinRedBartPlayer, ASSET_PATHS.calvinRedBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinMeltPatrolSprite, ASSET_PATHS.calvinMeltPatrolSprite);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
     this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
@@ -1480,10 +1483,15 @@ export class ShorelineScene extends Phaser.Scene {
       return null;
     }
 
-    const textureKey =
+    const playerTextureKey =
+      characterKey === 'cod'
+        ? TEXTURE_KEYS.calvinEarthEyesBartPlayer
+        : TEXTURE_KEYS.calvinRedBartPlayer;
+    const fallbackTextureKey =
       characterKey === 'cod'
         ? TEXTURE_KEYS.calvinEarthEyesBartPlaceholder
         : TEXTURE_KEYS.calvinRedBartPlaceholder;
+    const textureKey = this.textures.exists(playerTextureKey) ? playerTextureKey : fallbackTextureKey;
     if (!this.textures.exists(textureKey)) {
       return null;
     }
@@ -1492,7 +1500,11 @@ export class ShorelineScene extends Phaser.Scene {
     const calvinVisualYOffset = characterKey === 'cod' ? -10 : 0;
     const image = this.add.image(0, character.height / 2 + 1 + calvinVisualYOffset, textureKey);
     image.setOrigin(0.5, 1);
-    image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
+    if (textureKey === playerTextureKey) {
+      image.setDisplaySize(characterKey === 'cod' ? 82 : 86, 96);
+    } else {
+      image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
+    }
 
     const visual = this.add.container(this.player.x, this.player.y, [image]);
     visual.setDepth(20);
@@ -2881,12 +2893,28 @@ export class ShorelineScene extends Phaser.Scene {
     } else {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
+    this.updateCalvinPlayerFacing();
     this.syncPowerUpStateVisual();
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
     this.syncPowerIndicators();
     this.endMarkerText.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.45);
     this.endMarker.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
     this.endMarkerVisual.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
+  }
+
+  private updateCalvinPlayerFacing(): void {
+    if (!this.isCalvinCreatureRoom() || this.playerVisualMode !== 'placeholder') {
+      return;
+    }
+
+    const body = this.getPlayerBody();
+    if (body.velocity.x > 5) {
+      this.playerFacingDirection = 1;
+    } else if (body.velocity.x < -5) {
+      this.playerFacingDirection = -1;
+    }
+
+    this.playerVisual.setScale(this.playerFacingDirection, 1);
   }
 
   private createPowerUpStateVisual(): Phaser.GameObjects.Sprite | undefined {
