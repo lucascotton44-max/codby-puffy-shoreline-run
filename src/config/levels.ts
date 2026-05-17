@@ -604,13 +604,13 @@ export const LEVELS: LevelDefinition[] = [
     ],
     hazards: [
       // Puddle 1 - recovery platform teaching hazard.
-      { x: 2030, y: 400, width: 120, height: 22, kind: 'blackSketchPuddle' },
+      { x: 2030, y: 400, width: 95, height: 18, kind: 'blackSketchPuddle' },
 
       // Puddle 2 - glide/catch platform consequence.
-      { x: 2660, y: 338, width: 135, height: 22, kind: 'blackSketchPuddle' },
+      { x: 2660, y: 338, width: 105, height: 18, kind: 'blackSketchPuddle' },
 
       // Puddle 3 - final buildup pressure before the door payoff.
-      { x: 3220, y: 388, width: 115, height: 22, kind: 'blackSketchPuddle' },
+      { x: 3220, y: 388, width: 90, height: 18, kind: 'blackSketchPuddle' },
     ],
     fragments: [
       // S01 — Safe first pickup
