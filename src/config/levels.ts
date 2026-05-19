@@ -652,4 +652,25 @@ export const LEVELS: LevelDefinition[] = [
     secretLevel: true,
     testOnly: true,
   },
+  // Direct visual staging test only. Accessible via: ?level=quake-donair-boss-test
+  {
+    id: 'quake-donair-boss-test',
+    name: 'THE OLD VARIETY',
+    backdropPath: ASSET_PATHS.oldVarietyBossArena,
+    backdropTextureKey: TEXTURE_KEYS.oldVarietyBossArena,
+    musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
+    worldWidth: 1320,
+    startX: START_X,
+    endX: 3000,
+    totalFragments: 0,
+    requiredFragments: 0,
+    platforms: [
+      { x: 660, y: GROUND_Y + 26, width: 1320, height: 70, color: COLORS.shore },
+    ],
+    hazards: [],
+    fragments: [],
+    powerUps: [],
+    scuttleclaws: [],
+    testOnly: true,
+  },
 ];

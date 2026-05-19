@@ -222,6 +222,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlayer, ASSET_PATHS.calvinEarthEyesBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinRedBartPlayer, ASSET_PATHS.calvinRedBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinMeltPatrolSprite, ASSET_PATHS.calvinMeltPatrolSprite);
+    this.load.image(TEXTURE_KEYS.quakeDonairBossIdle, ASSET_PATHS.quakeDonairBossIdle);
+    this.load.image(TEXTURE_KEYS.quakeDonairBossThrow, ASSET_PATHS.quakeDonairBossThrow);
+    this.load.image(TEXTURE_KEYS.quakeDonairBossStunned, ASSET_PATHS.quakeDonairBossStunned);
+    this.load.image(TEXTURE_KEYS.quakeDonairBossDefeat, ASSET_PATHS.quakeDonairBossDefeat);
+    this.load.image(TEXTURE_KEYS.donairProjectile, ASSET_PATHS.donairProjectile);
     this.load.audio(AUDIO_KEYS.shorelineThemeLoop, AUDIO_PATHS.shorelineThemeLoop);
     this.load.audio(AUDIO_KEYS.level02Theme, AUDIO_PATHS.level02Theme);
     this.load.audio(AUDIO_KEYS.level03CanalTheme, AUDIO_PATHS.level03CanalTheme);
@@ -796,14 +801,35 @@ export class ShorelineScene extends Phaser.Scene {
     this.createBubbleVents();
     this.createEelgrassVisuals();
     this.createCurrentZoneVisuals();
+    this.createQuakeBossTestVisuals();
+  }
+
+  private createQuakeBossTestVisuals(): void {
+    if (this.currentLevel.id !== 'quake-donair-boss-test') {
+      return;
+    }
+
+    if (this.hasTexture(TEXTURE_KEYS.quakeDonairBossIdle)) {
+      const boss = this.add.image(900, GROUND_Y + 7, TEXTURE_KEYS.quakeDonairBossIdle);
+      boss.setOrigin(0.5, 1);
+      boss.setDisplaySize(140, 140);
+      boss.setDepth(5);
+    }
+
+    if (this.hasTexture(TEXTURE_KEYS.donairProjectile)) {
+      const donair = this.add.image(690, GROUND_Y - 130, TEXTURE_KEYS.donairProjectile);
+      donair.setDisplaySize(72, 45);
+      donair.setDepth(5);
+    }
   }
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
     const platform = this.add.rectangle(x, y, width, height, color);
     const isBrasDor = this.currentLevel.id === 'bras-dor-below-level-05';
+    const isQuakeBossTest = this.currentLevel.id === 'quake-donair-boss-test';
     const hasDockProp = color === COLORS.dock && this.hasTexture(TEXTURE_KEYS.dockPlankPlatformProp);
 
-    if (isBrasDor) {
+    if (isBrasDor || isQuakeBossTest) {
       platform.setAlpha(0);
     } else {
       platform.setAlpha(hasDockProp ? 0 : color === COLORS.dock ? 0.94 : 0.82);
@@ -1430,7 +1456,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
     this.powerUpStateVisual = this.createPowerUpStateVisual();
-    this.playerLabel = this.add.text(this.player.x, this.player.y - 48, character.label, {
+    this.playerLabel = this.add.text(this.player.x, this.player.y - 48, this.getHudCharacterLabel(), {
       color: COLORS.text,
       fontFamily: 'monospace',
       fontSize: '12px',
@@ -1478,8 +1504,12 @@ export class ShorelineScene extends Phaser.Scene {
     return this.currentLevel.secretLevel === true;
   }
 
+  private usesCalvinSketchPlayerVisuals(): boolean {
+    return this.isCalvinCreatureRoom() || this.currentLevel.id === 'quake-donair-boss-test';
+  }
+
   private createCalvinCreatureVisual(characterKey: CharacterKey): Phaser.GameObjects.Container | null {
-    if (!this.isCalvinCreatureRoom()) {
+    if (!this.usesCalvinSketchPlayerVisuals()) {
       return null;
     }
 
@@ -1778,11 +1808,12 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createTitleOverlay(): void {
-    const titleText = this.currentLevel.secretLevel ? "CALVIN'S CREATURE ROOM" : "COD B\u2019Y & PUFFY\nSHORELINE RUN";
-    const objectiveText = this.currentLevel.secretLevel
+    const usesSketchIdentity = this.usesCalvinSketchPlayerVisuals();
+    const titleText = usesSketchIdentity ? "CALVIN'S CREATURE ROOM" : "COD B\u2019Y & PUFFY\nSHORELINE RUN";
+    const objectiveText = usesSketchIdentity
       ? 'A secret page behind the shoreline.'
       : 'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.';
-    const footerText = this.currentLevel.secretLevel ? 'Sucka Free.' : '1 Cod B\u2019y | 2 Puffy | R Restart';
+    const footerText = usesSketchIdentity ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
 
     const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0f1819, 0.58);
     const topRule = this.add.rectangle(GAME_WIDTH / 2, 126, 430, 1, 0xd8ddd2, 0.34);
@@ -1791,7 +1822,7 @@ export class ShorelineScene extends Phaser.Scene {
       align: 'center',
       color: COLORS.text,
       fontFamily: 'monospace',
-      fontSize: this.currentLevel.secretLevel ? '34px' : '39px',
+      fontSize: usesSketchIdentity ? '34px' : '39px',
       fontStyle: 'bold',
       lineSpacing: 11,
     });
@@ -2163,7 +2194,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.playerVisual.destroy();
     this.playerVisual = this.createCharacterVisual(next);
     this.activePowerUpStateFrame = undefined;
-    this.playerLabel.setText(character.label);
+    this.playerLabel.setText(this.getHudCharacterLabel());
     this.wasGliding = false;
     this.playSfx(AUDIO_KEYS.characterSwitch);
     this.updateHud();
@@ -2810,7 +2841,7 @@ export class ShorelineScene extends Phaser.Scene {
       const powerText = this.getPowerStatusText();
       const powerSuffix = powerText !== "NONE" ? `  PWR ${powerText}` : "";
       this.hudStatsText.setText(
-        `${characterLabel}  HP ${Math.max(0, this.health)}/${character.maxHealth}  ${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments}${powerSuffix}`,
+        `${characterLabel}  HP ${Math.max(0, this.health)}/${character.maxHealth}  ${this.getHudObjectiveText(collectibleLabel)}${powerSuffix}`,
       );
       return;
     }
@@ -2819,7 +2850,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudHintText.setText(this.getHudSwitchHintText());
     this.hudStatsText.setText(
       [
-        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED   TOTAL ${this.currentLevel.totalFragments}`,
+        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${this.getHudObjectiveText(collectibleLabel)}   TOTAL ${this.currentLevel.totalFragments}`,
         `POWER ${this.getPowerStatusText()}`,
         `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
@@ -2827,7 +2858,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private getHudCharacterLabel(): string {
-    if (this.currentLevel.secretLevel === true) {
+    if (this.usesCalvinSketchPlayerVisuals()) {
       return this.activeCharacter === 'cod' ? 'EARTH EYES BART' : 'RED BART';
     }
 
@@ -2835,15 +2866,27 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private getHudTitleText(): string {
-    return this.currentLevel.secretLevel === true ? "CALVIN'S CREATURE ROOM" : 'COD B\u2019Y & PUFFY: SHORELINE RUN';
+    if (this.currentLevel.id === 'quake-donair-boss-test') {
+      return 'THE OLD VARIETY';
+    }
+
+    return this.usesCalvinSketchPlayerVisuals() ? "CALVIN'S CREATURE ROOM" : 'COD B\u2019Y & PUFFY: SHORELINE RUN';
   }
 
   private getHudSwitchHintText(): string {
-    return this.currentLevel.secretLevel === true ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
+    return this.usesCalvinSketchPlayerVisuals() ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
   }
 
   private getCollectibleHudLabel(): string {
-    return this.currentLevel.secretLevel === true ? 'SKETCH' : 'RELIC';
+    return this.usesCalvinSketchPlayerVisuals() ? 'SKETCH' : 'RELIC';
+  }
+
+  private getHudObjectiveText(collectibleLabel: string): string {
+    if (this.currentLevel.id === 'quake-donair-boss-test') {
+      return 'BOSS TEST';
+    }
+
+    return `${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED`;
   }
 
   private getElapsedSeconds(): number {
@@ -2903,7 +2946,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private updateCalvinPlayerFacing(): void {
-    if (!this.isCalvinCreatureRoom() || this.playerVisualMode !== 'placeholder') {
+    if (!this.usesCalvinSketchPlayerVisuals() || this.playerVisualMode !== 'placeholder') {
       return;
     }
 
