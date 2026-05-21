@@ -2546,7 +2546,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.isStompingBoss(boss)) {
+    if (this.isStompingBoss(boss) && boss.isVulnerable()) {
       const didDefeatBoss = boss.takeHit(this.time.now);
       const bounceDirection = this.player.x < boss.x ? -1 : 1;
       this.getPlayerBody().setVelocity(bounceDirection * 125, -270);

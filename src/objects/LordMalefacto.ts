@@ -11,6 +11,7 @@ const FLARE_WIDTH = 260;
 const FLARE_HEIGHT = 112;
 const IDLE_MS = 700;
 const VISUAL_SCALE = 0.84;
+const HIT_FLASH_MS = 140;
 
 export class LordMalefacto extends Phaser.GameObjects.Container {
   public declare readonly body: Phaser.Physics.Arcade.Body;
@@ -37,6 +38,8 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
   private readonly flareImage?: Phaser.GameObjects.Image;
   private flarePulseTween?: Phaser.Tweens.Tween;
   private hitFeedbackTween?: Phaser.Tweens.Tween;
+  private hitFlashTimer?: Phaser.Time.TimerEvent;
+  private hitReactionTween?: Phaser.Tweens.Tween;
   private hp: number;
   private bossState: LordMalefactoState = 'idle';
   private stateEndsAt = 0;
@@ -187,6 +190,30 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
       this.hitFeedbackTween.stop();
       this.hitFeedbackTween = undefined;
     }
+    if (this.hitReactionTween) {
+      this.hitReactionTween.stop();
+      this.hitReactionTween = undefined;
+      this.spriteBody?.setX(0);
+    }
+    if (this.hitFlashTimer) {
+      this.hitFlashTimer.remove(false);
+      this.hitFlashTimer = undefined;
+    }
+    this.spriteBody?.setTintFill(0xffffff);
+    this.hitFlashTimer = this.scene.time.delayedCall(HIT_FLASH_MS, () => {
+      this.spriteBody?.clearTint();
+      this.hitFlashTimer = undefined;
+    });
+    if (this.spriteBody) {
+      this.spriteBody.setX(-6);
+      this.hitReactionTween = this.scene.tweens.add({
+        targets: this.spriteBody,
+        x: 0,
+        duration: HIT_FLASH_MS,
+        ease: 'Back.easeOut',
+        onComplete: () => { this.hitReactionTween = undefined; },
+      });
+    }
     // For hitStun: alpha is 0.82 — spike to 1 then return, giving a visible impact flash.
     // For defeated: alpha is 1 — no flash needed; the defeat fade tween runs unimpeded.
     const restAlpha = this.alpha;
@@ -197,7 +224,7 @@ export class LordMalefacto extends Phaser.GameObjects.Container {
     this.hitFeedbackTween = this.scene.tweens.add({
       targets: this,
       alpha: restAlpha,
-      duration: 110,
+      duration: HIT_FLASH_MS,
       ease: 'Sine.easeOut',
       onComplete: () => { this.hitFeedbackTween = undefined; },
     });
