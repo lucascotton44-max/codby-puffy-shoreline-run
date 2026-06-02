@@ -1183,12 +1183,15 @@ export class ShorelineScene extends Phaser.Scene {
       this.endMarkerVisual = this.add.image(this.currentLevel.endX, GROUND_Y - 76, TEXTURE_KEYS.ch8BeaconMarkerProp);
       this.endMarkerVisual.setDisplaySize(96, 162);
       this.endMarkerVisual.setDepth(4);
-      this.endMarkerText = this.add.text(this.currentLevel.endX - 30, GROUND_Y - 178, 'CH 8', {
+      // The beacon prop already renders "CH 8"; keep endMarkerText valid but hidden
+      // so updateEndMarkerState / alpha logic stays safe without a duplicate label.
+      this.endMarkerText = this.add.text(this.currentLevel.endX - 30, GROUND_Y - 178, '', {
         color: COLORS.text,
         fontFamily: 'monospace',
         fontSize: '13px',
         fontStyle: 'bold',
       });
+      this.endMarkerText.setVisible(false);
       return;
     }
 
