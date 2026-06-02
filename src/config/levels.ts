@@ -330,7 +330,7 @@ export const LEVELS: LevelDefinition[] = [
     startX: START_X,
     endX: 3310,
     totalFragments: 12,
-    requiredFragments: 10,
+    requiredFragments: 12,
     platforms: [
       { x: 390, y: GROUND_Y + 26, width: 780, height: 70, color: COLORS.shore },
       { x: 1290, y: GROUND_Y + 26, width: 620, height: 70, color: COLORS.shore },
@@ -368,10 +368,10 @@ export const LEVELS: LevelDefinition[] = [
       { x: 3180, y: 430 },
     ],
     powerUps: [
-      { kind: 'kelpShield', x: 1460, y: 430 },
-      { kind: 'tiderunner', x: 1535, y: 430 },
+      { kind: 'kelpShield', x: 1340, y: 372 },
+      { kind: 'tiderunner', x: 1430, y: 372 },
       { kind: 'tideLift', x: 1070, y: 276 },
-      { kind: 'storySpark', x: 2460, y: 298 },
+      { kind: 'storySpark', x: 2440, y: 316 },
     ],
     scuttleclaws: [
       { x: 2050, y: GROUND_Y - 20, minX: 1940, maxX: 2180, speed: 56, damage: 1 },
