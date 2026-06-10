@@ -2878,7 +2878,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudHintText.setText(this.getHudSwitchHintText());
     this.hudStatsText.setText(
       [
-        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${this.getHudObjectiveText(collectibleLabel)}   TOTAL ${this.currentLevel.totalFragments}`,
+        `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${this.getHudObjectiveText(collectibleLabel)}${
+          this.currentLevel.id === 'lord-malefacto-boss-level-04' ? '' : `   TOTAL ${this.currentLevel.totalFragments}`
+        }`,
         `POWER ${this.getPowerStatusText()}`,
         `SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}${this.currentLevel.boss ? '   BOSS MALEFACTO' : ''}`,
       ].join('\n'),
@@ -2912,6 +2914,10 @@ export class ShorelineScene extends Phaser.Scene {
   private getHudObjectiveText(collectibleLabel: string): string {
     if (this.currentLevel.id === 'quake-donair-boss-test') {
       return 'BOSS TEST';
+    }
+
+    if (this.currentLevel.id === 'lord-malefacto-boss-level-04') {
+      return 'DEFEAT MALEFACTO';
     }
 
     return `${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED`;
