@@ -163,10 +163,13 @@ export class ShorelineScene extends Phaser.Scene {
   private touchPointers = { left: new Set<number>(), right: new Set<number>(), jump: new Set<number>(), switch: new Set<number>() };
   private jumpQueuedUntil = 0;
   private switchQueuedUntil = 0;
+  private lastGroundedAt = -10000;
   private lastTouchSwitchAt = -1000;
   private readonly TOUCH_JUMP_BUFFER_MS = 170;
   private readonly TOUCH_SWITCH_BUFFER_MS = 170;
   private readonly TOUCH_SWITCH_COOLDOWN_MS = 240;
+  private readonly KEYBOARD_JUMP_BUFFER_MS = 140;
+  private readonly COYOTE_TIME_MS = 90;
 
   public constructor() {
     super('ShorelineScene');
@@ -2210,10 +2213,21 @@ export class ShorelineScene extends Phaser.Scene {
     const left = this.controls.cursors.left.isDown || this.controls.wasd.left.isDown || this.touchInput.left;
     const right = this.controls.cursors.right.isDown || this.controls.wasd.right.isDown || this.touchInput.right;
     const inputNow = this.time.now;
-    const wantsJump =
+    // Coyote credit only banks on genuinely grounded frames — wasGliding (last
+    // frame's state) excludes the one-frame ground clip during an active glide.
+    if (body.blocked.down && !this.wasGliding) {
+      this.lastGroundedAt = inputNow;
+    }
+    const keyboardJumpPressed =
       Phaser.Input.Keyboard.JustDown(this.controls.cursors.up) ||
       Phaser.Input.Keyboard.JustDown(this.controls.wasd.up) ||
-      Phaser.Input.Keyboard.JustDown(this.controls.space) ||
+      Phaser.Input.Keyboard.JustDown(this.controls.space);
+    if (keyboardJumpPressed) {
+      // Keyboard buffers 140ms; Math.max preserves a longer pending touch queue (170ms).
+      this.jumpQueuedUntil = Math.max(this.jumpQueuedUntil, inputNow + this.KEYBOARD_JUMP_BUFFER_MS);
+    }
+    const wantsJump =
+      keyboardJumpPressed ||
       this.touchInput.jumpJustDown ||
       this.jumpQueuedUntil >= inputNow;
     this.touchInput.jumpJustDown = false;
@@ -2227,8 +2241,10 @@ export class ShorelineScene extends Phaser.Scene {
       body.setVelocityX(moveSpeed);
     }
 
-    if (wantsJump && body.blocked.down) {
+    const canCoyoteJump = inputNow - this.lastGroundedAt <= this.COYOTE_TIME_MS;
+    if (wantsJump && (body.blocked.down || canCoyoteJump)) {
       this.jumpQueuedUntil = 0;
+      this.lastGroundedAt = -10000;
       const tideJumpMultiplier = this.consumeTideLiftForJump();
       body.setVelocityY(-character.jumpSpeed * tideJumpMultiplier);
       this.wasGliding = false;
