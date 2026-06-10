@@ -2206,6 +2206,15 @@ export class ShorelineScene extends Phaser.Scene {
     this.updateHud();
   }
 
+  private isJumpHeld(): boolean {
+    return (
+      this.controls.space.isDown ||
+      this.controls.wasd.up.isDown ||
+      this.controls.cursors.up.isDown ||
+      this.touchInput.jumpHeld
+    );
+  }
+
   private handleMovement(): void {
     const character = CHARACTERS[this.activeCharacter];
     const body = this.getPlayerBody();
@@ -2253,7 +2262,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     const isGliding =
       this.activeCharacter === 'puffy' &&
-      (this.controls.space.isDown || this.touchInput.jumpHeld) &&
+      this.isJumpHeld() &&
       body.velocity.y > 40 &&
       !body.blocked.down;
 
@@ -2300,7 +2309,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (!body.blocked.down) {
       const airborneKey =
-        this.activeCharacter === 'puffy' && (this.controls.space.isDown || this.touchInput.jumpHeld) && body.velocity.y > 0
+        this.activeCharacter === 'puffy' && this.isJumpHeld() && body.velocity.y > 0
           ? animationKeys.fall
           : body.velocity.y < 0
             ? animationKeys.jump
