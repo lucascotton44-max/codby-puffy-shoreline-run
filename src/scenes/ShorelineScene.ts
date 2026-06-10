@@ -133,6 +133,8 @@ export class ShorelineScene extends Phaser.Scene {
   private hudTitleText!: Phaser.GameObjects.Text;
   private hudStatsText!: Phaser.GameObjects.Text;
   private hudHintText!: Phaser.GameObjects.Text;
+  private calvinScoreTimeText?: Phaser.GameObjects.Text;
+  private calvinHintFadeArmed = false;
   private isMobileLayout = false;
   private suppressNextTouchAction = false;
   private isDirectTestLevel = false;
@@ -2865,7 +2867,15 @@ export class ShorelineScene extends Phaser.Scene {
     const characterLabel = this.getHudCharacterLabel();
     const collectibleLabel = this.getCollectibleHudLabel();
 
+    const isCalvinRoom = this.currentLevel.id === 'calvins-creature-room';
+
     if (this.isMobileLayout) {
+      if (isCalvinRoom) {
+        this.hudStatsText.setText(
+          `${characterLabel}  ${this.getCalvinHeartPips(character.maxHealth)}  ${this.getHudObjectiveText(collectibleLabel)}`,
+        );
+        return;
+      }
       const powerText = this.getPowerStatusText();
       const powerSuffix = powerText !== "NONE" ? `  PWR ${powerText}` : "";
       this.hudStatsText.setText(
@@ -2876,6 +2886,15 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.hudTitleText.setText(this.getHudTitleText());
     this.hudHintText.setText(this.getHudSwitchHintText());
+
+    if (isCalvinRoom) {
+      this.hudStatsText.setText(
+        `${characterLabel}   ${this.getCalvinHeartPips(character.maxHealth)}   ${this.getHudObjectiveText(collectibleLabel)}`,
+      );
+      this.updateCalvinRecessiveHud();
+      return;
+    }
+
     this.hudStatsText.setText(
       [
         `CHAR ${characterLabel}   HP ${Math.max(0, this.health)}/${character.maxHealth}   ${this.getHudObjectiveText(collectibleLabel)}${
@@ -2920,7 +2939,41 @@ export class ShorelineScene extends Phaser.Scene {
       return 'DEFEAT MALEFACTO';
     }
 
+    if (this.currentLevel.id === 'calvins-creature-room') {
+      return `Sketches ${this.collectedFragments} / ${this.currentLevel.totalFragments}`;
+    }
+
     return `${collectibleLabel} ${this.collectedFragments}/${this.currentLevel.requiredFragments} REQUIRED`;
+  }
+
+  private getCalvinHeartPips(maxHealth: number): string {
+    const current = Math.max(0, Math.min(this.health, maxHealth));
+    return '♥'.repeat(current) + '♡'.repeat(maxHealth - current);
+  }
+
+  private updateCalvinRecessiveHud(): void {
+    if (!this.calvinScoreTimeText || !this.calvinScoreTimeText.scene) {
+      // Recreated each scene lifecycle (destroyed on restart), so the hint fade re-arms too.
+      this.calvinScoreTimeText = this.add.text(24, 70, '', {
+        color: COLORS.mutedText,
+        fontFamily: 'monospace',
+        fontSize: '10px',
+      });
+      this.calvinScoreTimeText.setScrollFactor(0);
+      this.calvinScoreTimeText.setAlpha(0.55);
+      this.calvinHintFadeArmed = false;
+    }
+
+    // Arm the hint fade at run start (not scene create) so the hints are
+    // visible for ~4s of actual play; re-arms each scene lifecycle (restart).
+    if (!this.calvinHintFadeArmed && this.isRunStarted) {
+      this.calvinHintFadeArmed = true;
+      this.time.delayedCall(4000, () => {
+        this.tweens.add({ targets: this.hudHintText, alpha: 0, duration: 1000, ease: 'Sine.easeOut' });
+      });
+    }
+
+    this.calvinScoreTimeText.setText(`SCORE ${this.score}   TIME ${this.formatSeconds(this.getElapsedSeconds())}`);
   }
 
   private getElapsedSeconds(): number {
