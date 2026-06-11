@@ -137,6 +137,7 @@ export class ShorelineScene extends Phaser.Scene {
   private calvinHintFadeArmed = false;
   private worldLayer!: Phaser.GameObjects.Layer;
   private uiLayer!: Phaser.GameObjects.Layer;
+  private uiCamera?: Phaser.Cameras.Scene2D.Camera;
   private isMobileLayout = false;
   private suppressNextTouchAction = false;
   private isDirectTestLevel = false;
@@ -259,10 +260,18 @@ export class ShorelineScene extends Phaser.Scene {
     this.resetCameraState();
     this.physics.world.setBounds(0, 0, this.currentLevel.worldWidth, GAME_HEIGHT);
 
-    // World/UI layer split scaffolding for the future two-camera zoom.
-    // Both layers render through cameras.main this pass — output is unchanged.
+    // World/UI camera split: cameras.main renders worldLayer only; uiCamera
+    // (added second → renders on top) renders uiLayer only at fixed zoom 1.
+    // Same viewport on both preserves the cinematic matte and HUD positions.
     this.worldLayer = this.add.layer();
     this.uiLayer = this.add.layer();
+
+    this.uiCamera = this.cameras.add(0, PRESENTATION_MATTE_Y, GAME_WIDTH, PRESENTATION_VIEW_HEIGHT);
+    this.uiCamera.setScroll(0, 0);
+    this.uiCamera.setRoundPixels(true);
+    this.uiCamera.resetFX();
+    this.cameras.main.ignore(this.uiLayer);
+    this.uiCamera.ignore(this.worldLayer);
 
     this.createControls();
     this.createAudio();
@@ -2192,6 +2201,11 @@ export class ShorelineScene extends Phaser.Scene {
     const camera = this.cameras.main;
     camera.stopFollow();
     camera.resetFX();
+    // Clear FX on the UI camera too (fade-to-white lives there now). On scene
+    // restart the previous uiCamera is already destroyed by CameraManager
+    // shutdown; this is a harmless flag reset on the stale reference, and the
+    // fresh uiCamera created later in create() starts with no FX.
+    this.uiCamera?.resetFX();
     camera.setViewport(0, PRESENTATION_MATTE_Y, GAME_WIDTH, PRESENTATION_VIEW_HEIGHT);
     camera.setBounds(0, 0, this.currentLevel.worldWidth, PRESENTATION_VIEW_HEIGHT);
     camera.setScroll(0, 0);
@@ -2891,7 +2905,10 @@ export class ShorelineScene extends Phaser.Scene {
           yoyo: true,
           ease: 'Sine.easeOut',
           onComplete: () => {
-            camera.fadeOut(180, 233, 247, 255);
+            // Fade on the UI camera: the opaque transition overlay (uiLayer)
+            // fully covers the world camera's output by this point, so a fade
+            // on cameras.main would be invisible behind it.
+            (this.uiCamera ?? camera).fadeOut(180, 233, 247, 255);
             this.time.delayedCall(210, () => this.advanceToNextLevel());
           },
         });
