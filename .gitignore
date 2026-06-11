@@ -7,3 +7,4 @@ dist/
 
 # Premiere autosaves
 **/Adobe Premiere Pro Auto-Save/
+.claude/
