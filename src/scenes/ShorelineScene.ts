@@ -135,6 +135,8 @@ export class ShorelineScene extends Phaser.Scene {
   private hudHintText!: Phaser.GameObjects.Text;
   private calvinScoreTimeText?: Phaser.GameObjects.Text;
   private calvinHintFadeArmed = false;
+  private worldLayer!: Phaser.GameObjects.Layer;
+  private uiLayer!: Phaser.GameObjects.Layer;
   private isMobileLayout = false;
   private suppressNextTouchAction = false;
   private isDirectTestLevel = false;
@@ -257,6 +259,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.resetCameraState();
     this.physics.world.setBounds(0, 0, this.currentLevel.worldWidth, GAME_HEIGHT);
 
+    // World/UI layer split scaffolding for the future two-camera zoom.
+    // Both layers render through cameras.main this pass — output is unchanged.
+    this.worldLayer = this.add.layer();
+    this.uiLayer = this.add.layer();
+
     this.createControls();
     this.createAudio();
     this.createBackdrop();
@@ -269,6 +276,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createOverlaps();
     this.createDebugOverlay();
     this.createTouchControls();
+    this.assignRemainingObjectsToWorldLayer();
 
     this.cameras.main.startFollow(this.player, true, 0.12, 0.1, -120, 30);
 
@@ -381,6 +389,22 @@ export class ShorelineScene extends Phaser.Scene {
     this.checkFallOut();
     this.updateHud();
     this.drawDebugHitboxes();
+  }
+
+  /** Sweeps every display object still on the root display list into the world
+   *  layer. Runs once at the end of create(), after UI objects have been routed
+   *  into uiLayer at their creation sites; objects created during gameplay are
+   *  added to their layer at their own creation sites instead. Root-list order
+   *  is preserved, so the layer's stable depth sort matches the previous render
+   *  order exactly. */
+  private assignRemainingObjectsToWorldLayer(): void {
+    const layers = new Set<unknown>([this.worldLayer, this.uiLayer]);
+    [...this.children.list].forEach((child) => {
+      if (layers.has(child)) {
+        return;
+      }
+      this.worldLayer.add(child as Phaser.GameObjects.GameObject);
+    });
   }
 
   private createControls(): void {
@@ -1505,6 +1529,7 @@ export class ShorelineScene extends Phaser.Scene {
       characterKey === 'cod' ? this.createCodByVisualParts() : this.createPuffyVisualParts();
     const visual = this.add.container(this.player.x, this.player.y, parts);
     visual.setDepth(20);
+    this.worldLayer.add(visual);
     return visual;
   }
 
@@ -1546,6 +1571,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     const visual = this.add.container(this.player.x, this.player.y, [image]);
     visual.setDepth(20);
+    this.worldLayer.add(visual);
     return visual;
   }
 
@@ -1561,6 +1587,7 @@ export class ShorelineScene extends Phaser.Scene {
     sprite.setDepth(20);
     sprite.setScale(GAMEPLAY_TUNING.characters[characterKey].spriteScale);
     sprite.play(CHARACTER_ANIMATION_KEYS[characterKey].idle);
+    this.worldLayer.add(sprite);
     return sprite;
   }
 
@@ -1756,6 +1783,8 @@ export class ShorelineScene extends Phaser.Scene {
       }
     }
 
+    this.uiLayer.add([this.hudPanel, this.hudTitleText, this.hudStatsText, this.hudHintText]);
+
     this.createFullscreenButton();
 
     const overlayY = this.isMobileLayout ? 185 : 206;
@@ -1780,6 +1809,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.messageText.setOrigin(0.5, 0.5);
     this.messageText.setScrollFactor(0);
 
+    this.uiLayer.add([this.messagePanel, this.messageText]);
+
     this.updateHud();
   }
 
@@ -1802,6 +1833,8 @@ export class ShorelineScene extends Phaser.Scene {
     label.setOrigin(0.5, 0.5);
     label.setScrollFactor(0);
     label.setDepth(801);
+
+    this.uiLayer.add([btn, label]);
 
     btn.on('pointerover', () => btn.setFillStyle(0x2a5050, 0.85));
     btn.on('pointerout', () => btn.setFillStyle(0x1a3a3c, 0.72));
@@ -1873,6 +1906,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.titleOverlay = this.add.container(0, 0, [shade, topRule, title, objective, lowerRule, prompt, controls]);
+    this.uiLayer.add(this.titleOverlay);
     this.titleOverlay.setDepth(900);
     this.titleOverlay.setScrollFactor(0);
   }
@@ -1968,7 +2002,8 @@ export class ShorelineScene extends Phaser.Scene {
       label: string, style: Phaser.Types.GameObjects.Text.TextStyle,
     ): Phaser.GameObjects.Rectangle => {
       const bg = this.add.rectangle(x, y, visW, visH, BG, BG_A).setScrollFactor(0).setDepth(DEPTH);
-      this.add.text(x, y, label, style).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(DEPTH + 1);
+      const btnLabel = this.add.text(x, y, label, style).setOrigin(0.5, 0.5).setScrollFactor(0).setDepth(DEPTH + 1);
+      this.uiLayer.add([bg, btnLabel]);
       bg.setInteractive(
         new Phaser.Geom.Rectangle(-hitW / 2, -hitH / 2, hitW, hitH),
         Phaser.Geom.Rectangle.Contains,
@@ -2834,10 +2869,12 @@ export class ShorelineScene extends Phaser.Scene {
       .setDepth(1200)
       .setScale(coverScale)
       .setAlpha(0);
+    this.uiLayer.add(transitionImage);
 
     const flash = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0xe9f7ff, 0);
     flash.setScrollFactor(0);
     flash.setDepth(1201);
+    this.uiLayer.add(flash);
 
     this.tweens.add({
       targets: transitionImage,
@@ -2961,6 +2998,7 @@ export class ShorelineScene extends Phaser.Scene {
       });
       this.calvinScoreTimeText.setScrollFactor(0);
       this.calvinScoreTimeText.setAlpha(0.55);
+      this.uiLayer.add(this.calvinScoreTimeText);
       this.calvinHintFadeArmed = false;
     }
 
@@ -3056,6 +3094,7 @@ export class ShorelineScene extends Phaser.Scene {
     sprite.setOrigin(0.5, 1);
     sprite.setDepth(21);
     sprite.setVisible(false);
+    this.worldLayer.add(sprite);
     return sprite;
   }
 
