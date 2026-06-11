@@ -22,4 +22,11 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [ShorelineScene],
 };
 
-new Phaser.Game(config);
+const game = new Phaser.Game(config);
+
+// QA hook: import.meta.env exists only under the Vite dev server; the
+// production build (plain tsc, no bundler) has no env, so guard the access.
+const env = (import.meta as { env?: { DEV?: boolean } }).env;
+if (env?.DEV) {
+  (window as unknown as { game?: Phaser.Game }).game = game;
+}
