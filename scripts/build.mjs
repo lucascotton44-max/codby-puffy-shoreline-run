@@ -15,6 +15,14 @@ await copyFile(
   join(dist, 'vendor', 'phaser.esm.js'),
 );
 
+// phaser.esm.js has only named exports, but our sources use `import Phaser
+// from 'phaser'` (Vite's pre-bundling synthesizes a default in dev). This
+// wrapper provides the default export so the static dist/ build links.
+await writeFile(
+  join(dist, 'vendor', 'phaser-default.js'),
+  `import * as Phaser from './phaser.esm.js';\nexport * from './phaser.esm.js';\nexport default Phaser;\n`,
+);
+
 const html = `<!doctype html>
 <html lang="en">
   <head>
@@ -25,7 +33,7 @@ const html = `<!doctype html>
     <script type="importmap">
       {
         "imports": {
-          "phaser": "./vendor/phaser.esm.js"
+          "phaser": "./vendor/phaser-default.js"
         }
       }
     </script>
