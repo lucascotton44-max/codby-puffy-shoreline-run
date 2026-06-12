@@ -175,6 +175,7 @@ export class ShorelineScene extends Phaser.Scene {
   private readonly TOUCH_SWITCH_COOLDOWN_MS = 240;
   private readonly KEYBOARD_JUMP_BUFFER_MS = 140;
   private readonly COYOTE_TIME_MS = 90;
+  private readonly LEVEL_ONE_WORLD_ZOOM = 1.3;
 
   public constructor() {
     super('ShorelineScene');
@@ -286,6 +287,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createDebugOverlay();
     this.createTouchControls();
     this.assignRemainingObjectsToWorldLayer();
+    this.reseatLevelOneParallax();
 
     this.cameras.main.startFollow(this.player, true, 0.12, 0.1, -120, 30);
 
@@ -406,6 +408,49 @@ export class ShorelineScene extends Phaser.Scene {
    *  added to their layer at their own creation sites instead. Root-list order
    *  is preserved, so the layer's stable depth sort matches the previous render
    *  order exactly. */
+  /** A3c: reseat the screen-fixed dressing stack for level 1's locked 1.3x
+   *  frame. Every parallax/backdrop element has scrollFactorY === 0 (backdrop
+   *  + washes at scrollFactorX 0; silhouette bands, shimmer rows, and
+   *  foreground shore detail at 0 < scrollFactorX < 1), so zoom scales them
+   *  about the viewport center instead of tracking the world. Each element is
+   *  counter-scaled back to its zoom-1 rendered size and re-anchored so the
+   *  whole painted stack lines up with the world ground line at its new
+   *  screen position (world y 483 renders at ~474.3 in the locked band, hence
+   *  the -8.7px stack shift). Gameplay objects (scrollFactor 1) are skipped.
+   *  Horizontal: full-frame elements (scrollFactorX 0) counter-scale both
+   *  axes to keep aspect; world-wide strips keep scaleX so coverage never
+   *  thins. Shimmer animation only mutates x/alpha, so the reseat persists. */
+  private reseatLevelOneParallax(): void {
+    if (this.currentLevel.id !== 'shoreline-run-level-01') {
+      return;
+    }
+
+    const zoom = this.LEVEL_ONE_WORLD_ZOOM;
+    const viewportCenterY = PRESENTATION_VIEW_HEIGHT / 2;
+    const groundTop = GROUND_Y - 9; // platform tops: (GROUND_Y + 26) - 70/2 = 483
+    const lockedBandTop = PRESENTATION_VIEW_HEIGHT - PRESENTATION_VIEW_HEIGHT / zoom;
+    const groundScreenY = (groundTop - lockedBandTop) * zoom; // ~474.3
+    const stackShift = groundScreenY - groundTop; // ~-8.7
+
+    this.worldLayer.list.forEach((child) => {
+      const obj = child as unknown as {
+        y: number;
+        scaleX: number;
+        scaleY: number;
+        scrollFactorX: number;
+        scrollFactorY: number;
+      };
+      if (obj.scrollFactorY !== 0 || obj.scrollFactorX === 1) {
+        return;
+      }
+      obj.y = viewportCenterY + (obj.y + stackShift - viewportCenterY) / zoom;
+      obj.scaleY = obj.scaleY / zoom;
+      if (obj.scrollFactorX === 0) {
+        obj.scaleX = obj.scaleX / zoom;
+      }
+    });
+  }
+
   private assignRemainingObjectsToWorldLayer(): void {
     const layers = new Set<unknown>([this.worldLayer, this.uiLayer]);
     [...this.children.list].forEach((child) => {
@@ -2211,6 +2256,20 @@ export class ShorelineScene extends Phaser.Scene {
     camera.setScroll(0, 0);
     camera.setZoom(1);
     camera.setRotation(0);
+
+    // A3a/A3b: world-camera zoom on Shoreline level 1 only, with a hard
+    // vertical lock. uiCamera stays at zoom 1 (HUD/matte unaffected);
+    // parallax intentionally not yet retuned — the next pass reseats it.
+    if (this.currentLevel.id === 'shoreline-run-level-01') {
+      camera.setZoom(this.LEVEL_ONE_WORLD_ZOOM);
+      // Vertical lock: bounds height equals the visible height at this zoom,
+      // so the clamp pins scrollY to one value — no drift on docks or jumps.
+      // Anchoring the band's bottom at world y 512 keeps the same bottom edge
+      // as zoom 1 (ground line ~93% down-frame, dirt strip still visible).
+      const visibleHeight = PRESENTATION_VIEW_HEIGHT / this.LEVEL_ONE_WORLD_ZOOM;
+      const lockedScrollY = PRESENTATION_VIEW_HEIGHT - visibleHeight;
+      camera.setBounds(0, lockedScrollY, this.currentLevel.worldWidth, visibleHeight);
+    }
   }
 
   private handleCharacterSwitch(): void {
