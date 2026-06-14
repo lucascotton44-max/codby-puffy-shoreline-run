@@ -79,6 +79,19 @@ const TRAILER_CAPTURE_MODE = false;
 // Levels where collecting a relic shows a floating "+N" score popup.
 // Strict allowlist (the four campaign shoreline levels) — opt-in only, so the
 // feature never auto-enables on future relic levels. Add ids here to extend.
+// Canal painted parallax (st-peters-canal-level-03 only). Each layer is two
+// 1725-wide tiles drawn side-by-side; per-layer scrollFactorX matches the
+// procedural layers it replaces. topY/scale are the shared vertical-registration
+// anchor (all three derive from one master frame, so one anchor keeps them aligned).
+const CANAL_PARALLAX = {
+  tileW: 1725,
+  scale: 1.0,
+  topY: -612,
+  far: { scrollX: 0.2, depth: -100 },
+  mid: { scrollX: 0.45, depth: -96 },
+  near: { scrollX: 0.9, depth: -3 },
+};
+
 const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
   'shoreline-run-level-01',
   'bridge_crossing_1a',
@@ -197,6 +210,13 @@ export class ShorelineScene extends Phaser.Scene {
     LEVELS.forEach((level) => {
       this.load.image(level.backdropTextureKey, level.backdropPath);
     });
+    // Canal painted parallax layers (canal level only; loaded with the backdrops).
+    this.load.image(TEXTURE_KEYS.stPetersCanalFarA, ASSET_PATHS.stPetersCanalFarA);
+    this.load.image(TEXTURE_KEYS.stPetersCanalFarB, ASSET_PATHS.stPetersCanalFarB);
+    this.load.image(TEXTURE_KEYS.stPetersCanalMidA, ASSET_PATHS.stPetersCanalMidA);
+    this.load.image(TEXTURE_KEYS.stPetersCanalMidB, ASSET_PATHS.stPetersCanalMidB);
+    this.load.image(TEXTURE_KEYS.stPetersCanalNearA, ASSET_PATHS.stPetersCanalNearA);
+    this.load.image(TEXTURE_KEYS.stPetersCanalNearB, ASSET_PATHS.stPetersCanalNearB);
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
       frameWidth: 256,
       frameHeight: 320,
@@ -730,6 +750,17 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createBackdrop(): void {
     this.waterShimmers = [];
+
+    // Canal level: painted golden-hour parallax (far/mid/near) replaces the flat
+    // backdrop PNG + grey procedural silhouette/foreground. Keep the live water
+    // shimmer rendering on top of the painted mid water. Falls back to the
+    // original path if the painted tiles are missing.
+    if (this.currentLevel.id === 'st-peters-canal-level-03' && this.hasCanalPaintedLayers()) {
+      this.createCanalPaintedParallax();
+      this.createAnimatedWaterLayer();
+      return;
+    }
+
     const hasRealBackdrop = this.createRealBackdrop();
 
     if (!hasRealBackdrop) {
@@ -742,6 +773,36 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.createAnimatedWaterLayer();
     this.createForegroundShoreDetail();
+  }
+
+  private hasCanalPaintedLayers(): boolean {
+    return (
+      this.textures.exists(TEXTURE_KEYS.stPetersCanalFarA) &&
+      this.textures.exists(TEXTURE_KEYS.stPetersCanalMidA) &&
+      this.textures.exists(TEXTURE_KEYS.stPetersCanalNearA)
+    );
+  }
+
+  /** Three painted parallax layers, each two side-by-side sub-2048 tiles. All
+   *  share topY/scale so their horizon/waterline/wharf stay vertically registered;
+   *  only scrollFactorX differs. No washes (golden-hour light is baked in). Added
+   *  to the root display list — the create() layer sweep moves them to worldLayer. */
+  private createCanalPaintedParallax(): void {
+    const c = CANAL_PARALLAX;
+    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalFarA, TEXTURE_KEYS.stPetersCanalFarB, c.far.scrollX, c.far.depth);
+    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalMidA, TEXTURE_KEYS.stPetersCanalMidB, c.mid.scrollX, c.mid.depth);
+    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalNearA, TEXTURE_KEYS.stPetersCanalNearB, c.near.scrollX, c.near.depth);
+  }
+
+  private addCanalLayerPair(keyA: string, keyB: string, scrollX: number, depth: number): void {
+    const c = CANAL_PARALLAX;
+    [keyA, keyB].forEach((key, index) => {
+      const img = this.add.image(index * c.tileW * c.scale, c.topY, key);
+      img.setOrigin(0, 0);
+      img.setScale(c.scale);
+      img.setScrollFactor(scrollX, 0);
+      img.setDepth(depth);
+    });
   }
 
   private createRealBackdrop(): boolean {
