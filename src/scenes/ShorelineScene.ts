@@ -259,6 +259,9 @@ export class ShorelineScene extends Phaser.Scene {
     });
     this.load.json(TEXTURE_KEYS.powerUpStatesAtlasMeta, ASSET_PATHS.powerUpStatesAtlasJson);
     this.load.image(TEXTURE_KEYS.dockPlankPlatformProp, ASSET_PATHS.dockPlankPlatformProp);
+    this.load.image(TEXTURE_KEYS.canalPlankCapLeft, ASSET_PATHS.canalPlankCapLeft);
+    this.load.image(TEXTURE_KEYS.canalPlankMid, ASSET_PATHS.canalPlankMid);
+    this.load.image(TEXTURE_KEYS.canalPlankCapRight, ASSET_PATHS.canalPlankCapRight);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
     this.load.image(TEXTURE_KEYS.ropeDebrisHazardProp, ASSET_PATHS.ropeDebrisHazardProp);
@@ -1009,7 +1012,9 @@ export class ShorelineScene extends Phaser.Scene {
     if (isBrasDor) {
       this.addBrasDorPlatformDressing(x, y, width, height, color);
     } else if (color === COLORS.dock) {
-      if (hasDockProp) {
+      if (this.currentLevel.id === 'st-peters-canal-level-03' && this.hasCanalPlankTextures()) {
+        this.addCanalPlankProp(x, y, width, height);
+      } else if (hasDockProp) {
         this.addPlatformProp(x, y, width, height);
       } else {
         this.addDockDetail(x, y, width);
@@ -1026,6 +1031,46 @@ export class ShorelineScene extends Phaser.Scene {
     const image = this.add.image(x, y - 7, TEXTURE_KEYS.dockPlankPlatformProp);
     image.setDisplaySize(width + 18, Math.max(42, height + 18));
     image.setDepth(1);
+  }
+
+  private hasCanalPlankTextures(): boolean {
+    return (
+      this.textures.exists(TEXTURE_KEYS.canalPlankCapLeft) &&
+      this.textures.exists(TEXTURE_KEYS.canalPlankMid) &&
+      this.textures.exists(TEXTURE_KEYS.canalPlankCapRight)
+    );
+  }
+
+  /** Painted 3-slice dock plank (canal only): fixed left cap + horizontally tiled
+   *  middle + fixed right cap. Same footprint (width+18, y-7, depth 1) as the old
+   *  stretched prop, so shadow-on-plank (depth 5) and character (depth 20) ordering
+   *  is unchanged. Visual only — the collision rectangle/body is untouched. Added
+   *  to the root display list; the create() layer sweep moves these to worldLayer. */
+  private addCanalPlankProp(x: number, y: number, width: number, height: number): void {
+    const totalW = width + 18;
+    const drawH = Math.max(42, height + 18);
+    const leftEdge = x - totalW / 2;
+    const py = y - 7;
+
+    const capTex = this.textures.get(TEXTURE_KEYS.canalPlankCapLeft).getSourceImage();
+    const capW = drawH * (capTex.width / capTex.height); // preserve cap aspect (~28px)
+    const midW = Math.max(0, totalW - capW * 2);
+
+    const left = this.add.image(leftEdge, py, TEXTURE_KEYS.canalPlankCapLeft).setOrigin(0, 0.5);
+    left.setDisplaySize(capW, drawH);
+    left.setDepth(1);
+
+    const right = this.add.image(leftEdge + totalW, py, TEXTURE_KEYS.canalPlankCapRight).setOrigin(1, 0.5);
+    right.setDisplaySize(capW, drawH);
+    right.setDepth(1);
+
+    if (midW > 0) {
+      const midTex = this.textures.get(TEXTURE_KEYS.canalPlankMid).getSourceImage();
+      const tileScale = drawH / midTex.height; // draw the tile at drawH tall, uniform
+      const mid = this.add.tileSprite(leftEdge + capW, py, midW, drawH, TEXTURE_KEYS.canalPlankMid).setOrigin(0, 0.5);
+      mid.setTileScale(tileScale, tileScale);
+      mid.setDepth(1);
+    }
   }
 
   private addDockDetail(x: number, y: number, width: number): void {
