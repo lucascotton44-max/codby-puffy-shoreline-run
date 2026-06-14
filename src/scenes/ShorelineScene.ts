@@ -140,6 +140,17 @@ export class ShorelineScene extends Phaser.Scene {
   private powerUpStateVisual?: Phaser.GameObjects.Sprite;
   private contactShadow!: Phaser.GameObjects.Ellipse;
   private lastGroundedFootY = 0;
+  private rimSprite?: Phaser.GameObjects.Sprite;
+  // Directional rim light: the canal sun is low/warm from the LEFT. A copy of the
+  // character sprite, solid warm tint-fill, offset toward the sun and drawn just
+  // behind the character, so only the lit left edge peeks out — reads as scene
+  // light catching the silhouette, not an outline. Per-character alpha is the
+  // dial (Puffy already separates, so its rim is off by default). Sprite-mode only.
+  private readonly rimLight = {
+    offsetPx: 2,
+    tint: 0xffd9a0,
+    alpha: { cod: 0.32, puffy: 0 } as Record<CharacterKey, number>,
+  };
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
   private endMarkerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Image;
@@ -1620,6 +1631,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.contactShadow = this.add.ellipse(this.player.x, this.getPlayerFootY(), 100, 30, 0x0a0f0d, 0.34);
     this.contactShadow.setDepth(5);
     this.lastGroundedFootY = this.getPlayerFootY();
+    this.rimSprite = undefined; // lazily (re)created by syncRimLight per scene lifecycle
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
     this.powerUpStateVisual = this.createPowerUpStateVisual();
@@ -3248,6 +3260,7 @@ export class ShorelineScene extends Phaser.Scene {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
     this.updateContactShadow();
+    this.syncRimLight();
     this.updateCalvinPlayerFacing();
     this.syncPowerUpStateVisual();
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
@@ -3273,6 +3286,44 @@ export class ShorelineScene extends Phaser.Scene {
     this.contactShadow.setPosition(this.player.x, this.lastGroundedFootY);
     this.contactShadow.setScale(baseScale * (1 - 0.45 * t));
     this.contactShadow.setAlpha(0.34 * (1 - 0.62 * t));
+  }
+
+  /** Mirrors the current character sprite as a solid warm silhouette, offset
+   *  toward the (world-left) sun and drawn one depth below the character, so the
+   *  lit left edge separates it from the amber background. Sprite-mode only;
+   *  per-character alpha (0 = off). Lazily created into worldLayer; frame/flip/
+   *  scale tracked each frame so it stays locked to the animation. */
+  private syncRimLight(): void {
+    const alpha = this.rimLight.alpha[this.activeCharacter] ?? 0;
+    // Canal only: the rim models the canal's low warm sun from the left. Other
+    // levels light differently, so a fixed left rim isn't applied there.
+    if (this.currentLevel.id !== 'st-peters-canal-level-03' || this.playerVisualMode !== 'sprite' || alpha <= 0) {
+      this.rimSprite?.setVisible(false);
+      return;
+    }
+    const sprite = this.playerVisual as Phaser.GameObjects.Sprite;
+    if (!sprite.visible) {
+      this.rimSprite?.setVisible(false);
+      return;
+    }
+    if (!this.rimSprite) {
+      this.rimSprite = this.add.sprite(sprite.x, sprite.y, sprite.texture.key, sprite.frame.name);
+      this.worldLayer.add(this.rimSprite);
+    }
+    const rim = this.rimSprite;
+    if (rim.texture.key !== sprite.texture.key) {
+      rim.setTexture(sprite.texture.key, sprite.frame.name);
+    } else {
+      rim.setFrame(sprite.frame.name);
+    }
+    rim.setOrigin(sprite.originX, sprite.originY);
+    rim.setScale(sprite.scaleX, sprite.scaleY);
+    rim.setFlipX(sprite.flipX);
+    rim.setTintFill(this.rimLight.tint);
+    rim.setAlpha(alpha);
+    rim.setDepth(sprite.depth - 1);
+    rim.setPosition(sprite.x - this.rimLight.offsetPx, sprite.y);
+    rim.setVisible(true);
   }
 
   private updateCalvinPlayerFacing(): void {
