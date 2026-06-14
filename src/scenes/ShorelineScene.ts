@@ -125,6 +125,8 @@ export class ShorelineScene extends Phaser.Scene {
   private playerVisualMode: VisualMode = 'placeholder';
   private playerFacingDirection = 1;
   private powerUpStateVisual?: Phaser.GameObjects.Sprite;
+  private contactShadow!: Phaser.GameObjects.Ellipse;
+  private lastGroundedFootY = 0;
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
   private endMarkerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Image;
@@ -1549,6 +1551,14 @@ export class ShorelineScene extends Phaser.Scene {
     body.setDragX(character.dragX);
     body.setAllowGravity(true);
     body.setGravityY(character.gravityY - 900);
+
+    // Contact shadow: soft dark ellipse at the feet, depth 5 (above background +
+    // platforms, below entities and the character). Geometry is a flat 100x30
+    // unit oval scaled per-frame to the active character. Created here so the
+    // create() layer sweep moves it into worldLayer (world-space, one camera).
+    this.contactShadow = this.add.ellipse(this.player.x, this.getPlayerFootY(), 100, 30, 0x0a0f0d, 0.34);
+    this.contactShadow.setDepth(5);
+    this.lastGroundedFootY = this.getPlayerFootY();
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
     this.powerUpStateVisual = this.createPowerUpStateVisual();
@@ -3176,6 +3186,7 @@ export class ShorelineScene extends Phaser.Scene {
     } else {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
+    this.updateContactShadow();
     this.updateCalvinPlayerFacing();
     this.syncPowerUpStateVisual();
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
@@ -3183,6 +3194,24 @@ export class ShorelineScene extends Phaser.Scene {
     this.endMarkerText.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.45);
     this.endMarker.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
     this.endMarkerVisual.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
+  }
+
+  /** Per-frame contact-shadow placement. Stays on the surface the character is
+   *  standing on / last jumped from (lastGroundedFootY), shrinking and fading
+   *  with jump height so a leap lifts off the ground rather than dragging the
+   *  shadow up. Sized to the active character, so it tracks Cod<->Puffy switches. */
+  private updateContactShadow(): void {
+    const body = this.getPlayerBody();
+    const footY = this.getPlayerFootY();
+    if (body.blocked.down) {
+      this.lastGroundedFootY = footY;
+    }
+    const height = Phaser.Math.Clamp(this.lastGroundedFootY - footY, 0, 170);
+    const t = height / 170;
+    const baseScale = (CHARACTERS[this.activeCharacter].width * 1.5) / 100;
+    this.contactShadow.setPosition(this.player.x, this.lastGroundedFootY);
+    this.contactShadow.setScale(baseScale * (1 - 0.45 * t));
+    this.contactShadow.setAlpha(0.34 * (1 - 0.62 * t));
   }
 
   private updateCalvinPlayerFacing(): void {
