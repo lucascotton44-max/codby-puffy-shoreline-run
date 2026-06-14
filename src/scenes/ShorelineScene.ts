@@ -76,6 +76,16 @@ const PRESENTATION_VIEW_HEIGHT = GAME_HEIGHT - PRESENTATION_MATTE_Y * 2;
 // Set true to hide control hints and dev labels for clean trailer/screen captures.
 const TRAILER_CAPTURE_MODE = false;
 
+// Levels where collecting a relic shows a floating "+N" score popup.
+// Strict allowlist (the four campaign shoreline levels) — opt-in only, so the
+// feature never auto-enables on future relic levels. Add ids here to extend.
+const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
+  'shoreline-run-level-01',
+  'bridge_crossing_1a',
+  'shoreline-run-level-01b',
+  'st-peters-canal-level-03',
+]);
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -2738,11 +2748,40 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    const pickupX = fragment.x;
+    const pickupY = fragment.y;
     fragment.collect();
     this.collectedFragments += 1;
-    this.score += 100;
+    const points = 100;
+    this.score += points;
     this.playSfx(AUDIO_KEYS.collectFragment);
+    if (PICKUP_FEEDBACK_LEVEL_IDS.has(this.currentLevel.id)) {
+      this.spawnPickupFeedback(pickupX, pickupY, points);
+    }
     this.updateHud();
+  }
+
+  /** Floating "+N" score popup at a relic pickup. World-space (added to
+   *  worldLayer) so it scrolls and zooms with the world camera; self-destroys
+   *  after the drift-fade. Gated by PICKUP_FEEDBACK_LEVEL_IDS at the call site. */
+  private spawnPickupFeedback(x: number, y: number, amount: number): void {
+    const label = this.add.text(x, y - 18, `+${amount}`, {
+      color: '#e8d49a',
+      fontFamily: 'monospace',
+      fontSize: '15px',
+      fontStyle: 'bold',
+    });
+    label.setOrigin(0.5, 1);
+    label.setDepth(40);
+    this.worldLayer.add(label);
+    this.tweens.add({
+      targets: label,
+      y: y - 46,
+      alpha: 0,
+      duration: 620,
+      ease: 'Sine.easeOut',
+      onComplete: () => label.destroy(),
+    });
   }
 
   private damagePlayer(amount: number): void {
