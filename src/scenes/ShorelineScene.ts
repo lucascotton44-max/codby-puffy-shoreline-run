@@ -86,7 +86,7 @@ const TRAILER_CAPTURE_MODE = false;
 const CANAL_PARALLAX = {
   tileW: 1725,
   scale: 1.0,
-  topY: -612,
+  topY: -430,
   far: { scrollX: 0.2, depth: -100 },
   mid: { scrollX: 0.45, depth: -96 },
   near: { scrollX: 0.9, depth: -3 },
