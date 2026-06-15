@@ -99,6 +99,26 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
   'st-peters-canal-level-03',
 ]);
 
+// Landing feedback (global, all levels). Tune feel here. A landing only fires
+// when the captured peak fall speed exceeds minFallVelocity; intensity ramps
+// 0..1 between min and maxFallVelocity and drives both the squash and the puff
+// count. Squash is a transient transform on the rendered visual that fully
+// recovers (no residual). Surface material is intentionally ignored this pass.
+const LANDING_FEEDBACK = {
+  minFallVelocity: 200, // px/s downward; lighter touchdowns emit nothing
+  maxFallVelocity: 560, // intensity caps here (near the ~620 fall-speed limit)
+  maxSquashY: 0.16, // scaleY dips to (1 - this) at full intensity
+  squashStretchX: 0.5, // scaleX rises by maxSquashY*this (volume preservation feel)
+  squashDurationMs: 100, // total recover time — fast, weight not bounce
+  puffMinCount: 3,
+  puffMaxCount: 8,
+  puffTint: 0xe8dcc2, // neutral warm dust, reads on any surface
+  puffAlpha: 0.5,
+  puffScale: 0.5, // particle start scale
+  puffLifespanMs: 320,
+  puffSpread: 38, // horizontal speed spread
+};
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -151,6 +171,12 @@ export class ShorelineScene extends Phaser.Scene {
     tint: 0xffd9a0,
     alpha: { cod: 0.32, puffy: 0 } as Record<CharacterKey, number>,
   };
+  // Landing feedback state (global). wasGroundedLastFrame inits true so a level
+  // that starts grounded never emits a frame-one puff (spawn guard).
+  private wasGroundedLastFrame = true;
+  private peakFallVelocity = 0;
+  private readonly landingSquash = { x: 1, y: 1 };
+  private dustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
   private endMarkerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Image;
@@ -1677,6 +1703,12 @@ export class ShorelineScene extends Phaser.Scene {
     this.contactShadow.setDepth(5);
     this.lastGroundedFootY = this.getPlayerFootY();
     this.rimSprite = undefined; // lazily (re)created by syncRimLight per scene lifecycle
+    // Landing feedback: spawn guard + fresh state, and the pooled dust emitter.
+    this.wasGroundedLastFrame = true;
+    this.peakFallVelocity = 0;
+    this.landingSquash.x = 1;
+    this.landingSquash.y = 1;
+    this.createDustEmitter();
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
     this.powerUpStateVisual = this.createPowerUpStateVisual();
@@ -3305,14 +3337,105 @@ export class ShorelineScene extends Phaser.Scene {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
     this.updateContactShadow();
+    this.updateLandingFeedback();
     this.syncRimLight();
     this.updateCalvinPlayerFacing();
+    this.applyLandingSquash();
     this.syncPowerUpStateVisual();
     this.playerLabel.setPosition(this.player.x, this.player.y - this.player.height / 2 - 10);
     this.syncPowerIndicators();
     this.endMarkerText.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.45);
     this.endMarker.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
     this.endMarkerVisual.setAlpha(this.collectedFragments >= this.currentLevel.requiredFragments ? 1 : 0.55);
+  }
+
+  /** Pooled dust emitter for landing puffs (created once per scene). A small soft
+   *  dot texture is generated once and reused; the emitter bursts on landing, so
+   *  there's no per-landing allocation. Lives at depth 6 (above the contact shadow,
+   *  below the character) and is swept into worldLayer by create(). */
+  private createDustEmitter(): void {
+    const texKey = 'landing-dust';
+    if (!this.textures.exists(texKey)) {
+      const g = this.make.graphics({ x: 0, y: 0 });
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(8, 8, 6);
+      g.generateTexture(texKey, 16, 16);
+      g.destroy();
+    }
+    this.dustEmitter = this.add.particles(0, 0, texKey, {
+      lifespan: LANDING_FEEDBACK.puffLifespanMs,
+      speed: { min: 12, max: LANDING_FEEDBACK.puffSpread },
+      angle: { min: 200, max: 340 },
+      gravityY: 260,
+      scale: { start: LANDING_FEEDBACK.puffScale, end: 0 },
+      alpha: { start: LANDING_FEEDBACK.puffAlpha, end: 0 },
+      tint: LANDING_FEEDBACK.puffTint,
+      emitting: false,
+    });
+    this.dustEmitter.setDepth(6);
+  }
+
+  /** Detects the airborne->grounded transition and fires landing feedback. Arcade
+   *  zeroes velocity.y on contact, so the impact speed is captured as the peak
+   *  downward velocity while airborne and read on the landing frame. Gated to
+   *  active play + the spawn guard, so spawn drops / title-screen falls are quiet. */
+  private updateLandingFeedback(): void {
+    const body = this.getPlayerBody();
+    const grounded = body.blocked.down;
+    if (!grounded) {
+      this.peakFallVelocity = Math.max(this.peakFallVelocity, body.velocity.y);
+    } else {
+      if (
+        !this.wasGroundedLastFrame &&
+        this.isRunStarted &&
+        !this.isEnded &&
+        this.peakFallVelocity >= LANDING_FEEDBACK.minFallVelocity
+      ) {
+        const range = LANDING_FEEDBACK.maxFallVelocity - LANDING_FEEDBACK.minFallVelocity;
+        const intensity = Phaser.Math.Clamp((this.peakFallVelocity - LANDING_FEEDBACK.minFallVelocity) / range, 0, 1);
+        this.triggerLandingFeedback(intensity);
+      }
+      this.peakFallVelocity = 0;
+    }
+    this.wasGroundedLastFrame = grounded;
+  }
+
+  private triggerLandingFeedback(intensity: number): void {
+    const amt = LANDING_FEEDBACK.maxSquashY * intensity;
+    this.tweens.killTweensOf(this.landingSquash);
+    this.landingSquash.x = 1 + amt * LANDING_FEEDBACK.squashStretchX;
+    this.landingSquash.y = 1 - amt;
+    this.tweens.add({
+      targets: this.landingSquash,
+      x: 1,
+      y: 1,
+      duration: LANDING_FEEDBACK.squashDurationMs,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.landingSquash.x = 1;
+        this.landingSquash.y = 1;
+      },
+    });
+    if (this.dustEmitter) {
+      const count = Math.round(
+        Phaser.Math.Linear(LANDING_FEEDBACK.puffMinCount, LANDING_FEEDBACK.puffMaxCount, intensity),
+      );
+      this.dustEmitter.emitParticleAt(this.player.x, this.lastGroundedFootY, count);
+    }
+  }
+
+  /** Applies the transient landing squash to the rendered visual. Final word on
+   *  the visual's scale each frame, so it composes with sprite-mode base scale
+   *  and container facing without a persistent change (recovers to exactly 1). */
+  private applyLandingSquash(): void {
+    const { x: sx, y: sy } = this.landingSquash;
+    if (this.playerVisualMode === 'sprite') {
+      const base = GAMEPLAY_TUNING.characters[this.activeCharacter].spriteScale;
+      (this.playerVisual as Phaser.GameObjects.Sprite).setScale(base * sx, base * sy);
+    } else {
+      const dir = this.playerFacingDirection || 1;
+      this.playerVisual.setScale(dir * sx, sy);
+    }
   }
 
   /** Per-frame contact-shadow placement. Stays on the surface the character is
