@@ -124,4 +124,7 @@ export type RimLightConfig = {
 export const RIM_LIGHT_BY_LEVEL: Record<string, RimLightConfig> = {
   'st-peters-canal-level-03': { offsetPx: 2, offsetYPx: 0, tint: 0xffd9a0, alpha: { cod: 0.32, puffy: 0 } },
   'shoreline-run-level-01': { offsetPx: 2, offsetYPx: 1, tint: 0xcfe2ee, alpha: { cod: 0.1, puffy: 0 } },
+  // Bridge: heavy dark overcast already gives Cod strong contrast, so the rim is a
+  // near-off cool top-ambient whisper only (cooler/greener tint than level-1).
+  'bridge_crossing_1a': { offsetPx: 1, offsetYPx: 1, tint: 0xc4dee0, alpha: { cod: 0.06, puffy: 0 } },
 };
