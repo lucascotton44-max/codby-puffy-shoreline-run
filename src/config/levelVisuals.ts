@@ -55,6 +55,20 @@ export const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
       { keyA: TEXTURE_KEYS.shorelineRunLevel01NearA, keyB: TEXTURE_KEYS.shorelineRunLevel01NearB, pathA: ASSET_PATHS.shorelineRunLevel01NearA, pathB: ASSET_PATHS.shorelineRunLevel01NearB, scrollX: 0.9, depth: -3 },
     ],
   },
+  // Bridge level: dark-overcast canal crossing, zoom 1 (canal-style). tileW
+  // worldWidth/2 = 1950, scale 1.0, shimmer on (it has lock water). topY frames
+  // the steel truss + lock + water as the subject with the sky breathing above.
+  'bridge_crossing_1a': {
+    tileW: 1950,
+    scale: 1.0,
+    topY: -250,
+    shimmer: true,
+    layers: [
+      { keyA: TEXTURE_KEYS.stPetersBridgeCrossingFarA, keyB: TEXTURE_KEYS.stPetersBridgeCrossingFarB, pathA: ASSET_PATHS.stPetersBridgeCrossingFarA, pathB: ASSET_PATHS.stPetersBridgeCrossingFarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.stPetersBridgeCrossingMidA, keyB: TEXTURE_KEYS.stPetersBridgeCrossingMidB, pathA: ASSET_PATHS.stPetersBridgeCrossingMidA, pathB: ASSET_PATHS.stPetersBridgeCrossingMidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.stPetersBridgeCrossingNearA, keyB: TEXTURE_KEYS.stPetersBridgeCrossingNearB, pathA: ASSET_PATHS.stPetersBridgeCrossingNearA, pathB: ASSET_PATHS.stPetersBridgeCrossingNearB, scrollX: 0.9, depth: -3 },
+    ],
+  },
 };
 
 // Per-level 3-slice plank material. Same geometry; only the texture set (palette)
