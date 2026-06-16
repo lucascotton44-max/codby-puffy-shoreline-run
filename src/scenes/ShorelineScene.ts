@@ -213,10 +213,12 @@ export class ShorelineScene extends Phaser.Scene {
   // behind the character, so only the lit left edge peeks out — reads as scene
   // light catching the silhouette, not an outline. Per-character alpha is the
   // dial (Puffy already separates, so its rim is off by default). Sprite-mode only.
-  private readonly rimLight = {
-    offsetPx: 2,
-    tint: 0xffd9a0,
-    alpha: { cod: 0.32, puffy: 0 } as Record<CharacterKey, number>,
+  // Per-level rim. Canal: warm low sun from the left (offset −x). Level-1: diffuse
+  // upper-left overcast sky-light — cool tint, offset up-and-left, kept near-off
+  // (Cod already separates on the cool background, so it's a faint edge-catch only).
+  private readonly rimLightByLevel: Record<string, { offsetPx: number; offsetYPx: number; tint: number; alpha: Record<CharacterKey, number> }> = {
+    'st-peters-canal-level-03': { offsetPx: 2, offsetYPx: 0, tint: 0xffd9a0, alpha: { cod: 0.32, puffy: 0 } },
+    'shoreline-run-level-01': { offsetPx: 2, offsetYPx: 1, tint: 0xcfe2ee, alpha: { cod: 0.1, puffy: 0 } },
   };
   // Landing feedback state (global). wasGroundedLastFrame inits true so a level
   // that starts grounded never emits a frame-one puff (spawn guard).
@@ -3524,10 +3526,11 @@ export class ShorelineScene extends Phaser.Scene {
    *  per-character alpha (0 = off). Lazily created into worldLayer; frame/flip/
    *  scale tracked each frame so it stays locked to the animation. */
   private syncRimLight(): void {
-    const alpha = this.rimLight.alpha[this.activeCharacter] ?? 0;
-    // Canal only: the rim models the canal's low warm sun from the left. Other
-    // levels light differently, so a fixed left rim isn't applied there.
-    if (this.currentLevel.id !== 'st-peters-canal-level-03' || this.playerVisualMode !== 'sprite' || alpha <= 0) {
+    const cfg = this.rimLightByLevel[this.currentLevel.id];
+    const alpha = cfg ? (cfg.alpha[this.activeCharacter] ?? 0) : 0;
+    // Per-level rim only (canal warm-left, level-1 cool upper-left). Levels with no
+    // entry get no rim; non-sprite modes and alpha 0 also disable it.
+    if (!cfg || this.playerVisualMode !== 'sprite' || alpha <= 0) {
       this.rimSprite?.setVisible(false);
       return;
     }
@@ -3549,10 +3552,10 @@ export class ShorelineScene extends Phaser.Scene {
     rim.setOrigin(sprite.originX, sprite.originY);
     rim.setScale(sprite.scaleX, sprite.scaleY);
     rim.setFlipX(sprite.flipX);
-    rim.setTintFill(this.rimLight.tint);
+    rim.setTintFill(cfg.tint);
     rim.setAlpha(alpha);
     rim.setDepth(sprite.depth - 1);
-    rim.setPosition(sprite.x - this.rimLight.offsetPx, sprite.y);
+    rim.setPosition(sprite.x - cfg.offsetPx, sprite.y - cfg.offsetYPx);
     rim.setVisible(true);
   }
 
