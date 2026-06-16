@@ -79,17 +79,48 @@ const TRAILER_CAPTURE_MODE = false;
 // Levels where collecting a relic shows a floating "+N" score popup.
 // Strict allowlist (the four campaign shoreline levels) — opt-in only, so the
 // feature never auto-enables on future relic levels. Add ids here to extend.
-// Canal painted parallax (st-peters-canal-level-03 only). Each layer is two
-// 1725-wide tiles drawn side-by-side; per-layer scrollFactorX matches the
-// procedural layers it replaces. topY/scale are the shared vertical-registration
-// anchor (all three derive from one master frame, so one anchor keeps them aligned).
-const CANAL_PARALLAX = {
-  tileW: 1725,
-  scale: 1.0,
-  topY: -430,
-  far: { scrollX: 0.2, depth: -100 },
-  mid: { scrollX: 0.45, depth: -96 },
-  near: { scrollX: 0.9, depth: -3 },
+// Per-level painted parallax descriptor. Each layer is two `tileW`-wide tiles
+// drawn side-by-side; `topY`/`scale` are the shared vertical-registration anchor.
+// `layers` is ordered back-to-front (far -> near). This data-drives the
+// createBackdrop swap so more than one level can reuse the same code path.
+type PaintedParallaxLayer = { keyA: string; keyB: string; scrollX: number; depth: number };
+type PaintedParallaxConfig = {
+  tileW: number;
+  scale: number;
+  topY: number;
+  shimmer: boolean; // render the animated water shimmer on top of the painted layers
+  layers: PaintedParallaxLayer[];
+};
+
+const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
+  'st-peters-canal-level-03': {
+    tileW: 1725,
+    scale: 1.0,
+    topY: -430,
+    shimmer: true,
+    layers: [
+      { keyA: TEXTURE_KEYS.stPetersCanalFarA, keyB: TEXTURE_KEYS.stPetersCanalFarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.stPetersCanalMidA, keyB: TEXTURE_KEYS.stPetersCanalMidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.stPetersCanalNearA, keyB: TEXTURE_KEYS.stPetersCanalNearB, scrollX: 0.9, depth: -3 },
+    ],
+  },
+  // Level 1 runs at the 1.3x cinematic zoom. The painted layers are excluded
+  // from reseatLevelOneParallax (skipReseat flag) and instead pre-counter-scaled
+  // UNIFORMLY here: tiles are sized 1755 wide (= worldWidth*1.3 / 2) and drawn at
+  // scale 1/1.3, so the camera's 1.3x magnification renders them at native size,
+  // undistorted, with worldWidth (2700) horizontal coverage. topY positions the
+  // overcast scene against the play plane under the zoom + lock.
+  'shoreline-run-level-01': {
+    tileW: 1755,
+    scale: 1 / 1.3,
+    topY: -120,
+    shimmer: false,
+    layers: [
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01FarA, keyB: TEXTURE_KEYS.shorelineRunLevel01FarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01MidA, keyB: TEXTURE_KEYS.shorelineRunLevel01MidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01NearA, keyB: TEXTURE_KEYS.shorelineRunLevel01NearB, scrollX: 0.9, depth: -3 },
+    ],
+  },
 };
 
 const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
@@ -254,6 +285,12 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.stPetersCanalMidB, ASSET_PATHS.stPetersCanalMidB);
     this.load.image(TEXTURE_KEYS.stPetersCanalNearA, ASSET_PATHS.stPetersCanalNearA);
     this.load.image(TEXTURE_KEYS.stPetersCanalNearB, ASSET_PATHS.stPetersCanalNearB);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01FarA, ASSET_PATHS.shorelineRunLevel01FarA);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01FarB, ASSET_PATHS.shorelineRunLevel01FarB);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01MidA, ASSET_PATHS.shorelineRunLevel01MidA);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01MidB, ASSET_PATHS.shorelineRunLevel01MidB);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01NearA, ASSET_PATHS.shorelineRunLevel01NearA);
+    this.load.image(TEXTURE_KEYS.shorelineRunLevel01NearB, ASSET_PATHS.shorelineRunLevel01NearB);
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
       frameWidth: 256,
       frameHeight: 320,
@@ -505,6 +542,11 @@ export class ShorelineScene extends Phaser.Scene {
     const stackShift = groundScreenY - groundTop; // ~-8.7
 
     this.worldLayer.list.forEach((child) => {
+      // Painted parallax layers compensate for the zoom themselves (uniform
+      // scale) — never let the scaleY-only counter-scale below touch them.
+      if ((child as Phaser.GameObjects.GameObject).getData?.('skipReseat')) {
+        return;
+      }
       const obj = child as unknown as {
         y: number;
         scaleX: number;
@@ -795,9 +837,12 @@ export class ShorelineScene extends Phaser.Scene {
     // backdrop PNG + grey procedural silhouette/foreground. Keep the live water
     // shimmer rendering on top of the painted mid water. Falls back to the
     // original path if the painted tiles are missing.
-    if (this.currentLevel.id === 'st-peters-canal-level-03' && this.hasCanalPaintedLayers()) {
-      this.createCanalPaintedParallax();
-      this.createAnimatedWaterLayer();
+    const paintedCfg = PAINTED_PARALLAX[this.currentLevel.id];
+    if (paintedCfg && this.hasPaintedParallax(paintedCfg)) {
+      this.createPaintedParallax(paintedCfg);
+      if (paintedCfg.shimmer) {
+        this.createAnimatedWaterLayer();
+      }
       return;
     }
 
@@ -815,33 +860,29 @@ export class ShorelineScene extends Phaser.Scene {
     this.createForegroundShoreDetail();
   }
 
-  private hasCanalPaintedLayers(): boolean {
-    return (
-      this.textures.exists(TEXTURE_KEYS.stPetersCanalFarA) &&
-      this.textures.exists(TEXTURE_KEYS.stPetersCanalMidA) &&
-      this.textures.exists(TEXTURE_KEYS.stPetersCanalNearA)
-    );
+  private hasPaintedParallax(cfg: PaintedParallaxConfig): boolean {
+    return cfg.layers.every((layer) => this.textures.exists(layer.keyA));
   }
 
-  /** Three painted parallax layers, each two side-by-side sub-2048 tiles. All
-   *  share topY/scale so their horizon/waterline/wharf stay vertically registered;
-   *  only scrollFactorX differs. No washes (golden-hour light is baked in). Added
-   *  to the root display list — the create() layer sweep moves them to worldLayer. */
-  private createCanalPaintedParallax(): void {
-    const c = CANAL_PARALLAX;
-    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalFarA, TEXTURE_KEYS.stPetersCanalFarB, c.far.scrollX, c.far.depth);
-    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalMidA, TEXTURE_KEYS.stPetersCanalMidB, c.mid.scrollX, c.mid.depth);
-    this.addCanalLayerPair(TEXTURE_KEYS.stPetersCanalNearA, TEXTURE_KEYS.stPetersCanalNearB, c.near.scrollX, c.near.depth);
+  /** Painted parallax layers (back-to-front), each two side-by-side sub-2048
+   *  tiles sharing the config's topY/scale so they stay vertically registered;
+   *  only scrollFactorX differs per layer. Added to the root display list — the
+   *  create() layer sweep moves them to worldLayer. */
+  private createPaintedParallax(cfg: PaintedParallaxConfig): void {
+    cfg.layers.forEach((layer) => this.addPaintedLayerPair(cfg, layer));
   }
 
-  private addCanalLayerPair(keyA: string, keyB: string, scrollX: number, depth: number): void {
-    const c = CANAL_PARALLAX;
-    [keyA, keyB].forEach((key, index) => {
-      const img = this.add.image(index * c.tileW * c.scale, c.topY, key);
+  private addPaintedLayerPair(cfg: PaintedParallaxConfig, layer: PaintedParallaxLayer): void {
+    [layer.keyA, layer.keyB].forEach((key, index) => {
+      const img = this.add.image(index * cfg.tileW * cfg.scale, cfg.topY, key);
       img.setOrigin(0, 0);
-      img.setScale(c.scale);
-      img.setScrollFactor(scrollX, 0);
-      img.setDepth(depth);
+      img.setScale(cfg.scale);
+      img.setScrollFactor(layer.scrollX, 0);
+      img.setDepth(layer.depth);
+      // These full painted images carry their own zoom compensation (uniform
+      // scale baked into cfg.scale). The generic level-1 reseat does a scaleY-ONLY
+      // counter-scale that would squash them, so exclude them from it.
+      img.setData('skipReseat', true);
     });
   }
 
