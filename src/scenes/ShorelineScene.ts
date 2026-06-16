@@ -1228,6 +1228,14 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    // Bridge legibility aid: a cool foam waterline marking the TOP of the deadly
+    // tide kill-zone, so a fast player sees where the water begins against the
+    // dark premium palette. VISUAL ONLY — collision/hazard body is unchanged.
+    // Bridge-gated so every other level's water hazards render byte-identical.
+    if (kind === 'water' && this.currentLevel.id === 'bridge_crossing_1a') {
+      this.addBridgeWaterlineFoam(x, y, width, height);
+    }
+
     if (this.addHazardProp(x, y, width, height, kind)) {
       return;
     }
@@ -1259,6 +1267,25 @@ export class ShorelineScene extends Phaser.Scene {
     this.add.rectangle(x - 7, y - 3, 7, height + 10, 0x8e684a, 0.96).setRotation(0.18);
     this.add.rectangle(x + 11, y - 2, 6, height, 0x453a2e, 0.86).setRotation(-0.24);
     this.add.arc(x + 3, y + 7, 22, 208, 328, false, 0xd8d2bd, 0.5).setStrokeStyle(3, 0xd8d2bd, 0.5);
+  }
+
+  /** Cool foam waterline along the TOP edge of a tide kill-zone (bridge only).
+   *  A light-value, on-palette cool marker — "deadly water begins here" — so the
+   *  fatal line reads at a glance against the dark premium foreground. Depth 4:
+   *  above the water/wharf prop (3), below the contact shadow (5) and character. */
+  private addBridgeWaterlineFoam(x: number, y: number, width: number, height: number): void {
+    const topY = y - height / 2; // top edge of the y515/h54 kill-zone (~488)
+    // soft cool underglow so the line has body without going neon
+    this.add.rectangle(x, topY + 4, width, 8, 0x4f8aa0, 0.26).setDepth(4);
+    // bright cool foam waterline (tide-blue pops on the dark bg, like the TIDE pickup)
+    this.add.rectangle(x, topY, width, 3, 0xaee2f0, 0.6).setDepth(4);
+    // sparse foam crests for tide texture, kept subtle
+    for (let foamX = x - width / 2 + 36; foamX < x + width / 2 - 24; foamX += 88) {
+      this.add
+        .arc(foamX, topY - 1, 7, 200, 340, false, 0xe2f4fa, 0.46)
+        .setStrokeStyle(2, 0xe2f4fa, 0.46)
+        .setDepth(4);
+    }
   }
 
   private addBlackSketchPuddleHazardDetail(x: number, y: number, width: number, height: number): void {
