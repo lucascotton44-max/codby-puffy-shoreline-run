@@ -16,12 +16,11 @@ import {
   LANDING_FEEDBACK,
   LEVEL_ONE_WORLD_ZOOM,
   PAINTED_PARALLAX,
-  PaintedParallaxConfig,
-  PaintedParallaxLayer,
   PLANK_SKINS,
   PlankSkin,
   RIM_LIGHT_BY_LEVEL,
 } from '../config/levelVisuals.js';
+import { createPaintedParallax, hasPaintedParallax } from './paintedParallax.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
 import { HazardKind, HazardZone } from '../objects/Hazard.js';
@@ -777,8 +776,8 @@ export class ShorelineScene extends Phaser.Scene {
     // shimmer rendering on top of the painted mid water. Falls back to the
     // original path if the painted tiles are missing.
     const paintedCfg = PAINTED_PARALLAX[this.currentLevel.id];
-    if (paintedCfg && this.hasPaintedParallax(paintedCfg)) {
-      this.createPaintedParallax(paintedCfg);
+    if (paintedCfg && hasPaintedParallax(this, paintedCfg)) {
+      createPaintedParallax(this, paintedCfg);
       if (paintedCfg.shimmer) {
         this.createAnimatedWaterLayer();
       }
@@ -797,32 +796,6 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.createAnimatedWaterLayer();
     this.createForegroundShoreDetail();
-  }
-
-  private hasPaintedParallax(cfg: PaintedParallaxConfig): boolean {
-    return cfg.layers.every((layer) => this.textures.exists(layer.keyA));
-  }
-
-  /** Painted parallax layers (back-to-front), each two side-by-side sub-2048
-   *  tiles sharing the config's topY/scale so they stay vertically registered;
-   *  only scrollFactorX differs per layer. Added to the root display list — the
-   *  create() layer sweep moves them to worldLayer. */
-  private createPaintedParallax(cfg: PaintedParallaxConfig): void {
-    cfg.layers.forEach((layer) => this.addPaintedLayerPair(cfg, layer));
-  }
-
-  private addPaintedLayerPair(cfg: PaintedParallaxConfig, layer: PaintedParallaxLayer): void {
-    [layer.keyA, layer.keyB].forEach((key, index) => {
-      const img = this.add.image(index * cfg.tileW * cfg.scale, cfg.topY, key);
-      img.setOrigin(0, 0);
-      img.setScale(cfg.scale);
-      img.setScrollFactor(layer.scrollX, 0);
-      img.setDepth(layer.depth);
-      // These full painted images carry their own zoom compensation (uniform
-      // scale baked into cfg.scale). The generic level-1 reseat does a scaleY-ONLY
-      // counter-scale that would squash them, so exclude them from it.
-      img.setData('skipReseat', true);
-    });
   }
 
   private createRealBackdrop(): boolean {
