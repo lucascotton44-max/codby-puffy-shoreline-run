@@ -123,6 +123,22 @@ const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
   },
 };
 
+// Per-level 3-slice plank material. Same geometry; only the texture set (palette)
+// differs: canal = warm golden wood, level-1 = cool grey-timber for the overcast.
+type PlankSkin = { capLeft: string; mid: string; capRight: string };
+const PLANK_SKINS: Record<string, PlankSkin> = {
+  'st-peters-canal-level-03': {
+    capLeft: TEXTURE_KEYS.canalPlankCapLeft,
+    mid: TEXTURE_KEYS.canalPlankMid,
+    capRight: TEXTURE_KEYS.canalPlankCapRight,
+  },
+  'shoreline-run-level-01': {
+    capLeft: TEXTURE_KEYS.shorelineRunPlankCapLeft,
+    mid: TEXTURE_KEYS.shorelineRunPlankMid,
+    capRight: TEXTURE_KEYS.shorelineRunPlankCapRight,
+  },
+};
+
 const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
   'shoreline-run-level-01',
   'bridge_crossing_1a',
@@ -325,6 +341,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.canalPlankCapLeft, ASSET_PATHS.canalPlankCapLeft);
     this.load.image(TEXTURE_KEYS.canalPlankMid, ASSET_PATHS.canalPlankMid);
     this.load.image(TEXTURE_KEYS.canalPlankCapRight, ASSET_PATHS.canalPlankCapRight);
+    this.load.image(TEXTURE_KEYS.shorelineRunPlankCapLeft, ASSET_PATHS.shorelineRunPlankCapLeft);
+    this.load.image(TEXTURE_KEYS.shorelineRunPlankMid, ASSET_PATHS.shorelineRunPlankMid);
+    this.load.image(TEXTURE_KEYS.shorelineRunPlankCapRight, ASSET_PATHS.shorelineRunPlankCapRight);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
     this.load.image(TEXTURE_KEYS.ropeDebrisHazardProp, ASSET_PATHS.ropeDebrisHazardProp);
@@ -1079,8 +1098,9 @@ export class ShorelineScene extends Phaser.Scene {
     if (isBrasDor) {
       this.addBrasDorPlatformDressing(x, y, width, height, color);
     } else if (color === COLORS.dock) {
-      if (this.currentLevel.id === 'st-peters-canal-level-03' && this.hasCanalPlankTextures()) {
-        this.addCanalPlankProp(x, y, width, height);
+      const plankSkin = PLANK_SKINS[this.currentLevel.id];
+      if (plankSkin && this.hasPlankSkin(plankSkin)) {
+        this.addPaintedPlankProp(x, y, width, height, plankSkin);
       } else if (hasDockProp) {
         this.addPlatformProp(x, y, width, height);
       } else {
@@ -1100,41 +1120,42 @@ export class ShorelineScene extends Phaser.Scene {
     image.setDepth(1);
   }
 
-  private hasCanalPlankTextures(): boolean {
+  private hasPlankSkin(skin: PlankSkin): boolean {
     return (
-      this.textures.exists(TEXTURE_KEYS.canalPlankCapLeft) &&
-      this.textures.exists(TEXTURE_KEYS.canalPlankMid) &&
-      this.textures.exists(TEXTURE_KEYS.canalPlankCapRight)
+      this.textures.exists(skin.capLeft) &&
+      this.textures.exists(skin.mid) &&
+      this.textures.exists(skin.capRight)
     );
   }
 
-  /** Painted 3-slice dock plank (canal only): fixed left cap + horizontally tiled
-   *  middle + fixed right cap. Same footprint (width+18, y-7, depth 1) as the old
-   *  stretched prop, so shadow-on-plank (depth 5) and character (depth 20) ordering
-   *  is unchanged. Visual only — the collision rectangle/body is untouched. Added
-   *  to the root display list; the create() layer sweep moves these to worldLayer. */
-  private addCanalPlankProp(x: number, y: number, width: number, height: number): void {
+  /** Painted 3-slice dock plank: fixed left cap + horizontally tiled middle + fixed
+   *  right cap, drawn from a per-level skin (canal = warm wood, level-1 = cool
+   *  grey-timber). Same footprint (width+18, y-7, depth 1) as the old stretched
+   *  prop, so shadow-on-plank (depth 5) and character (depth 20) ordering is
+   *  unchanged. Visual only — the collision rectangle/body is untouched. Added to
+   *  the root display list; the create() layer sweep moves these to worldLayer. */
+  private addPaintedPlankProp(x: number, y: number, width: number, height: number, skin: PlankSkin): void {
     const totalW = width + 18;
     const drawH = Math.max(42, height + 18);
     const leftEdge = x - totalW / 2;
     const py = y - 7;
 
-    const capTex = this.textures.get(TEXTURE_KEYS.canalPlankCapLeft).getSourceImage();
+    const capTex = this.textures.get(skin.capLeft).getSourceImage();
     const capW = drawH * (capTex.width / capTex.height); // preserve cap aspect (~28px)
     const midW = Math.max(0, totalW - capW * 2);
 
-    const left = this.add.image(leftEdge, py, TEXTURE_KEYS.canalPlankCapLeft).setOrigin(0, 0.5);
+    const left = this.add.image(leftEdge, py, skin.capLeft).setOrigin(0, 0.5);
     left.setDisplaySize(capW, drawH);
     left.setDepth(1);
 
-    const right = this.add.image(leftEdge + totalW, py, TEXTURE_KEYS.canalPlankCapRight).setOrigin(1, 0.5);
+    const right = this.add.image(leftEdge + totalW, py, skin.capRight).setOrigin(1, 0.5);
     right.setDisplaySize(capW, drawH);
     right.setDepth(1);
 
     if (midW > 0) {
-      const midTex = this.textures.get(TEXTURE_KEYS.canalPlankMid).getSourceImage();
+      const midTex = this.textures.get(skin.mid).getSourceImage();
       const tileScale = drawH / midTex.height; // draw the tile at drawH tall, uniform
-      const mid = this.add.tileSprite(leftEdge + capW, py, midW, drawH, TEXTURE_KEYS.canalPlankMid).setOrigin(0, 0.5);
+      const mid = this.add.tileSprite(leftEdge + capW, py, midW, drawH, skin.mid).setOrigin(0, 0.5);
       mid.setTileScale(tileScale, tileScale);
       mid.setDepth(1);
     }
