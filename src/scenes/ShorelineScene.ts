@@ -84,7 +84,14 @@ const TRAILER_CAPTURE_MODE = false;
 // drawn side-by-side; `topY`/`scale` are the shared vertical-registration anchor.
 // `layers` is ordered back-to-front (far -> near). This data-drives the
 // createBackdrop swap so more than one level can reuse the same code path.
-type PaintedParallaxLayer = { keyA: string; keyB: string; scrollX: number; depth: number };
+type PaintedParallaxLayer = {
+  keyA: string;
+  keyB: string;
+  pathA: string;
+  pathB: string;
+  scrollX: number;
+  depth: number;
+};
 type PaintedParallaxConfig = {
   tileW: number;
   scale: number;
@@ -105,9 +112,9 @@ const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
     topY: -430,
     shimmer: true,
     layers: [
-      { keyA: TEXTURE_KEYS.stPetersCanalFarA, keyB: TEXTURE_KEYS.stPetersCanalFarB, scrollX: 0.2, depth: -100 },
-      { keyA: TEXTURE_KEYS.stPetersCanalMidA, keyB: TEXTURE_KEYS.stPetersCanalMidB, scrollX: 0.45, depth: -96 },
-      { keyA: TEXTURE_KEYS.stPetersCanalNearA, keyB: TEXTURE_KEYS.stPetersCanalNearB, scrollX: 0.9, depth: -3 },
+      { keyA: TEXTURE_KEYS.stPetersCanalFarA, keyB: TEXTURE_KEYS.stPetersCanalFarB, pathA: ASSET_PATHS.stPetersCanalFarA, pathB: ASSET_PATHS.stPetersCanalFarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.stPetersCanalMidA, keyB: TEXTURE_KEYS.stPetersCanalMidB, pathA: ASSET_PATHS.stPetersCanalMidA, pathB: ASSET_PATHS.stPetersCanalMidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.stPetersCanalNearA, keyB: TEXTURE_KEYS.stPetersCanalNearB, pathA: ASSET_PATHS.stPetersCanalNearA, pathB: ASSET_PATHS.stPetersCanalNearB, scrollX: 0.9, depth: -3 },
     ],
   },
   // Level 1 runs at the 1.3x cinematic zoom. The painted layers are excluded
@@ -122,9 +129,9 @@ const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
     topY: -120,
     shimmer: false,
     layers: [
-      { keyA: TEXTURE_KEYS.shorelineRunLevel01FarA, keyB: TEXTURE_KEYS.shorelineRunLevel01FarB, scrollX: 0.2, depth: -100 },
-      { keyA: TEXTURE_KEYS.shorelineRunLevel01MidA, keyB: TEXTURE_KEYS.shorelineRunLevel01MidB, scrollX: 0.45, depth: -96 },
-      { keyA: TEXTURE_KEYS.shorelineRunLevel01NearA, keyB: TEXTURE_KEYS.shorelineRunLevel01NearB, scrollX: 0.9, depth: -3 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01FarA, keyB: TEXTURE_KEYS.shorelineRunLevel01FarB, pathA: ASSET_PATHS.shorelineRunLevel01FarA, pathB: ASSET_PATHS.shorelineRunLevel01FarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01MidA, keyB: TEXTURE_KEYS.shorelineRunLevel01MidB, pathA: ASSET_PATHS.shorelineRunLevel01MidA, pathB: ASSET_PATHS.shorelineRunLevel01MidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01NearA, keyB: TEXTURE_KEYS.shorelineRunLevel01NearB, pathA: ASSET_PATHS.shorelineRunLevel01NearA, pathB: ASSET_PATHS.shorelineRunLevel01NearB, scrollX: 0.9, depth: -3 },
     ],
   },
 };
@@ -301,19 +308,15 @@ export class ShorelineScene extends Phaser.Scene {
     LEVELS.forEach((level) => {
       this.load.image(level.backdropTextureKey, level.backdropPath);
     });
-    // Canal painted parallax layers (canal level only; loaded with the backdrops).
-    this.load.image(TEXTURE_KEYS.stPetersCanalFarA, ASSET_PATHS.stPetersCanalFarA);
-    this.load.image(TEXTURE_KEYS.stPetersCanalFarB, ASSET_PATHS.stPetersCanalFarB);
-    this.load.image(TEXTURE_KEYS.stPetersCanalMidA, ASSET_PATHS.stPetersCanalMidA);
-    this.load.image(TEXTURE_KEYS.stPetersCanalMidB, ASSET_PATHS.stPetersCanalMidB);
-    this.load.image(TEXTURE_KEYS.stPetersCanalNearA, ASSET_PATHS.stPetersCanalNearA);
-    this.load.image(TEXTURE_KEYS.stPetersCanalNearB, ASSET_PATHS.stPetersCanalNearB);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01FarA, ASSET_PATHS.shorelineRunLevel01FarA);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01FarB, ASSET_PATHS.shorelineRunLevel01FarB);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01MidA, ASSET_PATHS.shorelineRunLevel01MidA);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01MidB, ASSET_PATHS.shorelineRunLevel01MidB);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01NearA, ASSET_PATHS.shorelineRunLevel01NearA);
-    this.load.image(TEXTURE_KEYS.shorelineRunLevel01NearB, ASSET_PATHS.shorelineRunLevel01NearB);
+    // Painted parallax tiles — loaded straight from the descriptor so a new level
+    // is "descriptor + art only" (no preload edit needed). Loads each layer's
+    // keyA/keyB from its paths; rendering still keys off keyA/keyB unchanged.
+    Object.values(PAINTED_PARALLAX).forEach((cfg) => {
+      cfg.layers.forEach((layer) => {
+        this.load.image(layer.keyA, layer.pathA);
+        this.load.image(layer.keyB, layer.pathB);
+      });
+    });
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
       frameWidth: 256,
       frameHeight: 320,
