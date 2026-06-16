@@ -10,6 +10,7 @@ import {
   GAME_WIDTH,
   GROUND_Y,
   TEXTURE_KEYS,
+  WORLD_WIDTH,
 } from '../config/constants.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
@@ -92,6 +93,11 @@ type PaintedParallaxConfig = {
   layers: PaintedParallaxLayer[];
 };
 
+// Single source of truth for the level-1 cinematic world zoom. The painted
+// parallax descriptor, the camera zoom/lock, and the reseat all derive from this
+// one value so they can never desync. (Module scope so the descriptor can read it.)
+const LEVEL_ONE_WORLD_ZOOM = 1.3;
+
 const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
   'st-peters-canal-level-03': {
     tileW: 1725,
@@ -111,8 +117,8 @@ const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
   // undistorted, with worldWidth (2700) horizontal coverage. topY positions the
   // overcast scene against the play plane under the zoom + lock.
   'shoreline-run-level-01': {
-    tileW: 1755,
-    scale: 1 / 1.3,
+    tileW: (WORLD_WIDTH * LEVEL_ONE_WORLD_ZOOM) / 2,
+    scale: 1 / LEVEL_ONE_WORLD_ZOOM,
     topY: -120,
     shimmer: false,
     layers: [
@@ -286,7 +292,6 @@ export class ShorelineScene extends Phaser.Scene {
   private readonly TOUCH_SWITCH_COOLDOWN_MS = 240;
   private readonly KEYBOARD_JUMP_BUFFER_MS = 140;
   private readonly COYOTE_TIME_MS = 90;
-  private readonly LEVEL_ONE_WORLD_ZOOM = 1.3;
 
   public constructor() {
     super('ShorelineScene');
@@ -555,7 +560,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    const zoom = this.LEVEL_ONE_WORLD_ZOOM;
+    const zoom = LEVEL_ONE_WORLD_ZOOM;
     const viewportCenterY = PRESENTATION_VIEW_HEIGHT / 2;
     const groundTop = GROUND_Y - 9; // platform tops: (GROUND_Y + 26) - 70/2 = 483
     const lockedBandTop = PRESENTATION_VIEW_HEIGHT - PRESENTATION_VIEW_HEIGHT / zoom;
@@ -2495,12 +2500,12 @@ export class ShorelineScene extends Phaser.Scene {
     // vertical lock. uiCamera stays at zoom 1 (HUD/matte unaffected);
     // parallax intentionally not yet retuned — the next pass reseats it.
     if (this.currentLevel.id === 'shoreline-run-level-01') {
-      camera.setZoom(this.LEVEL_ONE_WORLD_ZOOM);
+      camera.setZoom(LEVEL_ONE_WORLD_ZOOM);
       // Vertical lock: bounds height equals the visible height at this zoom,
       // so the clamp pins scrollY to one value — no drift on docks or jumps.
       // Anchoring the band's bottom at world y 512 keeps the same bottom edge
       // as zoom 1 (ground line ~93% down-frame, dirt strip still visible).
-      const visibleHeight = PRESENTATION_VIEW_HEIGHT / this.LEVEL_ONE_WORLD_ZOOM;
+      const visibleHeight = PRESENTATION_VIEW_HEIGHT / LEVEL_ONE_WORLD_ZOOM;
       const lockedScrollY = PRESENTATION_VIEW_HEIGHT - visibleHeight;
       camera.setBounds(0, lockedScrollY, this.currentLevel.worldWidth, visibleHeight);
     }
