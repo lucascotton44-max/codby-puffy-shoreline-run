@@ -263,6 +263,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.shorelineRunPlankCapLeft, ASSET_PATHS.shorelineRunPlankCapLeft);
     this.load.image(TEXTURE_KEYS.shorelineRunPlankMid, ASSET_PATHS.shorelineRunPlankMid);
     this.load.image(TEXTURE_KEYS.shorelineRunPlankCapRight, ASSET_PATHS.shorelineRunPlankCapRight);
+    this.load.image(TEXTURE_KEYS.bridgeCrossingPlankCapLeft, ASSET_PATHS.bridgeCrossingPlankCapLeft);
+    this.load.image(TEXTURE_KEYS.bridgeCrossingPlankMid, ASSET_PATHS.bridgeCrossingPlankMid);
+    this.load.image(TEXTURE_KEYS.bridgeCrossingPlankCapRight, ASSET_PATHS.bridgeCrossingPlankCapRight);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
     this.load.image(TEXTURE_KEYS.ropeDebrisHazardProp, ASSET_PATHS.ropeDebrisHazardProp);

@@ -85,6 +85,11 @@ export const PLANK_SKINS: Record<string, PlankSkin> = {
     mid: TEXTURE_KEYS.shorelineRunPlankMid,
     capRight: TEXTURE_KEYS.shorelineRunPlankCapRight,
   },
+  'bridge_crossing_1a': {
+    capLeft: TEXTURE_KEYS.bridgeCrossingPlankCapLeft,
+    mid: TEXTURE_KEYS.bridgeCrossingPlankMid,
+    capRight: TEXTURE_KEYS.bridgeCrossingPlankCapRight,
+  },
 };
 
 // Landing feedback (global, all levels). Tune feel here. A landing only fires
