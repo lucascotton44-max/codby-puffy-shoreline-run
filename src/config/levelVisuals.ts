@@ -146,4 +146,8 @@ export const RIM_LIGHT_BY_LEVEL: Record<string, RimLightConfig> = {
   // Bridge: heavy dark overcast already gives Cod strong contrast, so the rim is a
   // near-off cool top-ambient whisper only (cooler/greener tint than level-1).
   'bridge_crossing_1a': { offsetPx: 1, offsetYPx: 1, tint: 0xc4dee0, alpha: { cod: 0.06, puffy: 0 } },
+  // Level 01b: the only level with real sun — a warm DIRECTIONAL rim, high and
+  // slightly left, brighter/whiter than canal's golden-hour rim. The strongest of
+  // the four; this is the case the rim system was built for.
+  'shoreline-run-level-01b': { offsetPx: 2, offsetYPx: 3, tint: 0xffeec8, alpha: { cod: 0.42, puffy: 0 } },
 };
