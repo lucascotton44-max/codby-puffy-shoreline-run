@@ -306,6 +306,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.tideLift, AUDIO_PATHS.tideLift);
     this.load.audio(AUDIO_KEYS.canalBoatTransition, AUDIO_PATHS.canalBoatTransition);
     this.load.audio(AUDIO_KEYS.malefactoStompHit, AUDIO_PATHS.malefactoStompHit);
+    this.load.audio(AUDIO_KEYS.landingThud, AUDIO_PATHS.landingThud);
   }
 
   public create(): void {
@@ -749,12 +750,12 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
-  private playSfx(audioKey: string): void {
+  private playSfx(audioKey: string, volumeScale = 1): void {
     if (!this.isSfxEnabled || !this.hasAudio(audioKey)) {
       return;
     }
 
-    this.sound.play(audioKey, { volume: GAMEPLAY_TUNING.audio.sfxVolume });
+    this.sound.play(audioKey, { volume: GAMEPLAY_TUNING.audio.sfxVolume * volumeScale });
   }
 
   private hasAudio(audioKey: string): boolean {
@@ -3410,6 +3411,10 @@ export class ShorelineScene extends Phaser.Scene {
       );
       this.dustEmitter.emitParticleAt(this.player.x, this.lastGroundedFootY, count);
     }
+    // Landing thud, volume scaled by the same fall intensity. Floor at 0.4 so a
+    // soft landing is still audible (present but gentle), ramping to full on a
+    // hard fall: volume = sfxVolume * (0.4 + 0.6 * intensity).
+    this.playSfx(AUDIO_KEYS.landingThud, 0.4 + 0.6 * intensity);
   }
 
   /** Applies the transient landing squash to the rendered visual. Final word on

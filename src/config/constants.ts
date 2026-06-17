@@ -121,6 +121,7 @@ export const AUDIO_PATHS = {
   tideLift: 'assets/audio/sfx/tide_lift.wav',
   canalBoatTransition: 'assets/audio/sfx/canal_boat_transition_v1.wav',
   malefactoStompHit: 'assets/audio/sfx/malefacto_stomp_hit_v1.wav',
+  landingThud: 'assets/audio/sfx/landing_thud.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -222,6 +223,7 @@ export const AUDIO_KEYS = {
   tideLift: 'tide-lift-sfx',
   canalBoatTransition: 'canal-boat-transition-sfx',
   malefactoStompHit: 'malefacto-stomp-hit-sfx',
+  landingThud: 'landing-thud-sfx',
 };
 
 export const COLORS = {
