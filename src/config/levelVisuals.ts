@@ -69,6 +69,20 @@ export const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
       { keyA: TEXTURE_KEYS.stPetersBridgeCrossingNearA, keyB: TEXTURE_KEYS.stPetersBridgeCrossingNearB, pathA: ASSET_PATHS.stPetersBridgeCrossingNearA, pathB: ASSET_PATHS.stPetersBridgeCrossingNearB, scrollX: 0.9, depth: -3 },
     ],
   },
+  // Level 01b: bright sunny canal-edge-to-locks, zoom 1. tileW worldWidth/2 = 1600,
+  // scale 1.0, shimmer on (canal water). topY frames the single lock + canal as the
+  // subject with the towpath at the play plane and sky breathing above.
+  'shoreline-run-level-01b': {
+    tileW: 1600,
+    scale: 1.0,
+    topY: -900,
+    shimmer: true,
+    layers: [
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01bFarA, keyB: TEXTURE_KEYS.shorelineRunLevel01bFarB, pathA: ASSET_PATHS.shorelineRunLevel01bFarA, pathB: ASSET_PATHS.shorelineRunLevel01bFarB, scrollX: 0.2, depth: -100 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01bMidA, keyB: TEXTURE_KEYS.shorelineRunLevel01bMidB, pathA: ASSET_PATHS.shorelineRunLevel01bMidA, pathB: ASSET_PATHS.shorelineRunLevel01bMidB, scrollX: 0.45, depth: -96 },
+      { keyA: TEXTURE_KEYS.shorelineRunLevel01bNearA, keyB: TEXTURE_KEYS.shorelineRunLevel01bNearB, pathA: ASSET_PATHS.shorelineRunLevel01bNearA, pathB: ASSET_PATHS.shorelineRunLevel01bNearB, scrollX: 0.9, depth: -3 },
+    ],
+  },
 };
 
 // Per-level 3-slice plank material. Same geometry; only the texture set (palette)

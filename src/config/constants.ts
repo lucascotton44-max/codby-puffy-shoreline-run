@@ -20,6 +20,14 @@ export const ASSET_PATHS = {
   shorelineRunLevel01MidB: 'assets/backgrounds/shoreline_run_level_01_mid_b.png',
   shorelineRunLevel01NearA: 'assets/backgrounds/shoreline_run_level_01_near_a.png',
   shorelineRunLevel01NearB: 'assets/backgrounds/shoreline_run_level_01_near_b.png',
+  // Painted bright-sunny parallax layers for level 01b (sub-2048 halves; 3200 wide
+  // = worldWidth, zoom 1). far = opaque base.
+  shorelineRunLevel01bFarA: 'assets/backgrounds/shoreline_run_level_01b_far_a.png',
+  shorelineRunLevel01bFarB: 'assets/backgrounds/shoreline_run_level_01b_far_b.png',
+  shorelineRunLevel01bMidA: 'assets/backgrounds/shoreline_run_level_01b_mid_a.png',
+  shorelineRunLevel01bMidB: 'assets/backgrounds/shoreline_run_level_01b_mid_b.png',
+  shorelineRunLevel01bNearA: 'assets/backgrounds/shoreline_run_level_01b_near_a.png',
+  shorelineRunLevel01bNearB: 'assets/backgrounds/shoreline_run_level_01b_near_b.png',
   heritageStepsLevel02Backdrop: 'assets/backgrounds/heritage_steps_level_02.png',
   stPetersCanalLevel03Backdrop: 'assets/backgrounds/st_peters_canal.png',
   // Painted golden-hour parallax layers for the canal level (each split into
@@ -119,6 +127,12 @@ export const TEXTURE_KEYS = {
   shorelineRunLevel01MidB: 'shoreline-run-level-01-mid-b',
   shorelineRunLevel01NearA: 'shoreline-run-level-01-near-a',
   shorelineRunLevel01NearB: 'shoreline-run-level-01-near-b',
+  shorelineRunLevel01bFarA: 'shoreline-run-level-01b-far-a',
+  shorelineRunLevel01bFarB: 'shoreline-run-level-01b-far-b',
+  shorelineRunLevel01bMidA: 'shoreline-run-level-01b-mid-a',
+  shorelineRunLevel01bMidB: 'shoreline-run-level-01b-mid-b',
+  shorelineRunLevel01bNearA: 'shoreline-run-level-01b-near-a',
+  shorelineRunLevel01bNearB: 'shoreline-run-level-01b-near-b',
   heritageStepsLevel02Backdrop: 'heritage-steps-level-02-backdrop',
   stPetersCanalLevel03Backdrop: 'st-peters-canal-level-03-backdrop',
   stPetersCanalFarA: 'st-peters-canal-far-a',
