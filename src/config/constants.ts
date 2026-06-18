@@ -125,6 +125,7 @@ export const AUDIO_PATHS = {
   level1ShoreAmbient: 'assets/audio/ambient/level1_shore_ambient.wav',
   canalAmbient: 'assets/audio/ambient/canal_ambient.wav',
   bridgeAmbient: 'assets/audio/ambient/bridge_ambient.wav',
+  level01bAmbient: 'assets/audio/ambient/level01b_ambient.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -230,6 +231,7 @@ export const AUDIO_KEYS = {
   level1ShoreAmbient: 'level1-shore-ambient',
   canalAmbient: 'canal-ambient',
   bridgeAmbient: 'bridge-ambient',
+  level01bAmbient: 'level01b-ambient',
 };
 
 export const COLORS = {

@@ -314,6 +314,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.level1ShoreAmbient, AUDIO_PATHS.level1ShoreAmbient);
     this.load.audio(AUDIO_KEYS.canalAmbient, AUDIO_PATHS.canalAmbient);
     this.load.audio(AUDIO_KEYS.bridgeAmbient, AUDIO_PATHS.bridgeAmbient);
+    this.load.audio(AUDIO_KEYS.level01bAmbient, AUDIO_PATHS.level01bAmbient);
   }
 
   public create(): void {
