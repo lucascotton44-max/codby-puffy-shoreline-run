@@ -13,6 +13,7 @@ import {
 } from '../config/constants.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
+  AMBIENT_BY_LEVEL,
   LANDING_FEEDBACK,
   LEVEL_ONE_WORLD_ZOOM,
   PAINTED_PARALLAX,
@@ -185,6 +186,8 @@ export class ShorelineScene extends Phaser.Scene {
   private debugGraphics!: Phaser.GameObjects.Graphics;
   private areDebugHitboxesVisible = false;
   private music?: Phaser.Sound.BaseSound;
+  private ambient?: Phaser.Sound.BaseSound;
+  private ambientKey?: string;
   private hasPlayerInteractedWithAudio = false;
   private isMusicEnabled: boolean = GAMEPLAY_TUNING.audio.musicEnabled;
   private isSfxEnabled: boolean = GAMEPLAY_TUNING.audio.sfxEnabled;
@@ -307,6 +310,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.canalBoatTransition, AUDIO_PATHS.canalBoatTransition);
     this.load.audio(AUDIO_KEYS.malefactoStompHit, AUDIO_PATHS.malefactoStompHit);
     this.load.audio(AUDIO_KEYS.landingThud, AUDIO_PATHS.landingThud);
+    this.load.audio(AUDIO_KEYS.level1ShoreAmbient, AUDIO_PATHS.level1ShoreAmbient);
   }
 
   public create(): void {
@@ -591,6 +595,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private restartFromLevelOne(): void {
     this.stopCurrentMusic();
+    this.stopCurrentAmbient();
     this.scene.restart();
   }
 
@@ -603,12 +608,14 @@ export class ShorelineScene extends Phaser.Scene {
       this.registry.set('shorelineSecretRoute', false);
       this.registry.set('shorelineCurrentLevelIndex', 0);
       this.stopCurrentMusic();
+      this.stopCurrentAmbient();
       this.scene.restart();
       return;
     }
 
     this.registry.set('shorelineRestartCurrentLevel', true);
     this.stopCurrentMusic();
+    this.stopCurrentAmbient();
     this.scene.restart();
   }
 
@@ -620,6 +627,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex + 1);
     this.registry.set('shorelineStartLevelImmediately', true);
     this.stopCurrentMusic();
+    this.stopCurrentAmbient();
     this.scene.restart();
   }
 
@@ -642,6 +650,65 @@ export class ShorelineScene extends Phaser.Scene {
     if (this.hasPlayerInteractedWithAudio) {
       this.startOrResumeMusic();
     }
+
+    this.createAmbient();
+  }
+
+  // Per-level ambient bed: a second looping channel under the music. Mirrors the
+  // music lifecycle but is keyed by AMBIENT_BY_LEVEL[currentLevel.id]; a level with
+  // no entry gets no bed (this.ambient stays undefined). Separate sound instance —
+  // never reuses this.music.
+  private createAmbient(): void {
+    const bed = AMBIENT_BY_LEVEL[this.currentLevel.id];
+    this.ambientKey = bed?.key;
+    this.stopOtherAmbient(this.ambientKey);
+
+    if (this.ambientKey && this.hasAudio(this.ambientKey)) {
+      this.ambient = this.sound.get(this.ambientKey) ?? this.sound.add(this.ambientKey, {
+        loop: true,
+        volume: GAMEPLAY_TUNING.audio.ambientVolume,
+      });
+      this.setSoundVolume(this.ambient, GAMEPLAY_TUNING.audio.ambientVolume);
+    } else {
+      this.ambient = undefined;
+    }
+
+    if (this.hasPlayerInteractedWithAudio) {
+      this.startOrResumeAmbient();
+    }
+  }
+
+  private startOrResumeAmbient(): void {
+    // Follows the music mute (isMusicEnabled) so one toggle silences the soundscape.
+    if (!this.isMusicEnabled || !this.ambient || !this.ambientKey || !this.hasAudio(this.ambientKey)) {
+      return;
+    }
+
+    this.setSoundVolume(this.ambient, GAMEPLAY_TUNING.audio.ambientVolume);
+
+    if (this.ambient.isPaused) {
+      this.ambient.resume();
+      return;
+    }
+
+    if (!this.ambient.isPlaying) {
+      this.ambient.play({ loop: true, volume: GAMEPLAY_TUNING.audio.ambientVolume });
+    }
+  }
+
+  private stopCurrentAmbient(): void {
+    if (this.ambient) {
+      this.ambient.stop();
+    }
+  }
+
+  private stopOtherAmbient(currentAmbientKey?: string): void {
+    Object.values(AMBIENT_BY_LEVEL).forEach((bed) => {
+      if (bed.key === currentAmbientKey) {
+        return;
+      }
+      this.sound.get(bed.key)?.stop();
+    });
   }
 
   private getStoredAudioToggle(key: string, fallback: boolean): boolean {
@@ -696,6 +763,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.resumeAudioContext();
     this.startOrResumeMusic();
+    this.startOrResumeAmbient();
   }
 
   private toggleMusic(): void {
@@ -704,11 +772,16 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (this.isMusicEnabled) {
       this.startOrResumeMusic();
+      this.startOrResumeAmbient();
       return;
     }
 
     if (this.music?.isPlaying) {
       this.music.pause();
+    }
+
+    if (this.ambient?.isPlaying) {
+      this.ambient.pause();
     }
   }
 
@@ -2369,6 +2442,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.registry.set('shorelineCurrentLevelIndex', targetLevelIndex);
     this.registry.set('shorelineSecretRoute', true);
     this.stopCurrentMusic();
+    this.stopCurrentAmbient();
     this.scene.restart();
   }
 

@@ -1,5 +1,5 @@
 import { CharacterKey } from './characters.js';
-import { ASSET_PATHS, TEXTURE_KEYS, WORLD_WIDTH } from './constants.js';
+import { ASSET_PATHS, AUDIO_KEYS, AUDIO_PATHS, TEXTURE_KEYS, WORLD_WIDTH } from './constants.js';
 
 // Per-level painted parallax descriptor. Each layer is two `tileW`-wide tiles
 // drawn side-by-side; `topY`/`scale` are the shared vertical-registration anchor.
@@ -150,4 +150,12 @@ export const RIM_LIGHT_BY_LEVEL: Record<string, RimLightConfig> = {
   // slightly left, brighter/whiter than canal's golden-hour rim. The strongest of
   // the four; this is the case the rim system was built for.
   'shoreline-run-level-01b': { offsetPx: 2, offsetYPx: 3, tint: 0xffeec8, alpha: { cod: 0.42, puffy: 0 } },
+};
+
+// Per-level looping ambient bed (water/gulls/wind under the music). Keyed by level
+// id like the descriptors above; a level with no entry plays no bed. Loaded in
+// preload (audio isn't auto-iterated) and driven by a parallel sound lifecycle.
+export type AmbientBed = { key: string; path: string };
+export const AMBIENT_BY_LEVEL: Record<string, AmbientBed> = {
+  'shoreline-run-level-01': { key: AUDIO_KEYS.level1ShoreAmbient, path: AUDIO_PATHS.level1ShoreAmbient },
 };

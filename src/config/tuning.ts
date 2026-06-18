@@ -83,6 +83,7 @@ export const GAMEPLAY_TUNING = {
   audio: {
     musicVolume: 0.25,
     sfxVolume: 0.45,
+    ambientVolume: 0.12, // per-region ambient bed; sits under the 0.25 music
     musicEnabled: true,
     sfxEnabled: true,
   },
