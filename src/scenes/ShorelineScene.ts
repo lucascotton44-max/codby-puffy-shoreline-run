@@ -136,7 +136,7 @@ export class ShorelineScene extends Phaser.Scene {
   private playerVisualMode: VisualMode = 'placeholder';
   private playerFacingDirection = 1;
   private powerUpStateVisual?: Phaser.GameObjects.Sprite;
-  private contactShadow!: Phaser.GameObjects.Ellipse;
+  private contactShadow!: Phaser.GameObjects.Image;
   private lastGroundedFootY = 0;
   private rimSprite?: Phaser.GameObjects.Sprite;
   // Directional rim light: the canal sun is low/warm from the LEFT. A copy of the
@@ -1763,11 +1763,13 @@ export class ShorelineScene extends Phaser.Scene {
     body.setAllowGravity(true);
     body.setGravityY(character.gravityY - 900);
 
-    // Contact shadow: soft dark ellipse at the feet, depth 5 (above background +
-    // platforms, below entities and the character). Geometry is a flat 100x30
-    // unit oval scaled per-frame to the active character. Created here so the
-    // create() layer sweep moves it into worldLayer (world-space, one camera).
-    this.contactShadow = this.add.ellipse(this.player.x, this.getPlayerFootY(), 100, 30, 0x0a0f0d, 0.34);
+    // Contact shadow: soft radial-gradient oval at the feet, depth 5 (above
+    // background + platforms, below entities and the character). The texture is a
+    // pre-baked 100x30 soft oval (generated once); per-frame it is scaled to the
+    // active character and to jump height. Created here so the create() layer
+    // sweep moves it into worldLayer (world-space, one camera).
+    this.createSoftShadowTexture();
+    this.contactShadow = this.add.image(this.player.x, this.getPlayerFootY(), 'soft-contact-shadow');
     this.contactShadow.setDepth(5);
     this.lastGroundedFootY = this.getPlayerFootY();
     this.rimSprite = undefined; // lazily (re)created by syncRimLight per scene lifecycle
@@ -3540,6 +3542,42 @@ export class ShorelineScene extends Phaser.Scene {
       const dir = this.playerFacingDirection || 1;
       this.playerVisual.setScale(dir * sx, sy);
     }
+  }
+
+  /** One-time soft contact-shadow texture: a radial-gradient oval, darkest at the
+   *  center and fading to fully transparent at the rim (no hard edge). Same
+   *  "generate a texture once at setup" approach as the landing-dust texture, and
+   *  cached in the global TextureManager so it survives scene.restart (guarded by
+   *  exists()). The 100x30 footprint keeps updateContactShadow's baseScale (/100)
+   *  byte-identical, so only the edge softness changes — never the behavior. */
+  private createSoftShadowTexture(): void {
+    const key = 'soft-contact-shadow';
+    if (this.textures.exists(key)) {
+      return;
+    }
+    const w = 100;
+    const h = 30;
+    const canvas = this.textures.createCanvas(key, w, h);
+    if (!canvas) {
+      return;
+    }
+    const ctx = canvas.getContext();
+    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.scale(1, h / w); // squash the circular gradient into the flat oval
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, w / 2);
+    // Broad dark core, feathering only the outer rim, so the perceived darkness
+    // matches the old solid 0.34 fill while the edge goes fully soft (alpha 0).
+    grad.addColorStop(0, 'rgba(10, 15, 13, 1)');
+    grad.addColorStop(0.6, 'rgba(10, 15, 13, 0.85)');
+    grad.addColorStop(1, 'rgba(10, 15, 13, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, w / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    canvas.refresh();
   }
 
   /** Per-frame contact-shadow placement. Stays on the surface the character is
