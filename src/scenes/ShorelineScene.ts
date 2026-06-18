@@ -14,6 +14,7 @@ import {
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
+  JUMP_FEEDBACK,
   LANDING_FEEDBACK,
   LEVEL_ONE_WORLD_ZOOM,
   PAINTED_PARALLAX,
@@ -828,12 +829,12 @@ export class ShorelineScene extends Phaser.Scene {
     });
   }
 
-  private playSfx(audioKey: string, volumeScale = 1): void {
+  private playSfx(audioKey: string, volumeScale = 1, detuneCents = 0): void {
     if (!this.isSfxEnabled || !this.hasAudio(audioKey)) {
       return;
     }
 
-    this.sound.play(audioKey, { volume: GAMEPLAY_TUNING.audio.sfxVolume * volumeScale });
+    this.sound.play(audioKey, { volume: GAMEPLAY_TUNING.audio.sfxVolume * volumeScale, detune: detuneCents });
   }
 
   private hasAudio(audioKey: string): boolean {
@@ -2605,7 +2606,7 @@ export class ShorelineScene extends Phaser.Scene {
       const tideJumpMultiplier = this.consumeTideLiftForJump();
       body.setVelocityY(-character.jumpSpeed * tideJumpMultiplier);
       this.wasGliding = false;
-      this.playSfx(AUDIO_KEYS.jump);
+      this.triggerJumpFeedback();
     }
 
     const isGliding =
@@ -3494,6 +3495,37 @@ export class ShorelineScene extends Phaser.Scene {
     // soft landing is still audible (present but gentle), ramping to full on a
     // hard fall: volume = sfxVolume * (0.4 + 0.6 * intensity).
     this.playSfx(AUDIO_KEYS.landingThud, 0.4 + 0.6 * intensity);
+  }
+
+  /** Jump-takeoff feedback (additive; fired from the existing jump-fire branch).
+   *  Inverse of the landing squash: a brief taller/thinner STRETCH through the
+   *  SAME transient landingSquash channel (killTweensOf + onComplete hard-reset,
+   *  so it recovers to exactly 1 even on a fast land->jump bunny-hop), a small
+   *  foot-dust kick from the pooled landing emitter (capped low), and the jump
+   *  SFX with a slight random detune. No movement/timing/input is touched here. */
+  private triggerJumpFeedback(): void {
+    this.tweens.killTweensOf(this.landingSquash);
+    this.landingSquash.x = 1 - JUMP_FEEDBACK.stretchY * JUMP_FEEDBACK.squashStretchX;
+    this.landingSquash.y = 1 + JUMP_FEEDBACK.stretchY;
+    this.tweens.add({
+      targets: this.landingSquash,
+      x: 1,
+      y: 1,
+      duration: JUMP_FEEDBACK.durationMs,
+      ease: 'Quad.easeOut',
+      onComplete: () => {
+        this.landingSquash.x = 1;
+        this.landingSquash.y = 1;
+      },
+    });
+    if (this.dustEmitter) {
+      this.dustEmitter.emitParticleAt(this.player.x, this.lastGroundedFootY, JUMP_FEEDBACK.puffCount);
+    }
+    this.playSfx(
+      AUDIO_KEYS.jump,
+      1,
+      Phaser.Math.Between(-JUMP_FEEDBACK.sfxDetuneCents, JUMP_FEEDBACK.sfxDetuneCents),
+    );
   }
 
   /** Applies the transient landing squash to the rendered visual. Final word on

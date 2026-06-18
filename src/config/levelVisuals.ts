@@ -131,6 +131,19 @@ export const LANDING_FEEDBACK = {
   puffSpread: 38, // horizontal speed spread
 };
 
+// Jump takeoff feedback (global, all levels). The inverse of the landing squash:
+// a brief taller/thinner STRETCH on launch, fired through the SAME transient
+// landingSquash channel (recovers to exactly 1 — never a persistent scale or a
+// sprite recolor). Reuses the pooled landing dust emitter (capped low) and the
+// existing jump SFX with a slight random detune so repeats aren't mechanical.
+export const JUMP_FEEDBACK = {
+  stretchY: 0.12, // scaleY rises to (1 + this) at takeoff — taller
+  squashStretchX: 0.6, // scaleX drops by stretchY*this — thinner (volume-preservation feel)
+  durationMs: 110, // total recover time back to 1
+  puffCount: 4, // foot-dust kick from the pooled emitter (capped <=5)
+  sfxDetuneCents: 90, // jump-sfx random detune range, +/- cents (~half a semitone)
+};
+
 // Per-level rim. Canal: warm low sun from the left (offset −x). Level-1: diffuse
 // upper-left overcast sky-light — cool tint, offset up-and-left, kept near-off
 // (Cod already separates on the cool background, so it's a faint edge-catch only).
