@@ -123,6 +123,7 @@ export const AUDIO_PATHS = {
   malefactoStompHit: 'assets/audio/sfx/malefacto_stomp_hit_v1.wav',
   landingThud: 'assets/audio/sfx/landing_thud.wav',
   level1ShoreAmbient: 'assets/audio/ambient/level1_shore_ambient.wav',
+  canalAmbient: 'assets/audio/ambient/canal_ambient.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -226,6 +227,7 @@ export const AUDIO_KEYS = {
   malefactoStompHit: 'malefacto-stomp-hit-sfx',
   landingThud: 'landing-thud-sfx',
   level1ShoreAmbient: 'level1-shore-ambient',
+  canalAmbient: 'canal-ambient',
 };
 
 export const COLORS = {

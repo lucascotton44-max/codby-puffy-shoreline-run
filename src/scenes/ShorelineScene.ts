@@ -188,6 +188,7 @@ export class ShorelineScene extends Phaser.Scene {
   private music?: Phaser.Sound.BaseSound;
   private ambient?: Phaser.Sound.BaseSound;
   private ambientKey?: string;
+  private ambientVolume: number = GAMEPLAY_TUNING.audio.ambientVolume; // resolved per-level in createAmbient
   private hasPlayerInteractedWithAudio = false;
   private isMusicEnabled: boolean = GAMEPLAY_TUNING.audio.musicEnabled;
   private isSfxEnabled: boolean = GAMEPLAY_TUNING.audio.sfxEnabled;
@@ -311,6 +312,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.malefactoStompHit, AUDIO_PATHS.malefactoStompHit);
     this.load.audio(AUDIO_KEYS.landingThud, AUDIO_PATHS.landingThud);
     this.load.audio(AUDIO_KEYS.level1ShoreAmbient, AUDIO_PATHS.level1ShoreAmbient);
+    this.load.audio(AUDIO_KEYS.canalAmbient, AUDIO_PATHS.canalAmbient);
   }
 
   public create(): void {
@@ -661,14 +663,15 @@ export class ShorelineScene extends Phaser.Scene {
   private createAmbient(): void {
     const bed = AMBIENT_BY_LEVEL[this.currentLevel.id];
     this.ambientKey = bed?.key;
+    this.ambientVolume = bed?.volume ?? GAMEPLAY_TUNING.audio.ambientVolume;
     this.stopOtherAmbient(this.ambientKey);
 
     if (this.ambientKey && this.hasAudio(this.ambientKey)) {
       this.ambient = this.sound.get(this.ambientKey) ?? this.sound.add(this.ambientKey, {
         loop: true,
-        volume: GAMEPLAY_TUNING.audio.ambientVolume,
+        volume: this.ambientVolume,
       });
-      this.setSoundVolume(this.ambient, GAMEPLAY_TUNING.audio.ambientVolume);
+      this.setSoundVolume(this.ambient, this.ambientVolume);
     } else {
       this.ambient = undefined;
     }
@@ -684,7 +687,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    this.setSoundVolume(this.ambient, GAMEPLAY_TUNING.audio.ambientVolume);
+    this.setSoundVolume(this.ambient, this.ambientVolume);
 
     if (this.ambient.isPaused) {
       this.ambient.resume();
@@ -692,7 +695,7 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (!this.ambient.isPlaying) {
-      this.ambient.play({ loop: true, volume: GAMEPLAY_TUNING.audio.ambientVolume });
+      this.ambient.play({ loop: true, volume: this.ambientVolume });
     }
   }
 

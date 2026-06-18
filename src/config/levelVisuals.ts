@@ -155,7 +155,10 @@ export const RIM_LIGHT_BY_LEVEL: Record<string, RimLightConfig> = {
 // Per-level looping ambient bed (water/gulls/wind under the music). Keyed by level
 // id like the descriptors above; a level with no entry plays no bed. Loaded in
 // preload (audio isn't auto-iterated) and driven by a parallel sound lifecycle.
-export type AmbientBed = { key: string; path: string };
+// `volume` is per-bed (each recording sits at its own natural level under the
+// 0.25 music); omit it to fall back to GAMEPLAY_TUNING.audio.ambientVolume.
+export type AmbientBed = { key: string; path: string; volume?: number };
 export const AMBIENT_BY_LEVEL: Record<string, AmbientBed> = {
-  'shoreline-run-level-01': { key: AUDIO_KEYS.level1ShoreAmbient, path: AUDIO_PATHS.level1ShoreAmbient },
+  'shoreline-run-level-01': { key: AUDIO_KEYS.level1ShoreAmbient, path: AUDIO_PATHS.level1ShoreAmbient, volume: 0.12 },
+  'st-peters-canal-level-03': { key: AUDIO_KEYS.canalAmbient, path: AUDIO_PATHS.canalAmbient, volume: 0.17 },
 };
