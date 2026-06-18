@@ -3590,12 +3590,47 @@ export class ShorelineScene extends Phaser.Scene {
     if (body.blocked.down) {
       this.lastGroundedFootY = footY;
     }
-    const height = Phaser.Math.Clamp(this.lastGroundedFootY - footY, 0, 170);
+    // The shadow projects onto the surface CURRENTLY beneath the player, decoupled
+    // from lastGroundedFootY (which the foot-dust still uses for the launch/land
+    // surface — correct for dust). Grounded: the surface he stands on. Airborne:
+    // the nearest platform top below his feet, so it lands on a lower ledge / the
+    // ground instead of stranding at the launch height. Over a true gap (none
+    // found below) it fades out this frame rather than showing a wrong shadow.
+    const surfaceY = body.blocked.down ? footY : this.findShadowSurfaceY(this.player.x, footY);
+    if (surfaceY === null) {
+      this.contactShadow.setAlpha(0);
+      return;
+    }
+    const height = Phaser.Math.Clamp(surfaceY - footY, 0, 170);
     const t = height / 170;
     const baseScale = (CHARACTERS[this.activeCharacter].width * 1.5) / 100;
-    this.contactShadow.setPosition(this.player.x, this.lastGroundedFootY);
+    this.contactShadow.setPosition(this.player.x, surfaceY);
     this.contactShadow.setScale(baseScale * (1 - 0.45 * t));
     this.contactShadow.setAlpha(0.34 * (1 - 0.62 * t));
+  }
+
+  /** Nearest standable surface top directly below the player's feet, for the
+   *  contact shadow's airborne projection. Scans the static platform bodies for
+   *  those horizontally spanning x with a top at or below footY, returning the
+   *  highest such top (the closest surface below). Returns null over a true gap so
+   *  the caller fades the shadow out. Read-only: O(N<=~12) comparisons, never
+   *  mutates physics, state, or lastGroundedFootY. */
+  private findShadowSurfaceY(x: number, footY: number): number | null {
+    let nearestTop: number | null = null;
+    this.platforms.children.each((child) => {
+      const body = (child as Phaser.GameObjects.GameObject).body as Phaser.Physics.Arcade.StaticBody | undefined;
+      if (!body) {
+        return true;
+      }
+      if (x < body.left || x > body.right || body.top < footY) {
+        return true; // not under x, or its surface is above the feet (not below)
+      }
+      if (nearestTop === null || body.top < nearestTop) {
+        nearestTop = body.top;
+      }
+      return true;
+    });
+    return nearestTop;
   }
 
   /** Mirrors the current character sprite as a solid warm silhouette, offset
