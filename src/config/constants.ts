@@ -124,6 +124,7 @@ export const AUDIO_PATHS = {
   landingThud: 'assets/audio/sfx/landing_thud.wav',
   level1ShoreAmbient: 'assets/audio/ambient/level1_shore_ambient.wav',
   canalAmbient: 'assets/audio/ambient/canal_ambient.wav',
+  bridgeAmbient: 'assets/audio/ambient/bridge_ambient.wav',
 };
 
 export const TEXTURE_KEYS = {
@@ -228,6 +229,7 @@ export const AUDIO_KEYS = {
   landingThud: 'landing-thud-sfx',
   level1ShoreAmbient: 'level1-shore-ambient',
   canalAmbient: 'canal-ambient',
+  bridgeAmbient: 'bridge-ambient',
 };
 
 export const COLORS = {

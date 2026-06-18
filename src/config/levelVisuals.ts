@@ -161,4 +161,5 @@ export type AmbientBed = { key: string; path: string; volume?: number };
 export const AMBIENT_BY_LEVEL: Record<string, AmbientBed> = {
   'shoreline-run-level-01': { key: AUDIO_KEYS.level1ShoreAmbient, path: AUDIO_PATHS.level1ShoreAmbient, volume: 0.12 },
   'st-peters-canal-level-03': { key: AUDIO_KEYS.canalAmbient, path: AUDIO_PATHS.canalAmbient, volume: 0.17 },
+  'bridge_crossing_1a': { key: AUDIO_KEYS.bridgeAmbient, path: AUDIO_PATHS.bridgeAmbient, volume: 0.18 },
 };
