@@ -14,6 +14,7 @@ import {
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
+  COLLECT_FEEDBACK,
   JUMP_FEEDBACK,
   LANDING_FEEDBACK,
   LEVEL_ONE_WORLD_ZOOM,
@@ -149,6 +150,7 @@ export class ShorelineScene extends Phaser.Scene {
   private wasGroundedLastFrame = true;
   private peakFallVelocity = 0;
   private readonly landingSquash = { x: 1, y: 1 };
+  private collectLadder = { count: 0, lastAt: 0 };
   private dustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
@@ -2481,6 +2483,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.jumpQueuedUntil = 0;
     this.switchQueuedUntil = 0;
     this.lastTouchSwitchAt = -1000;
+    this.collectLadder.count = 0;
+    this.collectLadder.lastAt = 0;
   }
 
   private resetCameraState(): void {
@@ -2985,7 +2989,13 @@ export class ShorelineScene extends Phaser.Scene {
     this.collectedFragments += 1;
     const points = 100;
     this.score += points;
-    this.playSfx(AUDIO_KEYS.collectFragment);
+    if (this.time.now - this.collectLadder.lastAt > COLLECT_FEEDBACK.ladderGapMs) {
+      this.collectLadder.count = 0;
+    } else {
+      this.collectLadder.count = Math.min(this.collectLadder.count + 1, COLLECT_FEEDBACK.ladderCap);
+    }
+    this.collectLadder.lastAt = this.time.now;
+    this.playSfx(AUDIO_KEYS.collectFragment, 1, this.collectLadder.count * COLLECT_FEEDBACK.ladderStepCents);
     if (PICKUP_FEEDBACK_LEVEL_IDS.has(this.currentLevel.id)) {
       this.spawnPickupFeedback(pickupX, pickupY, points);
     }

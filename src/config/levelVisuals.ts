@@ -144,6 +144,12 @@ export const JUMP_FEEDBACK = {
   sfxDetuneCents: 90, // jump-sfx random detune range, +/- cents (~half a semitone)
 };
 
+export const COLLECT_FEEDBACK = {
+  ladderGapMs: 900,
+  ladderStepCents: 35,
+  ladderCap: 8,
+} as const;
+
 // Per-level rim. Canal: warm low sun from the left (offset −x). Level-1: diffuse
 // upper-left overcast sky-light — cool tint, offset up-and-left, kept near-off
 // (Cod already separates on the cool background, so it's a faint edge-catch only).
