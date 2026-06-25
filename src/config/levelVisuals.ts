@@ -148,6 +148,7 @@ export const COLLECT_FEEDBACK = {
   ladderGapMs: 900,
   ladderStepCents: 35,
   ladderCap: 8,
+  sparkleCount: 10,
 } as const;
 
 // Per-level rim. Canal: warm low sun from the left (offset −x). Level-1: diffuse

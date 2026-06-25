@@ -152,6 +152,7 @@ export class ShorelineScene extends Phaser.Scene {
   private readonly landingSquash = { x: 1, y: 1 };
   private collectLadder = { count: 0, lastAt: 0 };
   private dustEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
+  private sparkleEmitter?: Phaser.GameObjects.Particles.ParticleEmitter;
   private activePowerUpStateFrame?: string;
   private playerLabel!: Phaser.GameObjects.Text;
   private endMarkerVisual!: Phaser.GameObjects.Container | Phaser.GameObjects.Image;
@@ -1781,6 +1782,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.landingSquash.x = 1;
     this.landingSquash.y = 1;
     this.createDustEmitter();
+    this.createSparkleEmitter();
 
     this.playerVisual = this.createCharacterVisual(this.activeCharacter);
     this.powerUpStateVisual = this.createPowerUpStateVisual();
@@ -2998,6 +3000,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.playSfx(AUDIO_KEYS.collectFragment, 1, this.collectLadder.count * COLLECT_FEEDBACK.ladderStepCents);
     if (PICKUP_FEEDBACK_LEVEL_IDS.has(this.currentLevel.id)) {
       this.spawnPickupFeedback(pickupX, pickupY, points);
+      this.sparkleEmitter?.emitParticleAt(pickupX, pickupY, COLLECT_FEEDBACK.sparkleCount);
     }
     this.updateHud();
   }
@@ -3454,6 +3457,27 @@ export class ShorelineScene extends Phaser.Scene {
       emitting: false,
     });
     this.dustEmitter.setDepth(6);
+  }
+
+  private createSparkleEmitter(): void {
+    const texKey = 'collect-sparkle';
+    if (!this.textures.exists(texKey)) {
+      const g = this.make.graphics({ x: 0, y: 0 });
+      g.fillStyle(0xffffff, 1);
+      g.fillCircle(4, 4, 3);
+      g.generateTexture(texKey, 8, 8);
+      g.destroy();
+    }
+    this.sparkleEmitter = this.add.particles(0, 0, texKey, {
+      lifespan: 420,
+      speed: { min: 30, max: 90 },
+      angle: { min: 0, max: 360 },
+      scale: { start: 0.9, end: 0 },
+      alpha: { start: 1, end: 0 },
+      tint: 0xf3d27a,
+      emitting: false,
+    });
+    this.sparkleEmitter.setDepth(30);
   }
 
   /** Detects the airborne->grounded transition and fires landing feedback. Arcade
