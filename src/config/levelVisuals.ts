@@ -151,6 +151,10 @@ export const COLLECT_FEEDBACK = {
   sparkleCount: 10,
 } as const;
 
+export const SWITCH_FEEDBACK = {
+  poofCount: 8,
+} as const;
+
 // Per-level rim. Canal: warm low sun from the left (offset −x). Level-1: diffuse
 // upper-left overcast sky-light — cool tint, offset up-and-left, kept near-off
 // (Cod already separates on the cool background, so it's a faint edge-catch only).

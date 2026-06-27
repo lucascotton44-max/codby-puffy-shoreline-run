@@ -22,6 +22,7 @@ import {
   PLANK_SKINS,
   PlankSkin,
   RIM_LIGHT_BY_LEVEL,
+  SWITCH_FEEDBACK,
 } from '../config/levelVisuals.js';
 import { createPaintedParallax, hasPaintedParallax } from './paintedParallax.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
@@ -2556,11 +2557,20 @@ export class ShorelineScene extends Phaser.Scene {
 
     this.playerVisual.destroy();
     this.playerVisual = this.createCharacterVisual(next);
+    this.triggerSwitchFeedback();
     this.activePowerUpStateFrame = undefined;
     this.playerLabel.setText(this.getHudCharacterLabel());
     this.wasGliding = false;
     this.playSfx(AUDIO_KEYS.characterSwitch);
     this.updateHud();
+  }
+
+  /** Switch-swap poof (visual only): a burst from the pooled dust emitter centered
+   *  on the player's BODY (this.player.y), not the feet, so it covers the
+   *  destroy/recreate texture pop even when the switch happens mid-air. Reuses
+   *  dustEmitter — no new emitter, no screenshake/hitstop/scale-punch. */
+  private triggerSwitchFeedback(): void {
+    this.dustEmitter?.emitParticleAt(this.player.x, this.player.y, SWITCH_FEEDBACK.poofCount);
   }
 
   private isJumpHeld(): boolean {
