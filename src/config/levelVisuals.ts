@@ -174,6 +174,10 @@ export const RIM_LIGHT_BY_LEVEL: Record<string, RimLightConfig> = {
   // slightly left, brighter/whiter than canal's golden-hour rim. The strongest of
   // the four; this is the case the rim system was built for.
   'shoreline-run-level-01b': { offsetPx: 2, offsetYPx: 3, tint: 0xffeec8, alpha: { cod: 0.42, puffy: 0 } },
+  // Boss arena shares the bridge's cool-overcast lock-chamber palette — dark walls
+  // already separate Cod, so the rim mirrors the bridge treatment: near-off cool
+  // whisper, not a directional sun. Slightly greener/deeper tint than bridge_crossing_1a.
+  'lord-malefacto-boss-level-04': { offsetPx: 1, offsetYPx: 1, tint: 0xbfe0db, alpha: { cod: 0.14, puffy: 0 } },
 };
 
 // Per-level looping ambient bed (water/gulls/wind under the music). Keyed by level
@@ -187,4 +191,7 @@ export const AMBIENT_BY_LEVEL: Record<string, AmbientBed> = {
   'st-peters-canal-level-03': { key: AUDIO_KEYS.canalAmbient, path: AUDIO_PATHS.canalAmbient, volume: 0.17 },
   'bridge_crossing_1a': { key: AUDIO_KEYS.bridgeAmbient, path: AUDIO_PATHS.bridgeAmbient, volume: 0.18 },
   'shoreline-run-level-01b': { key: AUDIO_KEYS.level01bAmbient, path: AUDIO_PATHS.level01bAmbient, volume: 0.17 },
+  // Deliberately reuses the bridge ambient bed — lock-water/industrial soundscape
+  // matches the lock-chamber arena; no new asset needed.
+  'lord-malefacto-boss-level-04': { key: AUDIO_KEYS.bridgeAmbient, path: AUDIO_PATHS.bridgeAmbient, volume: 0.18 },
 };
