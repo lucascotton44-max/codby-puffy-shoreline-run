@@ -32,6 +32,8 @@ export type HazardDefinition = {
 export type FragmentDefinition = {
   x: number;
   y: number;
+  /** Present only on Calvin's creature-room fragments. Campaign levels omit this. */
+  creatureId?: string;
 };
 
 export type PowerUpDefinition = {
@@ -613,29 +615,29 @@ export const LEVELS: LevelDefinition[] = [
       { x: 3220, y: 388, width: 90, height: 18, kind: 'blackSketchPuddle' },
     ],
     fragments: [
-      // S01 — Safe first pickup
-      { x: 180, y: GROUND_Y - 64 },
+      // S01 — Safe first pickup → blob-frog (common, 22%)
+      { x: 180, y: GROUND_Y - 64, creatureId: 'blob-frog' },
 
-      // S02 — Low dock hop reward
-      { x: 700, y: 366 },
+      // S02 — Low dock hop reward → tiny-puddle (common, 2%)
+      { x: 700, y: 366, creatureId: 'tiny-puddle' },
 
-      // S03 — Forward confirmation
-      { x: 1200, y: 360 },
+      // S03 — Forward confirmation → spike-drip (uncommon, 40%)
+      { x: 1200, y: 360, creatureId: 'spike-drip' },
 
-      // S04 — High climb reward
-      { x: 1680, y: 240 },
+      // S04 — High climb reward → book-ghost (uncommon, 40%)
+      { x: 1680, y: 240, creatureId: 'book-ghost' },
 
-      // S05 — Recovery reward
-      { x: 2180, y: 314 },
+      // S05 — Recovery reward → button-eyes (uncommon, 80%)
+      { x: 2180, y: 314, creatureId: 'button-eyes' },
 
-      // S06 — Optional glide-value reward
-      { x: 2660, y: 310 },
+      // S06 — Optional glide-value reward → puff-face (common, 9%)
+      { x: 2660, y: 310, creatureId: 'puff-face' },
 
-      // S07 — Final buildup reward
-      { x: 3220, y: 360 },
+      // S07 — Final buildup reward → drip-head (rare, 48%)
+      { x: 3220, y: 360, creatureId: 'drip-head' },
 
-      // S08 — Near-door payoff
-      { x: 3860, y: 368 },
+      // S08 — Near-door payoff → drip-stack (rare, 99%)
+      { x: 3860, y: 368, creatureId: 'drip-stack' },
     ],
     powerUps: [],
     scuttleclaws: [

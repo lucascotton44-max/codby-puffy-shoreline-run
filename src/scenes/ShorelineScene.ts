@@ -160,6 +160,8 @@ export class ShorelineScene extends Phaser.Scene {
   private activeCharacter: CharacterKey = 'cod';
   private health = CHARACTERS.cod.maxHealth;
   private collectedFragments = 0;
+  /** Calvin's creature-room only: ids of collected creatures this run. */
+  private collectedCreatures = new Set<string>();
   private score = 0;
   private lastDamageAt = -DAMAGE_COOLDOWN_MS;
   private hurtUntil = 0;
@@ -1444,8 +1446,8 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createFragments(): void {
-    this.currentLevel.fragments.forEach(({ x, y }, index) => {
-      const fragment = new StoryFragment(this, x, y, index + 1);
+    this.currentLevel.fragments.forEach(({ x, y, creatureId }, index) => {
+      const fragment = new StoryFragment(this, x, y, index + 1, creatureId);
       this.fragments.add(fragment);
     });
   }
@@ -2463,6 +2465,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.activeCharacter = 'cod';
     this.health = CHARACTERS.cod.maxHealth;
     this.collectedFragments = 0;
+    this.collectedCreatures.clear();
     this.score = 0;
     this.lastDamageAt = -DAMAGE_COOLDOWN_MS;
     this.hurtUntil = 0;
@@ -2999,6 +3002,9 @@ export class ShorelineScene extends Phaser.Scene {
     const pickupY = fragment.y;
     fragment.collect();
     this.collectedFragments += 1;
+    if (fragment.creatureId) {
+      this.collectedCreatures.add(fragment.creatureId);
+    }
     const points = 100;
     this.score += points;
     if (this.time.now - this.collectLadder.lastAt > COLLECT_FEEDBACK.ladderGapMs) {

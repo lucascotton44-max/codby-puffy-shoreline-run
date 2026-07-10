@@ -5,8 +5,10 @@ import { GAMEPLAY_TUNING } from '../config/tuning.js';
 export class StoryFragment extends Phaser.GameObjects.Container {
   public declare readonly body: Phaser.Physics.Arcade.Body;
   private readonly visual: Phaser.GameObjects.Image | Phaser.GameObjects.Rectangle;
+  /** Populated for Calvin's creature-room sketches; undefined for all campaign relics. */
+  public readonly creatureId: string | undefined;
 
-  constructor(scene: Phaser.Scene, x: number, y: number, index: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, index: number, creatureId?: string) {
     const hasPropTexture = scene.textures.exists(TEXTURE_KEYS.storyFragmentProp);
     const shadow = scene.add.ellipse(2, 16, 26, 8, 0x172426, 0.32);
     const page = scene.add.rectangle(0, 0, 23, 31, 0xe0c894, hasPropTexture ? 0 : 0.98);
@@ -31,6 +33,7 @@ export class StoryFragment extends Phaser.GameObjects.Container {
     super(scene, x, y, prop ? [shadow, prop, page, fold, twine, lineOne, lineTwo, mark] : [shadow, page, fold, twine, lineOne, lineTwo, mark]);
 
     this.visual = prop ?? page;
+    this.creatureId = creatureId;
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setAllowGravity(false);
