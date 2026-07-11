@@ -99,6 +99,15 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
   'st-peters-canal-level-03',
 ]);
 
+// Measured transparent bottom padding of the Calvin Bart PNGs (source-texture
+// pixels between the art's lowest opaque pixel and the image bottom). Used by
+// createCalvinCreatureVisual to seat the visible feet on the foot line:
+// correction = paddingPx * renderScaleY.
+//   _player_v1 textures: 256x256, ~12px padding -> e.g. 12 * (96/256) = 4.5px at displaySize 96.
+//   placeholder textures: 512x640, ~35px padding -> e.g. 35 * 0.16 = 5.6px (cod) / 35 * 0.12 = 4.2px (puffy).
+const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
+const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -1860,17 +1869,25 @@ export class ShorelineScene extends Phaser.Scene {
       return null;
     }
 
-    const character = CHARACTERS[characterKey];
-    const calvinVisualYOffset = characterKey === 'cod' ? -10 : 0;
-    const image = this.add.image(0, character.height / 2 + 1 + calvinVisualYOffset, textureKey);
+    // The container is foot-anchored by syncPlayerDecorations (getPlayerFootY),
+    // and the image uses origin (0.5, 1), so the image's bottom edge sits on the
+    // foot line. The PNGs carry transparent bottom padding, so the image is pushed
+    // DOWN by that padding at the texture's own render scale — computed, not
+    // hand-tuned: correction = paddingPx * image.scaleY (scaleY already reflects
+    // setDisplaySize 96/256 for _player_v1, or setScale 0.16/0.12 for placeholder).
+    const image = this.add.image(0, 0, textureKey);
     image.setOrigin(0.5, 1);
+    let bottomPaddingPx: number;
     if (textureKey === playerTextureKey) {
       image.setDisplaySize(characterKey === 'cod' ? 82 : 86, 96);
+      bottomPaddingPx = CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX; // 256px-tall _player_v1 art
     } else {
       image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
+      bottomPaddingPx = CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX; // 640px-tall placeholder art
     }
+    image.y = bottomPaddingPx * image.scaleY;
 
-    const visual = this.add.container(this.player.x, this.player.y, [image]);
+    const visual = this.add.container(this.player.x, this.getPlayerFootY(), [image]);
     visual.setDepth(20);
     this.worldLayer.add(visual);
     return visual;
@@ -3432,6 +3449,10 @@ export class ShorelineScene extends Phaser.Scene {
 
   private syncPlayerDecorations(): void {
     if (this.playerVisualMode === 'sprite') {
+      this.playerVisual.setPosition(this.player.x, this.getPlayerFootY());
+    } else if (this.usesCalvinSketchPlayerVisuals()) {
+      // Calvin creature containers are foot-anchored like sprites (their image
+      // bottoms sit on the foot line), so they ground correctly on the floor.
       this.playerVisual.setPosition(this.player.x, this.getPlayerFootY());
     } else {
       this.playerVisual.setPosition(this.player.x, this.player.y);
