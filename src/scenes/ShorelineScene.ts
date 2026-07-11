@@ -3173,46 +3173,54 @@ export class ShorelineScene extends Phaser.Scene {
     this.messagePanel.setVisible(true);
 
     if (didWin && this.currentLevel.secretLevel === true) {
-      this.showSketchbookCreaturePreview();
+      this.showSketchbookGallery();
     }
   }
 
-  /** Sketchbook gallery, step 1: a single creature cutout (melt-king) rendered on
-   *  its own container above the completion panel — secret room only. The
-   *  container is the future grid's parent layer; text summary and controls are
-   *  untouched this step. Cleared in resetLevelState so replays never stack. */
-  private showSketchbookCreaturePreview(): void {
+  /** Sketchbook gallery, step 2: a horizontal row of every creature collected
+   *  this run (collection order), each on its own light backing plate — secret
+   *  room only. All pairs live in the one sketchbookGalleryLayer container, so
+   *  the restart-clear and depth-above-panel behavior from step 1 apply as-is.
+   *  Text summary and controls untouched; locked slots / labels / attribution
+   *  come in steps 3-5. Light plate behind dark ink is the REQUIRED pattern for
+   *  Calvin art on any dark background. */
+  private showSketchbookGallery(): void {
     this.sketchbookGalleryLayer?.destroy();
     this.sketchbookGalleryLayer = undefined;
 
-    const creature = CREATURES['melt-king'];
-    if (!creature || !this.textures.exists(creature.textureKey)) {
+    const collected = [...this.collectedCreatures]
+      .map((id) => CREATURES[id])
+      .filter((creature) => creature && this.textures.exists(creature.textureKey));
+    if (collected.length === 0) {
       return;
     }
 
-    const image = this.add.image(0, 0, creature.textureKey);
-    const targetHeightPx = 120;
-    image.setScale(targetHeightPx / image.height);
-
-    // Light backing plate behind the cutout — REQUIRED pattern for Calvin art:
-    // his ink is dark and vanishes on dark backgrounds (it camouflaged against
-    // the night water when placed at the bottom of the screen). Plate first into
-    // the container (behind), creature on top.
-    const platePaddingPx = 20;
-    const plate = this.add.rectangle(
-      0,
-      0,
-      image.displayWidth + platePaddingPx,
-      image.displayHeight + platePaddingPx,
-      0xcec6d2,
-      0.9,
-    );
-
-    // Upper-center of the canvas (measured from the live game size, not
-    // assumptions), overlapping the panel's upper region where the plate reads
-    // cleanly against the panel fill. Depth 10 keeps it above the panel (depth 0).
     const { width: canvasW, height: canvasH } = this.scale.gameSize;
-    const layer = this.add.container(canvasW / 2, Math.round(canvasH * 0.28), [plate, image]);
+    const targetHeightPx = 70;
+    const platePaddingPx = 16;
+    // Even pitch from count + canvas width (40px side margins), capped so a
+    // short row stays a tight centered cluster instead of spanning the screen.
+    const pitch = Math.min(110, (canvasW - 80) / collected.length);
+    const maxCutoutWidthPx = pitch - platePaddingPx - 6; // keep neighbours' plates from colliding
+
+    const children: Phaser.GameObjects.GameObject[] = [];
+    collected.forEach((creature, i) => {
+      const x = (i - (collected.length - 1) / 2) * pitch;
+      const image = this.add.image(x, 0, creature.textureKey);
+      // Row-sized: ~70px tall, clamped by slot width so wide cutouts can't overlap.
+      image.setScale(Math.min(targetHeightPx / image.height, maxCutoutWidthPx / image.width));
+      const plate = this.add.rectangle(
+        x,
+        0,
+        image.displayWidth + platePaddingPx,
+        image.displayHeight + platePaddingPx,
+        0xcec6d2,
+        0.9,
+      );
+      children.push(plate, image); // plate first — behind its creature
+    });
+
+    const layer = this.add.container(canvasW / 2, Math.round(canvasH * 0.28), children);
     layer.setScrollFactor(0);
     layer.setDepth(10);
     this.uiLayer.add(layer);
