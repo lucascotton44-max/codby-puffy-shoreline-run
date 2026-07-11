@@ -109,6 +109,14 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
 const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
 const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
 
+// Sketchbook completion screen (secret room): creature-row metrics shared by the
+// row builder AND the panel layout, so the vertical stack (row on top, text panel
+// below) is derived from one source and can never overlap.
+const SKETCHBOOK_ROW_CREATURE_HEIGHT_PX = 70;
+const SKETCHBOOK_ROW_PLATE_PADDING_PX = 16;
+const SKETCHBOOK_ROW_CENTER_FRAC = 0.24; // of canvas height — upper third
+const SKETCHBOOK_ROW_PANEL_GAP_PX = 24; // clearance between row bottom and panel top
+
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
     idle: 'codby-idle',
@@ -3195,9 +3203,9 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    const { width: canvasW, height: canvasH } = this.scale.gameSize;
-    const targetHeightPx = 70;
-    const platePaddingPx = 16;
+    const { width: canvasW } = this.scale.gameSize;
+    const targetHeightPx = SKETCHBOOK_ROW_CREATURE_HEIGHT_PX;
+    const platePaddingPx = SKETCHBOOK_ROW_PLATE_PADDING_PX;
     // Even pitch from count + canvas width (40px side margins), capped so a
     // short row stays a tight centered cluster instead of spanning the screen.
     const pitch = Math.min(110, (canvasW - 80) / collected.length);
@@ -3220,11 +3228,22 @@ export class ShorelineScene extends Phaser.Scene {
       children.push(plate, image); // plate first — behind its creature
     });
 
-    const layer = this.add.container(canvasW / 2, Math.round(canvasH * 0.28), children);
+    const layer = this.add.container(canvasW / 2, this.getSketchbookRowCenterY(), children);
     layer.setScrollFactor(0);
     layer.setDepth(10);
     this.uiLayer.add(layer);
     this.sketchbookGalleryLayer = layer;
+  }
+
+  /** Row center for the sketchbook completion stack — one derivation shared by
+   *  the row builder and the panel layout so the two can never overlap. */
+  private getSketchbookRowCenterY(): number {
+    return Math.round(this.scale.gameSize.height * SKETCHBOOK_ROW_CENTER_FRAC);
+  }
+
+  /** Bottom edge of the creature row (tallest case: full-height cutout + plate). */
+  private getSketchbookRowBottomY(): number {
+    return this.getSketchbookRowCenterY() + (SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX) / 2;
   }
 
   private applyEndMessageLayout(didWin: boolean): void {
@@ -3246,14 +3265,19 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private applyCalvinCompletionMessageLayout(): void {
-    const overlayY = this.isMobileLayout ? 196 : 216;
     const overlayW = this.isMobileLayout ? 592 : 584;
     const overlayH = this.isMobileLayout ? 234 : 240;
     const fontSize = this.isMobileLayout ? '14px' : '16px';
 
-    this.messagePanel.setPosition(GAME_WIDTH / 2, overlayY);
+    // Vertical stack: creature row on top, this panel below it. The panel top is
+    // derived from the row bottom + gap (shared derivation), so the two can never
+    // vertically overlap. Secret-room-only — campaign layouts are untouched above.
+    const { width: canvasW } = this.scale.gameSize;
+    const overlayY = this.getSketchbookRowBottomY() + SKETCHBOOK_ROW_PANEL_GAP_PX + overlayH / 2;
+
+    this.messagePanel.setPosition(canvasW / 2, overlayY);
     this.messagePanel.setSize(overlayW, overlayH);
-    this.messageText.setPosition(GAME_WIDTH / 2, overlayY + 4);
+    this.messageText.setPosition(canvasW / 2, overlayY + 4);
     this.messageText.setFontSize(fontSize);
     this.messageText.setLineSpacing(2);
   }
