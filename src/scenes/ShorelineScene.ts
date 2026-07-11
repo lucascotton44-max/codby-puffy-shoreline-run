@@ -195,6 +195,9 @@ export class ShorelineScene extends Phaser.Scene {
   private titleOverlay!: Phaser.GameObjects.Container;
   private messagePanel!: Phaser.GameObjects.Rectangle;
   private messageText!: Phaser.GameObjects.Text;
+  /** Sketchbook gallery overlay (secret room completion only). Step 1: holds a
+   *  single creature image; future steps grow a grid inside this container. */
+  private sketchbookGalleryLayer?: Phaser.GameObjects.Container;
   private endMarker!: Phaser.GameObjects.Rectangle;
   private endMarkerText!: Phaser.GameObjects.Text;
   private waterShimmers: WaterShimmer[] = [];
@@ -2498,6 +2501,8 @@ export class ShorelineScene extends Phaser.Scene {
     this.isEnded = false;
     this.didWinLevel = false;
     this.isTransitioningToBoss = false;
+    this.sketchbookGalleryLayer?.destroy();
+    this.sketchbookGalleryLayer = undefined;
     this.kelpShieldCharges = 0;
     this.kelpShieldExpiresAt = 0;
     this.tideLiftExpiresAt = 0;
@@ -3166,6 +3171,37 @@ export class ShorelineScene extends Phaser.Scene {
     this.hudStatsText.setVisible(false);
     this.hudHintText.setVisible(false);
     this.messagePanel.setVisible(true);
+
+    if (didWin && this.currentLevel.secretLevel === true) {
+      this.showSketchbookCreaturePreview();
+    }
+  }
+
+  /** Sketchbook gallery, step 1: a single creature cutout (melt-king) rendered on
+   *  its own container above the completion panel — secret room only. The
+   *  container is the future grid's parent layer; text summary and controls are
+   *  untouched this step. Cleared in resetLevelState so replays never stack. */
+  private showSketchbookCreaturePreview(): void {
+    this.sketchbookGalleryLayer?.destroy();
+    this.sketchbookGalleryLayer = undefined;
+
+    const creature = CREATURES['melt-king'];
+    if (!creature || !this.textures.exists(creature.textureKey)) {
+      return;
+    }
+
+    const image = this.add.image(0, 0, creature.textureKey);
+    const targetHeightPx = 120;
+    image.setScale(targetHeightPx / image.height);
+
+    // Centered horizontally, seated just below the completion panel so the text
+    // summary stays fully readable. Depth 10 keeps it above the panel/text pair.
+    const panelBottom = this.messagePanel.y + this.messagePanel.height / 2;
+    const layer = this.add.container(GAME_WIDTH / 2, panelBottom + 14 + targetHeightPx / 2, [image]);
+    layer.setScrollFactor(0);
+    layer.setDepth(10);
+    this.uiLayer.add(layer);
+    this.sketchbookGalleryLayer = layer;
   }
 
   private applyEndMessageLayout(didWin: boolean): void {
