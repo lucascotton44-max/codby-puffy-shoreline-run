@@ -11,7 +11,7 @@ import {
   GROUND_Y,
   TEXTURE_KEYS,
 } from '../config/constants.js';
-import { CREATURES, Creature, CreatureRarity, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
+import { CREATURES, CREATURE_ATTRIBUTION, CreatureRarity, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
@@ -117,10 +117,13 @@ const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
 const SKETCHBOOK_ROW_CREATURE_HEIGHT_PX = 70;
 const SKETCHBOOK_ROW_PLATE_PADDING_PX = 16;
 const SKETCHBOOK_LABEL_ZONE_PX = 34; // name + rarity lines under each plate
-const SKETCHBOOK_PANEL_TOP_PAD_PX = 26; // panel top edge -> row band
-const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 26; // text zone -> panel bottom edge
-const SKETCHBOOK_DIVIDER_GAP_PX = 12; // row band -> divider, and divider -> text zone
-const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // row span -> panel side edges
+const SKETCHBOOK_GRID_ROW_GAP_PX = 6; // vertical gap between the two grid rows
+const SKETCHBOOK_PANEL_TOP_PAD_PX = 18; // panel top edge -> grid
+const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 18; // attribution -> panel bottom edge
+const SKETCHBOOK_DIVIDER_GAP_PX = 10; // grid -> divider, and divider -> text zone
+const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // grid span -> panel side edges
+const SKETCHBOOK_ATTRIBUTION_ZONE_PX = 16; // credit line under the text zone
+const SKETCHBOOK_LOCKED_TINT = 0x2a2a30; // dark silhouette for uncollected creatures
 
 // Rarity tier colors for the sketchbook labels (player-facing; provisional
 // creatures display like any other — the provisional flag stays code-only).
@@ -3199,19 +3202,20 @@ export class ShorelineScene extends Phaser.Scene {
     }
   }
 
-  /** Sketchbook gallery row (step 3b): the collected creatures (collection
-   *  order), each on its own light backing plate, nested in the upper band of
-   *  the ONE unified completion panel (geometry from getSketchbookPanelLayout),
-   *  with a subtle divider line between the row and the text block. All in the
-   *  one sketchbookGalleryLayer container — restart-clear and depth-above-panel
-   *  behavior unchanged. Light plate behind dark ink is the REQUIRED pattern for
-   *  Calvin art on any dark background (the panel fill is dark too). */
+  /** Sketchbook gallery (step 5, complete): the FULL melt roster in a 2-row grid
+   *  inside the ONE unified completion panel — collected creatures revealed (real
+   *  art, name, colored rarity), uncollected ones locked (dark silhouette on the
+   *  plate, "???" labels, no rarity color leak), plus the Calvin attribution line
+   *  at the panel bottom. Everything lives in the one sketchbookGalleryLayer
+   *  container — restart-clear and depth-above-panel behavior unchanged. Light
+   *  plate behind dark ink is the REQUIRED pattern for Calvin art on any dark
+   *  background (the panel fill is dark too). */
   private showSketchbookGallery(): void {
     this.sketchbookGalleryLayer?.destroy();
     this.sketchbookGalleryLayer = undefined;
 
-    const collected = this.getCollectedCreatureEntries();
-    if (collected.length === 0) {
+    const roster = Object.values(CREATURES).filter((creature) => this.textures.exists(creature.textureKey));
+    if (roster.length === 0) {
       return;
     }
 
@@ -3219,11 +3223,11 @@ export class ShorelineScene extends Phaser.Scene {
     const { width: canvasW } = this.scale.gameSize;
     const targetHeightPx = SKETCHBOOK_ROW_CREATURE_HEIGHT_PX;
     const platePaddingPx = SKETCHBOOK_ROW_PLATE_PADDING_PX;
-    const pitch = layout.rowPitch;
+    const pitch = layout.gridPitch;
     const maxCutoutWidthPx = pitch - platePaddingPx - 6; // keep neighbours' plates from colliding
 
-    // Labels hang below the plate band (plate center = container origin). The
-    // plate band half-height is fixed by the consts, so label rows line up
+    // Labels hang below each grid row's plate band (plate center = the row line).
+    // The plate band half-height is fixed by the consts, so label rows line up
     // across creatures regardless of each cutout's actual height.
     const plateBandHalfPx = (SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX) / 2;
     const nameTopPx = plateBandHalfPx + 4;
@@ -3231,14 +3235,20 @@ export class ShorelineScene extends Phaser.Scene {
     const maxLabelWidthPx = pitch - 8;
 
     const children: Phaser.GameObjects.GameObject[] = [];
-    collected.forEach((creature, i) => {
-      const x = (i - (collected.length - 1) / 2) * pitch;
-      const image = this.add.image(x, 0, creature.textureKey);
+    roster.forEach((creature, i) => {
+      const row = Math.floor(i / layout.gridCols);
+      const col = i % layout.gridCols;
+      const colsInThisRow = Math.min(layout.gridCols, roster.length - row * layout.gridCols);
+      const x = (col - (colsInThisRow - 1) / 2) * pitch;
+      const y = row * layout.gridRowPitchY;
+      const isRevealed = this.collectedCreatures.has(creature.id);
+
+      const image = this.add.image(x, y, creature.textureKey);
       // Row-sized: ~70px tall, clamped by slot width so wide cutouts can't overlap.
       image.setScale(Math.min(targetHeightPx / image.height, maxCutoutWidthPx / image.width));
       const plate = this.add.rectangle(
         x,
-        0,
+        y,
         image.displayWidth + platePaddingPx,
         image.displayHeight + platePaddingPx,
         0xcec6d2,
@@ -3246,17 +3256,25 @@ export class ShorelineScene extends Phaser.Scene {
       );
       children.push(plate, image); // plate first — behind its creature
 
-      // Name (line 1) + color-coded rarity (line 2), centered under the plate.
-      const name = this.add.text(x, nameTopPx, creature.name, {
-        color: '#d8ddd2',
+      if (!isRevealed) {
+        // Locked: only the SHAPE shows — setTintFill floods every visible pixel
+        // solid dark (a true filled silhouette). Plain setTint multiplies, which
+        // leaves Calvin's dark line-on-transparent art readable.
+        image.setTintFill(SKETCHBOOK_LOCKED_TINT);
+      }
+
+      // Name (line 1) + rarity (line 2), centered under the plate. Locked slots
+      // show "???" for both, in neutral grey — no name or rarity-color leak.
+      const name = this.add.text(x, y + nameTopPx, isRevealed ? creature.name : '???', {
+        color: isRevealed ? '#d8ddd2' : '#9696a0',
         fontFamily: 'monospace',
         fontSize: '11px',
         fontStyle: 'bold',
       });
       name.setOrigin(0.5, 0);
       this.truncateLabelToWidth(name, maxLabelWidthPx);
-      const rarity = this.add.text(x, rarityTopPx, creature.rarity.toUpperCase(), {
-        color: SKETCHBOOK_RARITY_COLORS[creature.rarity],
+      const rarity = this.add.text(x, y + rarityTopPx, isRevealed ? creature.rarity.toUpperCase() : '???', {
+        color: isRevealed ? SKETCHBOOK_RARITY_COLORS[creature.rarity] : '#9696a0',
         fontFamily: 'monospace',
         fontSize: '10px',
       });
@@ -3264,12 +3282,29 @@ export class ShorelineScene extends Phaser.Scene {
       children.push(name, rarity);
     });
 
-    // Subtle divider between the row band and the text block, matching the
-    // panel's existing stroke treatment (container-relative y).
-    const divider = this.add.rectangle(0, layout.dividerY - layout.rowCenterY, layout.panelW - 48, 1, 0xd8ddd2, 0.28);
+    // Subtle divider between the grid and the text block, matching the panel's
+    // existing stroke treatment (container-relative y).
+    const divider = this.add.rectangle(
+      0,
+      layout.dividerY - layout.gridRow0CenterY,
+      layout.panelW - 48,
+      1,
+      0xd8ddd2,
+      0.28,
+    );
     children.push(divider);
 
-    const layer = this.add.container(canvasW / 2, layout.rowCenterY, children);
+    // Calvin's credit — small, muted, at the very bottom of the panel.
+    const attribution = this.add.text(0, layout.attributionCenterY - layout.gridRow0CenterY, CREATURE_ATTRIBUTION, {
+      color: '#8a938c',
+      fontFamily: 'monospace',
+      fontSize: '10px',
+      fontStyle: 'italic',
+    });
+    attribution.setOrigin(0.5, 0.5);
+    children.push(attribution);
+
+    const layer = this.add.container(canvasW / 2, layout.gridRow0CenterY, children);
     layer.setScrollFactor(0);
     layer.setDepth(10);
     this.uiLayer.add(layer);
@@ -3292,58 +3327,76 @@ export class ShorelineScene extends Phaser.Scene {
     }
   }
 
-  /** Collected creatures with valid registry entries + loaded textures — shared
-   *  by the panel layout (sizing) and the row builder (rendering). */
-  private getCollectedCreatureEntries(): Creature[] {
-    return [...this.collectedCreatures]
-      .map((id) => CREATURES[id])
-      .filter((creature): creature is Creature => Boolean(creature) && this.textures.exists(creature.textureKey));
-  }
-
   /** Geometry of the ONE unified sketchbook completion panel: frame bounds plus
-   *  where the creature row, divider, and text block sit inside it. Derived from
-   *  the consts + live canvas size + collected count, and used by BOTH
-   *  applyCalvinCompletionMessageLayout and showSketchbookGallery, so the row and
-   *  text nest inside the same frame by construction. Vertically centered on the
-   *  canvas. With zero collected (defensive), it collapses to a text-only panel. */
+   *  where the 2-row creature grid, divider, text block, and attribution line sit
+   *  inside it. Sized for the FULL roster (locked + revealed), derived from the
+   *  consts + live canvas size, and used by BOTH applyCalvinCompletionMessageLayout
+   *  and showSketchbookGallery, so everything nests inside the same frame by
+   *  construction. Vertically centered on the canvas. */
   private getSketchbookPanelLayout(): {
     panelW: number;
     panelH: number;
     panelCenterY: number;
-    rowPitch: number;
-    rowCenterY: number;
+    gridCols: number;
+    gridRows: number;
+    gridPitch: number;
+    gridRow0CenterY: number;
+    gridRowPitchY: number;
     dividerY: number;
     textCenterY: number;
-    hasRow: boolean;
+    attributionCenterY: number;
   } {
     const { width: canvasW, height: canvasH } = this.scale.gameSize;
-    const count = this.getCollectedCreatureEntries().length;
+    const rosterCount = Object.keys(CREATURES).length;
     const textZoneW = this.isMobileLayout ? 592 : 584;
-    const textZoneH = this.isMobileLayout ? 180 : 190;
+    const textZoneH = this.isMobileLayout ? 164 : 170;
 
-    // Row band = plate band (cutout + plate padding) + label zone (name + rarity
-    // lines under each plate). rowCenterY is the PLATE center — labels hang below
-    // it, inside the band — so the row builder's plate-at-container-origin
-    // positioning is unchanged while the panel grows to contain the labels.
-    const plateBandH = count > 0 ? SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX : 0;
-    const labelZoneH = count > 0 ? SKETCHBOOK_LABEL_ZONE_PX : 0;
-    const rowBandH = plateBandH + labelZoneH;
-    const dividerZoneH = count > 0 ? SKETCHBOOK_DIVIDER_GAP_PX * 2 : 0;
-    const rowPitch = count > 0 ? Math.min(110, (canvasW - 80) / count) : 0;
-    // Row span upper bound: plates are capped at (pitch - 6) wide, so the row
-    // never exceeds count*pitch - 6. Panel wraps it with side padding, clamped
+    // 2-row grid over the full roster. Each grid row band = plate band (cutout +
+    // plate padding) + label zone; the plate center is the band's anchor so the
+    // grid builder positions plates directly at row-center lines.
+    const gridRows = 2;
+    const gridCols = Math.ceil(rosterCount / gridRows);
+    const plateBandH = SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX;
+    const rowBandH = plateBandH + SKETCHBOOK_LABEL_ZONE_PX;
+    const gridH = gridRows * rowBandH + (gridRows - 1) * SKETCHBOOK_GRID_ROW_GAP_PX;
+    const gridRowPitchY = rowBandH + SKETCHBOOK_GRID_ROW_GAP_PX;
+    const dividerZoneH = SKETCHBOOK_DIVIDER_GAP_PX * 2;
+    const gridPitch = Math.min(110, (canvasW - 80) / gridCols);
+    // Grid span upper bound: plates are capped at (pitch - 6) wide, so a row
+    // never exceeds cols*pitch - 6. Panel wraps it with side padding, clamped
     // to the canvas with a 20px outer margin; never narrower than the text zone.
-    const rowSpanPx = count > 0 ? count * rowPitch - 6 : 0;
-    const panelW = Math.min(canvasW - 40, Math.max(textZoneW, rowSpanPx + SKETCHBOOK_PANEL_SIDE_PAD_PX * 2));
-    const panelH = SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + dividerZoneH + textZoneH + SKETCHBOOK_PANEL_BOTTOM_PAD_PX;
+    const gridSpanPx = gridCols * gridPitch - 6;
+    const panelW = Math.min(canvasW - 40, Math.max(textZoneW, gridSpanPx + SKETCHBOOK_PANEL_SIDE_PAD_PX * 2));
+    const panelH =
+      SKETCHBOOK_PANEL_TOP_PAD_PX +
+      gridH +
+      dividerZoneH +
+      textZoneH +
+      SKETCHBOOK_ATTRIBUTION_ZONE_PX +
+      SKETCHBOOK_PANEL_BOTTOM_PAD_PX;
 
     const panelCenterY = Math.round(canvasH / 2);
     const panelTop = panelCenterY - panelH / 2;
-    const rowCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + plateBandH / 2);
-    const dividerY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + SKETCHBOOK_DIVIDER_GAP_PX);
-    const textCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + dividerZoneH + textZoneH / 2);
+    const gridRow0CenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + plateBandH / 2);
+    const dividerY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + SKETCHBOOK_DIVIDER_GAP_PX);
+    const textCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + dividerZoneH + textZoneH / 2);
+    const attributionCenterY = Math.round(
+      panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + dividerZoneH + textZoneH + SKETCHBOOK_ATTRIBUTION_ZONE_PX / 2,
+    );
 
-    return { panelW, panelH, panelCenterY, rowPitch, rowCenterY, dividerY, textCenterY, hasRow: count > 0 };
+    return {
+      panelW,
+      panelH,
+      panelCenterY,
+      gridCols,
+      gridRows,
+      gridPitch,
+      gridRow0CenterY,
+      gridRowPitchY,
+      dividerY,
+      textCenterY,
+      attributionCenterY,
+    };
   }
 
   private applyEndMessageLayout(didWin: boolean): void {
