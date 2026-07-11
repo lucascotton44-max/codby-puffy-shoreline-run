@@ -3194,10 +3194,25 @@ export class ShorelineScene extends Phaser.Scene {
     const targetHeightPx = 120;
     image.setScale(targetHeightPx / image.height);
 
-    // Centered horizontally, seated just below the completion panel so the text
-    // summary stays fully readable. Depth 10 keeps it above the panel/text pair.
-    const panelBottom = this.messagePanel.y + this.messagePanel.height / 2;
-    const layer = this.add.container(GAME_WIDTH / 2, panelBottom + 14 + targetHeightPx / 2, [image]);
+    // Light backing plate behind the cutout — REQUIRED pattern for Calvin art:
+    // his ink is dark and vanishes on dark backgrounds (it camouflaged against
+    // the night water when placed at the bottom of the screen). Plate first into
+    // the container (behind), creature on top.
+    const platePaddingPx = 20;
+    const plate = this.add.rectangle(
+      0,
+      0,
+      image.displayWidth + platePaddingPx,
+      image.displayHeight + platePaddingPx,
+      0xcec6d2,
+      0.9,
+    );
+
+    // Upper-center of the canvas (measured from the live game size, not
+    // assumptions), overlapping the panel's upper region where the plate reads
+    // cleanly against the panel fill. Depth 10 keeps it above the panel (depth 0).
+    const { width: canvasW, height: canvasH } = this.scale.gameSize;
+    const layer = this.add.container(canvasW / 2, Math.round(canvasH * 0.28), [plate, image]);
     layer.setScrollFactor(0);
     layer.setDepth(10);
     this.uiLayer.add(layer);
