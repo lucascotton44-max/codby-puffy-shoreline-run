@@ -11,7 +11,7 @@ import {
   GROUND_Y,
   TEXTURE_KEYS,
 } from '../config/constants.js';
-import { CREATURES, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
+import { CREATURES, Creature, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
@@ -109,13 +109,17 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
 const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
 const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
 
-// Sketchbook completion screen (secret room): creature-row metrics shared by the
-// row builder AND the panel layout, so the vertical stack (row on top, text panel
-// below) is derived from one source and can never overlap.
+// Sketchbook completion screen (secret room): ONE framed panel containing the
+// creature row on top and the text summary below. All geometry derives from
+// these consts + the live canvas size + the collected count, in a single
+// helper (getSketchbookPanelLayout) shared by the panel layout AND the row
+// builder — so the composition nests correctly by construction.
 const SKETCHBOOK_ROW_CREATURE_HEIGHT_PX = 70;
 const SKETCHBOOK_ROW_PLATE_PADDING_PX = 16;
-const SKETCHBOOK_ROW_CENTER_FRAC = 0.24; // of canvas height — upper third
-const SKETCHBOOK_ROW_PANEL_GAP_PX = 24; // clearance between row bottom and panel top
+const SKETCHBOOK_PANEL_TOP_PAD_PX = 26; // panel top edge -> row band
+const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 26; // text zone -> panel bottom edge
+const SKETCHBOOK_DIVIDER_GAP_PX = 12; // row band -> divider, and divider -> text zone
+const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // row span -> panel side edges
 
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
@@ -3185,30 +3189,27 @@ export class ShorelineScene extends Phaser.Scene {
     }
   }
 
-  /** Sketchbook gallery, step 2: a horizontal row of every creature collected
-   *  this run (collection order), each on its own light backing plate — secret
-   *  room only. All pairs live in the one sketchbookGalleryLayer container, so
-   *  the restart-clear and depth-above-panel behavior from step 1 apply as-is.
-   *  Text summary and controls untouched; locked slots / labels / attribution
-   *  come in steps 3-5. Light plate behind dark ink is the REQUIRED pattern for
-   *  Calvin art on any dark background. */
+  /** Sketchbook gallery row (step 3b): the collected creatures (collection
+   *  order), each on its own light backing plate, nested in the upper band of
+   *  the ONE unified completion panel (geometry from getSketchbookPanelLayout),
+   *  with a subtle divider line between the row and the text block. All in the
+   *  one sketchbookGalleryLayer container — restart-clear and depth-above-panel
+   *  behavior unchanged. Light plate behind dark ink is the REQUIRED pattern for
+   *  Calvin art on any dark background (the panel fill is dark too). */
   private showSketchbookGallery(): void {
     this.sketchbookGalleryLayer?.destroy();
     this.sketchbookGalleryLayer = undefined;
 
-    const collected = [...this.collectedCreatures]
-      .map((id) => CREATURES[id])
-      .filter((creature) => creature && this.textures.exists(creature.textureKey));
+    const collected = this.getCollectedCreatureEntries();
     if (collected.length === 0) {
       return;
     }
 
+    const layout = this.getSketchbookPanelLayout();
     const { width: canvasW } = this.scale.gameSize;
     const targetHeightPx = SKETCHBOOK_ROW_CREATURE_HEIGHT_PX;
     const platePaddingPx = SKETCHBOOK_ROW_PLATE_PADDING_PX;
-    // Even pitch from count + canvas width (40px side margins), capped so a
-    // short row stays a tight centered cluster instead of spanning the screen.
-    const pitch = Math.min(110, (canvasW - 80) / collected.length);
+    const pitch = layout.rowPitch;
     const maxCutoutWidthPx = pitch - platePaddingPx - 6; // keep neighbours' plates from colliding
 
     const children: Phaser.GameObjects.GameObject[] = [];
@@ -3228,22 +3229,64 @@ export class ShorelineScene extends Phaser.Scene {
       children.push(plate, image); // plate first — behind its creature
     });
 
-    const layer = this.add.container(canvasW / 2, this.getSketchbookRowCenterY(), children);
+    // Subtle divider between the row band and the text block, matching the
+    // panel's existing stroke treatment (container-relative y).
+    const divider = this.add.rectangle(0, layout.dividerY - layout.rowCenterY, layout.panelW - 48, 1, 0xd8ddd2, 0.28);
+    children.push(divider);
+
+    const layer = this.add.container(canvasW / 2, layout.rowCenterY, children);
     layer.setScrollFactor(0);
     layer.setDepth(10);
     this.uiLayer.add(layer);
     this.sketchbookGalleryLayer = layer;
   }
 
-  /** Row center for the sketchbook completion stack — one derivation shared by
-   *  the row builder and the panel layout so the two can never overlap. */
-  private getSketchbookRowCenterY(): number {
-    return Math.round(this.scale.gameSize.height * SKETCHBOOK_ROW_CENTER_FRAC);
+  /** Collected creatures with valid registry entries + loaded textures — shared
+   *  by the panel layout (sizing) and the row builder (rendering). */
+  private getCollectedCreatureEntries(): Creature[] {
+    return [...this.collectedCreatures]
+      .map((id) => CREATURES[id])
+      .filter((creature): creature is Creature => Boolean(creature) && this.textures.exists(creature.textureKey));
   }
 
-  /** Bottom edge of the creature row (tallest case: full-height cutout + plate). */
-  private getSketchbookRowBottomY(): number {
-    return this.getSketchbookRowCenterY() + (SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX) / 2;
+  /** Geometry of the ONE unified sketchbook completion panel: frame bounds plus
+   *  where the creature row, divider, and text block sit inside it. Derived from
+   *  the consts + live canvas size + collected count, and used by BOTH
+   *  applyCalvinCompletionMessageLayout and showSketchbookGallery, so the row and
+   *  text nest inside the same frame by construction. Vertically centered on the
+   *  canvas. With zero collected (defensive), it collapses to a text-only panel. */
+  private getSketchbookPanelLayout(): {
+    panelW: number;
+    panelH: number;
+    panelCenterY: number;
+    rowPitch: number;
+    rowCenterY: number;
+    dividerY: number;
+    textCenterY: number;
+    hasRow: boolean;
+  } {
+    const { width: canvasW, height: canvasH } = this.scale.gameSize;
+    const count = this.getCollectedCreatureEntries().length;
+    const textZoneW = this.isMobileLayout ? 592 : 584;
+    const textZoneH = this.isMobileLayout ? 180 : 190;
+
+    const rowBandH = count > 0 ? SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX : 0;
+    const dividerZoneH = count > 0 ? SKETCHBOOK_DIVIDER_GAP_PX * 2 : 0;
+    const rowPitch = count > 0 ? Math.min(110, (canvasW - 80) / count) : 0;
+    // Row span upper bound: plates are capped at (pitch - 6) wide, so the row
+    // never exceeds count*pitch - 6. Panel wraps it with side padding, clamped
+    // to the canvas with a 20px outer margin; never narrower than the text zone.
+    const rowSpanPx = count > 0 ? count * rowPitch - 6 : 0;
+    const panelW = Math.min(canvasW - 40, Math.max(textZoneW, rowSpanPx + SKETCHBOOK_PANEL_SIDE_PAD_PX * 2));
+    const panelH = SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + dividerZoneH + textZoneH + SKETCHBOOK_PANEL_BOTTOM_PAD_PX;
+
+    const panelCenterY = Math.round(canvasH / 2);
+    const panelTop = panelCenterY - panelH / 2;
+    const rowCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH / 2);
+    const dividerY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + SKETCHBOOK_DIVIDER_GAP_PX);
+    const textCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + dividerZoneH + textZoneH / 2);
+
+    return { panelW, panelH, panelCenterY, rowPitch, rowCenterY, dividerY, textCenterY, hasRow: count > 0 };
   }
 
   private applyEndMessageLayout(didWin: boolean): void {
@@ -3265,19 +3308,18 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private applyCalvinCompletionMessageLayout(): void {
-    const overlayW = this.isMobileLayout ? 592 : 584;
-    const overlayH = this.isMobileLayout ? 234 : 240;
     const fontSize = this.isMobileLayout ? '14px' : '16px';
 
-    // Vertical stack: creature row on top, this panel below it. The panel top is
-    // derived from the row bottom + gap (shared derivation), so the two can never
-    // vertically overlap. Secret-room-only — campaign layouts are untouched above.
+    // ONE unified sketchbook frame (secret-room-only — campaign layouts are
+    // untouched above): the existing messagePanel is resized to contain BOTH the
+    // creature row (upper band) and the text summary (below the divider), with
+    // the geometry shared via getSketchbookPanelLayout so everything nests.
     const { width: canvasW } = this.scale.gameSize;
-    const overlayY = this.getSketchbookRowBottomY() + SKETCHBOOK_ROW_PANEL_GAP_PX + overlayH / 2;
+    const layout = this.getSketchbookPanelLayout();
 
-    this.messagePanel.setPosition(canvasW / 2, overlayY);
-    this.messagePanel.setSize(overlayW, overlayH);
-    this.messageText.setPosition(canvasW / 2, overlayY + 4);
+    this.messagePanel.setPosition(canvasW / 2, layout.panelCenterY);
+    this.messagePanel.setSize(layout.panelW, layout.panelH);
+    this.messageText.setPosition(canvasW / 2, layout.textCenterY);
     this.messageText.setFontSize(fontSize);
     this.messageText.setLineSpacing(2);
   }
