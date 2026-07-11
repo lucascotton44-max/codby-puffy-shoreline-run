@@ -123,7 +123,6 @@ const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 18; // attribution -> panel bottom edge
 const SKETCHBOOK_DIVIDER_GAP_PX = 10; // grid -> divider, and divider -> text zone
 const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // grid span -> panel side edges
 const SKETCHBOOK_ATTRIBUTION_ZONE_PX = 16; // credit line under the text zone
-const SKETCHBOOK_LOCKED_TINT = 0x2a2a30; // dark silhouette for uncollected creatures
 
 // Rarity tier colors for the sketchbook labels (player-facing; provisional
 // creatures display like any other — the provisional flag stays code-only).
@@ -3243,24 +3242,37 @@ export class ShorelineScene extends Phaser.Scene {
       const y = row * layout.gridRowPitchY;
       const isRevealed = this.collectedCreatures.has(creature.id);
 
-      const image = this.add.image(x, y, creature.textureKey);
+      // Plate sized from the texture's dimensions (not a live image), so locked
+      // and revealed slots get identical card sizes and the grid stays uniform.
       // Row-sized: ~70px tall, clamped by slot width so wide cutouts can't overlap.
-      image.setScale(Math.min(targetHeightPx / image.height, maxCutoutWidthPx / image.width));
+      const source = this.textures.get(creature.textureKey).getSourceImage() as { width: number; height: number };
+      const cutoutScale = Math.min(targetHeightPx / source.height, maxCutoutWidthPx / source.width);
       const plate = this.add.rectangle(
         x,
         y,
-        image.displayWidth + platePaddingPx,
-        image.displayHeight + platePaddingPx,
+        source.width * cutoutScale + platePaddingPx,
+        source.height * cutoutScale + platePaddingPx,
         0xcec6d2,
         0.9,
       );
-      children.push(plate, image); // plate first — behind its creature
+      children.push(plate); // plate first — behind its slot content
 
-      if (!isRevealed) {
-        // Locked: only the SHAPE shows — setTintFill floods every visible pixel
-        // solid dark (a true filled silhouette). Plain setTint multiplies, which
-        // leaves Calvin's dark line-on-transparent art readable.
-        image.setTintFill(SKETCHBOOK_LOCKED_TINT);
+      if (isRevealed) {
+        const image = this.add.image(x, y, creature.textureKey);
+        image.setScale(cutoutScale);
+        children.push(image);
+      } else {
+        // Locked: a mystery mark instead of the art — Calvin's open line art
+        // stays recognizable under any tint, so the real texture is not drawn
+        // at all. Big centered "?" on the same light plate.
+        const mystery = this.add.text(x, y, '?', {
+          color: '#6a6a72',
+          fontFamily: 'monospace',
+          fontSize: '48px',
+          fontStyle: 'bold',
+        });
+        mystery.setOrigin(0.5, 0.5);
+        children.push(mystery);
       }
 
       // Name (line 1) + rarity (line 2), centered under the plate. Locked slots
