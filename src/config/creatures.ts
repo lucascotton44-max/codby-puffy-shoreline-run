@@ -4,95 +4,166 @@ export interface Creature {
   id: string;
   name: string;
   rarity: CreatureRarity;
-  /** % of creature that has melted. null = non-melt creature (cast Bart, legendary, etc.) */
+  /** % of creature that has melted. null = not yet confirmed with Calvin. */
   meltPercent: number | null;
-  /** Spritesheet / texture key — populated in C2 when art is ready. */
-  textureKey?: string;
+  /** Texture key the scene preload registers for this creature's cutout. */
+  textureKey: string;
+  /** Filename under MELT_CUTOUT_BASE_PATH (transparent set — renders on the dark gallery card). */
+  file: string;
+  /** True while % / rarity are placeholders awaiting Calvin's confirmation. */
+  provisional?: boolean;
   flavor?: string;
 }
 
+/** Transparent cutout set ONLY — the white_background_png siblings are not for the gallery. */
+export const MELT_CUTOUT_BASE_PATH = 'assets/sprites/calvin/melts/melt_creature_cutouts/transparent_png/';
+
 /**
- * Registry of all Calvin creatures confirmed from Calvin's cards.
+ * Registry of Calvin's real melt roster (C2): the 14 scanned cutouts.
  * Keys match the `creatureId` on FragmentDefinition / StoryFragment.
  *
- * TODO (C2/C3): add remaining melts to reach ~22 total
+ * Confirmed with Calvin: melt-long-48, melt-king, melt-snail.
+ * The rest are provisional (meltPercent null, rarity defaulted) until confirmed.
+ *
  * TODO (C3): add the 8 cast Barts
- * TODO (C2+): set textureKey for each once art is prepared
- * TODO: replace legendary-unknown's name once Calvin names it
  */
 export const CREATURES: Readonly<Record<string, Creature>> = {
-  'drip-head': {
-    id: 'drip-head',
-    name: 'Drip-Head',
-    rarity: 'rare',
+  'melt-crowned-long': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-crowned-long',
+    name: 'Crowned Long Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-crowned-long',
+    file: '01_crowned_long_blob.png',
+  },
+  'melt-flying': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-flying',
+    name: 'Flying Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-flying',
+    file: '02_flying_blob.png',
+  },
+  'melt-long-48': {
+    // CONFIRMED: 48% melted, common. (Name TBD with Calvin; descriptive for now.)
+    id: 'melt-long-48',
+    name: 'Long Blob',
+    rarity: 'common',
     meltPercent: 48,
+    textureKey: 'calvin-melt-long-48',
+    file: '03_long_blob_48.png',
   },
-  'spike-drip': {
-    id: 'spike-drip',
-    name: 'Spike-Drip',
+  'melt-tiny-center': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-tiny-center',
+    name: 'Tiny Center Blob',
     rarity: 'uncommon',
-    meltPercent: 40,
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-tiny-center',
+    file: '04_tiny_center_blob.png',
   },
-  'blob-frog': {
-    id: 'blob-frog',
-    name: 'Blob-Frog',
-    rarity: 'common',
-    meltPercent: 22,
-  },
-  'book-ghost': {
-    id: 'book-ghost',
-    name: 'Book-Ghost',
+  'melt-small-face': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-small-face',
+    name: 'Small Face Blob',
     rarity: 'uncommon',
-    meltPercent: 40,
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-small-face',
+    file: '05_small_face_blob.png',
   },
-  'button-eyes': {
-    id: 'button-eyes',
-    name: 'Button-Eyes',
+  'melt-right-legged': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-right-legged',
+    name: 'Right-Legged Blob',
     rarity: 'uncommon',
-    meltPercent: 80,
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-right-legged',
+    file: '06_right_legged_blob.png',
   },
-  'tiny-puddle': {
-    id: 'tiny-puddle',
-    name: 'Tiny-Puddle',
-    rarity: 'common',
-    meltPercent: 2,
-  },
-  'puff-face': {
-    id: 'puff-face',
-    name: 'Puff-Face',
-    rarity: 'common',
-    meltPercent: 9,
-  },
-  'melt-grin': {
-    id: 'melt-grin',
-    name: 'Melt-Grin',
+  'melt-large-slug': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-large-slug',
+    name: 'Large Center Slug',
     rarity: 'uncommon',
-    meltPercent: 90,
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-large-slug',
+    file: '07_large_center_slug.png',
   },
-  'drip-stack': {
-    id: 'drip-stack',
-    name: 'Drip-Stack',
+  'melt-left-smiling': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-left-smiling',
+    name: 'Left Smiling Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-left-smiling',
+    file: '08_left_smiling_blob.png',
+  },
+  'melt-right-spiky': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-right-spiky',
+    name: 'Right Spiky Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-right-spiky',
+    file: '09_right_spiky_blob.png',
+  },
+  'melt-squid': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-squid',
+    name: 'Squid Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-squid',
+    file: '10_squid_blob.png',
+  },
+  'melt-hair': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-hair',
+    name: 'Hair Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-hair',
+    file: '11_hair_blob.png',
+  },
+  'melt-long-droop': {
+    // PLACEHOLDER — confirm % + rarity with Calvin
+    id: 'melt-long-droop',
+    name: 'Long Droop Blob',
+    rarity: 'uncommon',
+    meltPercent: null,
+    provisional: true,
+    textureKey: 'calvin-melt-long-droop',
+    file: '12_long_droop_blob.png',
+  },
+  'melt-king': {
+    // CONFIRMED: 'Sucka Free King', 3.8% melted, rare.
+    id: 'melt-king',
+    name: 'Sucka Free King',
     rarity: 'rare',
-    meltPercent: 99,
+    meltPercent: 3.8,
+    textureKey: 'calvin-melt-king',
+    file: '13_king_blob.png',
   },
-  'snail-sludge': {
-    id: 'snail-sludge',
+  'melt-snail': {
+    // CONFIRMED: 'Snail-Sludge', 30% melted, uncommon.
+    id: 'melt-snail',
     name: 'Snail-Sludge',
     rarity: 'uncommon',
-    meltPercent: null,
-  },
-  'drip-block': {
-    id: 'drip-block',
-    name: 'Drip-Block',
-    rarity: 'uncommon',
-    meltPercent: 40,
-  },
-  // Ships as a locked "?" card until Calvin names it.
-  'legendary-unknown': {
-    id: 'legendary-unknown',
-    name: '???',
-    rarity: 'legendary',
-    meltPercent: null,
+    meltPercent: 30,
+    textureKey: 'calvin-melt-snail',
+    file: '14_snail.png',
   },
 };
 

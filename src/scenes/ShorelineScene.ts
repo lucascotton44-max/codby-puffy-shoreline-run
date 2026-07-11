@@ -11,6 +11,7 @@ import {
   GROUND_Y,
   TEXTURE_KEYS,
 } from '../config/constants.js';
+import { CREATURES, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
@@ -304,6 +305,11 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlayer, ASSET_PATHS.calvinEarthEyesBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinRedBartPlayer, ASSET_PATHS.calvinRedBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinMeltPatrolSprite, ASSET_PATHS.calvinMeltPatrolSprite);
+    // Calvin melt roster cutouts (transparent set) — data-driven off the registry
+    // so every Creature.textureKey is loaded by construction.
+    Object.values(CREATURES).forEach((creature) => {
+      this.load.image(creature.textureKey, `${MELT_CUTOUT_BASE_PATH}${creature.file}`);
+    });
     this.load.image(TEXTURE_KEYS.quakeDonairBossIdle, ASSET_PATHS.quakeDonairBossIdle);
     this.load.image(TEXTURE_KEYS.quakeDonairBossThrow, ASSET_PATHS.quakeDonairBossThrow);
     this.load.image(TEXTURE_KEYS.quakeDonairBossStunned, ASSET_PATHS.quakeDonairBossStunned);

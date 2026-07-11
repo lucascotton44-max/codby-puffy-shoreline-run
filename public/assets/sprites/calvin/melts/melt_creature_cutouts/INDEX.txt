@@ -1,0 +1,7 @@
+Melt creature cutouts
+=====================
+
+transparent_png: transparent-background line-art PNGs, upscaled 4x.
+white_background_png: white-background copies for platforms that flatten transparency.
+
+Edge-clipped doodles were excluded because their full silhouettes are not visible in the source image.

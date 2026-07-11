@@ -615,29 +615,29 @@ export const LEVELS: LevelDefinition[] = [
       { x: 3220, y: 388, width: 90, height: 18, kind: 'blackSketchPuddle' },
     ],
     fragments: [
-      // S01 — Safe first pickup → blob-frog (common, 22%)
-      { x: 180, y: GROUND_Y - 64, creatureId: 'blob-frog' },
+      // S01 — Safe first pickup → melt-long-48 (common, 48% CONFIRMED — easy confirmed win first)
+      { x: 180, y: GROUND_Y - 64, creatureId: 'melt-long-48' },
 
-      // S02 — Low dock hop reward → tiny-puddle (common, 2%)
-      { x: 700, y: 366, creatureId: 'tiny-puddle' },
+      // S02 — Low dock hop reward → melt-tiny-center (uncommon provisional — small creature, small hop)
+      { x: 700, y: 366, creatureId: 'melt-tiny-center' },
 
-      // S03 — Forward confirmation → spike-drip (uncommon, 40%)
-      { x: 1200, y: 360, creatureId: 'spike-drip' },
+      // S03 — Forward confirmation → melt-flying (uncommon provisional — airborne blob for the first air route)
+      { x: 1200, y: 360, creatureId: 'melt-flying' },
 
-      // S04 — High climb reward → book-ghost (uncommon, 40%)
-      { x: 1680, y: 240, creatureId: 'book-ghost' },
+      // S04 — High climb reward → melt-crowned-long (uncommon provisional — crowned blob crowns the climb)
+      { x: 1680, y: 240, creatureId: 'melt-crowned-long' },
 
-      // S05 — Recovery reward → button-eyes (uncommon, 80%)
-      { x: 2180, y: 314, creatureId: 'button-eyes' },
+      // S05 — Recovery reward → melt-left-smiling (uncommon provisional — friendly face after the hard stretch)
+      { x: 2180, y: 314, creatureId: 'melt-left-smiling' },
 
-      // S06 — Optional glide-value reward → puff-face (common, 9%)
-      { x: 2660, y: 310, creatureId: 'puff-face' },
+      // S06 — Optional glide-value reward → melt-snail (uncommon, 30% CONFIRMED — Snail-Sludge for the patient route)
+      { x: 2660, y: 310, creatureId: 'melt-snail' },
 
-      // S07 — Final buildup reward → drip-head (rare, 48%)
-      { x: 3220, y: 360, creatureId: 'drip-head' },
+      // S07 — Final buildup reward → melt-squid (uncommon provisional — spikier silhouette raising stakes)
+      { x: 3220, y: 360, creatureId: 'melt-squid' },
 
-      // S08 — Near-door payoff → drip-stack (rare, 99%)
-      { x: 3860, y: 368, creatureId: 'drip-stack' },
+      // S08 — Near-door payoff → melt-king (rare, 3.8% CONFIRMED — Sucka Free King as the door prize)
+      { x: 3860, y: 368, creatureId: 'melt-king' },
     ],
     powerUps: [],
     scuttleclaws: [
