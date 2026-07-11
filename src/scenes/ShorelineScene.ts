@@ -11,7 +11,7 @@ import {
   GROUND_Y,
   TEXTURE_KEYS,
 } from '../config/constants.js';
-import { CREATURES, Creature, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
+import { CREATURES, Creature, CreatureRarity, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
 import {
   AMBIENT_BY_LEVEL,
@@ -116,10 +116,20 @@ const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
 // builder — so the composition nests correctly by construction.
 const SKETCHBOOK_ROW_CREATURE_HEIGHT_PX = 70;
 const SKETCHBOOK_ROW_PLATE_PADDING_PX = 16;
+const SKETCHBOOK_LABEL_ZONE_PX = 34; // name + rarity lines under each plate
 const SKETCHBOOK_PANEL_TOP_PAD_PX = 26; // panel top edge -> row band
 const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 26; // text zone -> panel bottom edge
 const SKETCHBOOK_DIVIDER_GAP_PX = 12; // row band -> divider, and divider -> text zone
 const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // row span -> panel side edges
+
+// Rarity tier colors for the sketchbook labels (player-facing; provisional
+// creatures display like any other — the provisional flag stays code-only).
+const SKETCHBOOK_RARITY_COLORS: Record<CreatureRarity, string> = {
+  legendary: '#d7b45a', // gold
+  rare: '#9a72d2', // purple
+  uncommon: '#5aaa96', // teal
+  common: '#9696a0', // grey
+};
 
 const CHARACTER_ANIMATION_KEYS = {
   cod: {
@@ -3212,6 +3222,14 @@ export class ShorelineScene extends Phaser.Scene {
     const pitch = layout.rowPitch;
     const maxCutoutWidthPx = pitch - platePaddingPx - 6; // keep neighbours' plates from colliding
 
+    // Labels hang below the plate band (plate center = container origin). The
+    // plate band half-height is fixed by the consts, so label rows line up
+    // across creatures regardless of each cutout's actual height.
+    const plateBandHalfPx = (SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX) / 2;
+    const nameTopPx = plateBandHalfPx + 4;
+    const rarityTopPx = nameTopPx + 14;
+    const maxLabelWidthPx = pitch - 8;
+
     const children: Phaser.GameObjects.GameObject[] = [];
     collected.forEach((creature, i) => {
       const x = (i - (collected.length - 1) / 2) * pitch;
@@ -3227,6 +3245,23 @@ export class ShorelineScene extends Phaser.Scene {
         0.9,
       );
       children.push(plate, image); // plate first — behind its creature
+
+      // Name (line 1) + color-coded rarity (line 2), centered under the plate.
+      const name = this.add.text(x, nameTopPx, creature.name, {
+        color: '#d8ddd2',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        fontStyle: 'bold',
+      });
+      name.setOrigin(0.5, 0);
+      this.truncateLabelToWidth(name, maxLabelWidthPx);
+      const rarity = this.add.text(x, rarityTopPx, creature.rarity.toUpperCase(), {
+        color: SKETCHBOOK_RARITY_COLORS[creature.rarity],
+        fontFamily: 'monospace',
+        fontSize: '10px',
+      });
+      rarity.setOrigin(0.5, 0);
+      children.push(name, rarity);
     });
 
     // Subtle divider between the row band and the text block, matching the
@@ -3239,6 +3274,22 @@ export class ShorelineScene extends Phaser.Scene {
     layer.setDepth(10);
     this.uiLayer.add(layer);
     this.sketchbookGalleryLayer = layer;
+  }
+
+  /** Shrinks a label to fit its cell by dropping trailing characters for an
+   *  ellipsis (measured, not guessed), so long names never overflow into the
+   *  neighbouring creature's cell. */
+  private truncateLabelToWidth(label: Phaser.GameObjects.Text, maxWidthPx: number): void {
+    if (label.width <= maxWidthPx) {
+      return;
+    }
+    const full = label.text;
+    for (let len = full.length - 1; len > 0; len--) {
+      label.setText(`${full.slice(0, len).trimEnd()}…`);
+      if (label.width <= maxWidthPx) {
+        return;
+      }
+    }
   }
 
   /** Collected creatures with valid registry entries + loaded textures — shared
@@ -3270,7 +3321,13 @@ export class ShorelineScene extends Phaser.Scene {
     const textZoneW = this.isMobileLayout ? 592 : 584;
     const textZoneH = this.isMobileLayout ? 180 : 190;
 
-    const rowBandH = count > 0 ? SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX : 0;
+    // Row band = plate band (cutout + plate padding) + label zone (name + rarity
+    // lines under each plate). rowCenterY is the PLATE center — labels hang below
+    // it, inside the band — so the row builder's plate-at-container-origin
+    // positioning is unchanged while the panel grows to contain the labels.
+    const plateBandH = count > 0 ? SKETCHBOOK_ROW_CREATURE_HEIGHT_PX + SKETCHBOOK_ROW_PLATE_PADDING_PX : 0;
+    const labelZoneH = count > 0 ? SKETCHBOOK_LABEL_ZONE_PX : 0;
+    const rowBandH = plateBandH + labelZoneH;
     const dividerZoneH = count > 0 ? SKETCHBOOK_DIVIDER_GAP_PX * 2 : 0;
     const rowPitch = count > 0 ? Math.min(110, (canvasW - 80) / count) : 0;
     // Row span upper bound: plates are capped at (pitch - 6) wide, so the row
@@ -3282,7 +3339,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     const panelCenterY = Math.round(canvasH / 2);
     const panelTop = panelCenterY - panelH / 2;
-    const rowCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH / 2);
+    const rowCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + plateBandH / 2);
     const dividerY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + SKETCHBOOK_DIVIDER_GAP_PX);
     const textCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + rowBandH + dividerZoneH + textZoneH / 2);
 
