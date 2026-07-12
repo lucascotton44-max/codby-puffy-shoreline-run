@@ -30,6 +30,7 @@ import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
 import { HazardKind, HazardZone } from '../objects/Hazard.js';
 import { LordMalefacto } from '../objects/LordMalefacto.js';
+import { QuakeBoss } from '../objects/QuakeBoss.js';
 import { PowerUpKind, PowerUpPickup } from '../objects/PowerUp.js';
 import { Scuttleclaw } from '../objects/Scuttleclaw.js';
 
@@ -160,6 +161,7 @@ export class ShorelineScene extends Phaser.Scene {
   private powerUps!: Phaser.Physics.Arcade.Group;
   private scuttleclaws!: Phaser.Physics.Arcade.Group;
   private lordMalefacto?: LordMalefacto;
+  private quakeBoss?: QuakeBoss;
   private ventZones: Phaser.GameObjects.Rectangle[] = [];
   private ventGraphics!: Phaser.GameObjects.Graphics;
   private readonly BUBBLE_VENT_BOOST_COOLDOWN_MS = 700;
@@ -499,6 +501,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.updateBubbleVentVisual(time);
     this.updateScuttleclaws();
     this.lordMalefacto?.update(time);
+    this.quakeBoss?.update(time);
     this.syncPlayerDecorations();
 
     if (this.isEnded) {
@@ -1093,13 +1096,9 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    if (this.hasTexture(TEXTURE_KEYS.quakeDonairBossIdle)) {
-      const boss = this.add.image(900, GROUND_Y + 7, TEXTURE_KEYS.quakeDonairBossIdle);
-      boss.setOrigin(0.5, 1);
-      boss.setDisplaySize(140, 140);
-      boss.setDepth(5);
-    }
-
+    // The static boss diorama image is gone — the living QuakeBoss entity
+    // (spawned via currentLevel.quakeBoss in createBoss) replaces it. The
+    // floating donair stays as a harmless staging prop until Q2's projectiles.
     if (this.hasTexture(TEXTURE_KEYS.donairProjectile)) {
       const donair = this.add.image(690, GROUND_Y - 130, TEXTURE_KEYS.donairProjectile);
       donair.setDisplaySize(72, 45);
@@ -1511,6 +1510,11 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createBoss(): void {
     this.lordMalefacto = this.currentLevel.boss ? new LordMalefacto(this, this.currentLevel.boss) : undefined;
+    // Quake needs his PNG art (no procedural fallback like Malefacto's parts).
+    this.quakeBoss =
+      this.currentLevel.quakeBoss && this.hasTexture(TEXTURE_KEYS.quakeDonairBossIdle)
+        ? new QuakeBoss(this, this.currentLevel.quakeBoss)
+        : undefined;
   }
 
   private createEndMarker(): void {

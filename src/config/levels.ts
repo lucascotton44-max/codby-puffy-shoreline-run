@@ -59,6 +59,14 @@ export type LordMalefactoDefinition = {
   damage?: number;
 };
 
+// Quake (Old Variety donair boss). x/y is the feet/ground line (bottom anchor).
+export type QuakeBossDefinition = {
+  x: number;
+  y: number;
+  hp?: number;
+  damage?: number;
+};
+
 export type BubbleVentDefinition = {
   x: number;
   y: number;
@@ -112,6 +120,7 @@ export type LevelDefinition = {
   powerUps: PowerUpDefinition[];
   scuttleclaws: ScuttleclawDefinition[];
   boss?: LordMalefactoDefinition;
+  quakeBoss?: QuakeBossDefinition;
   bubbleVents?: BubbleVentDefinition[];
   eelgrassZones?: EelgrassZoneDefinition[];
   currentZones?: CurrentZoneDefinition[];
@@ -673,6 +682,7 @@ export const LEVELS: LevelDefinition[] = [
     fragments: [],
     powerUps: [],
     scuttleclaws: [],
+    quakeBoss: { x: 900, y: GROUND_Y },
     testOnly: true,
   },
 ];
