@@ -152,12 +152,24 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   }
 
   private static createMeltVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
-    if (scene.textures.exists(TEXTURE_KEYS.calvinMeltPatrolSprite)) {
-      const shadow = scene.add.ellipse(0, 14, 72, 10, 0x050809, 0.34);
-      const sprite = scene.add.image(0, 22, TEXTURE_KEYS.calvinMeltPatrolSprite);
+    if (scene.textures.exists(TEXTURE_KEYS.calvinScuttlemeltSprite)) {
+      // Scuttlemelt cutout is landscape (196x165): width-led sizing preserves
+      // the ratio (80 * 165/196 = 67). Shadow sized to sit under the ~80px-wide
+      // sprite; same bottom anchor keeps the ground contact line (and the
+      // physics body) exactly where it was.
+      const shadow = scene.add.ellipse(0, 14, 64, 10, 0x050809, 0.34);
+      // Backlight: the same cutout ~10% larger, tinted the game's light ink
+      // color at low alpha, drawn BEHIND the sprite — a soft halo so the dark
+      // ink separates from the dark night-water. No art edit, no new asset.
+      const backlight = scene.add.image(0, 22, TEXTURE_KEYS.calvinScuttlemeltSprite);
+      backlight.setOrigin(0.5, 1);
+      backlight.setDisplaySize(88, 74);
+      backlight.setTintFill(0xd8ddd2);
+      backlight.setAlpha(0.35);
+      const sprite = scene.add.image(0, 22, TEXTURE_KEYS.calvinScuttlemeltSprite);
       sprite.setOrigin(0.5, 1);
-      sprite.setDisplaySize(102, 64);
-      return [shadow, sprite];
+      sprite.setDisplaySize(80, 67);
+      return [shadow, backlight, sprite];
     }
 
     const shadow = scene.add.ellipse(0, 14, 68, 11, 0x050809, 0.38);

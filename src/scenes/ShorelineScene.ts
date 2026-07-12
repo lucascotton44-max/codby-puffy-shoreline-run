@@ -332,6 +332,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.calvinEarthEyesBartPlayer, ASSET_PATHS.calvinEarthEyesBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinRedBartPlayer, ASSET_PATHS.calvinRedBartPlayer);
     this.load.image(TEXTURE_KEYS.calvinMeltPatrolSprite, ASSET_PATHS.calvinMeltPatrolSprite);
+    this.load.image(TEXTURE_KEYS.calvinScuttlemeltSprite, ASSET_PATHS.calvinScuttlemeltSprite);
     // Calvin melt roster cutouts (transparent set) — data-driven off the registry
     // so every Creature.textureKey is loaded by construction.
     Object.values(CREATURES).forEach((creature) => {
