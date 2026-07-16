@@ -501,7 +501,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.updateBubbleVentVisual(time);
     this.updateScuttleclaws();
     this.lordMalefacto?.update(time);
-    this.quakeBoss?.update(time);
+    this.quakeBoss?.update(time, this.player.x);
     this.syncPlayerDecorations();
 
     if (this.isEnded) {
@@ -1088,22 +1088,6 @@ export class ShorelineScene extends Phaser.Scene {
     this.createBubbleVents();
     this.createEelgrassVisuals();
     this.createCurrentZoneVisuals();
-    this.createQuakeBossTestVisuals();
-  }
-
-  private createQuakeBossTestVisuals(): void {
-    if (this.currentLevel.id !== 'quake-donair-boss-test') {
-      return;
-    }
-
-    // The static boss diorama image is gone — the living QuakeBoss entity
-    // (spawned via currentLevel.quakeBoss in createBoss) replaces it. The
-    // floating donair stays as a harmless staging prop until Q2's projectiles.
-    if (this.hasTexture(TEXTURE_KEYS.donairProjectile)) {
-      const donair = this.add.image(690, GROUND_Y - 130, TEXTURE_KEYS.donairProjectile);
-      donair.setDisplaySize(72, 45);
-      donair.setDepth(5);
-    }
   }
 
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
@@ -2496,6 +2480,26 @@ export class ShorelineScene extends Phaser.Scene {
         this.handleBossFlareContact();
       });
     }
+
+    if (this.quakeBoss) {
+      // Donairs route through the EXISTING damage flow (same cooldown/knockback
+      // as hazards); a landed donair despawns on the platform it hits.
+      this.physics.add.overlap(this.player, this.quakeBoss.getDonairs(), (_player, donair) => {
+        this.handleDonairContact(donair as Phaser.Physics.Arcade.Image);
+      });
+      this.physics.add.collider(this.quakeBoss.getDonairs(), this.platforms, (donair) => {
+        (donair as Phaser.Physics.Arcade.Image).destroy();
+      });
+    }
+  }
+
+  private handleDonairContact(donair: Phaser.Physics.Arcade.Image): void {
+    if (!donair.active || !this.quakeBoss || this.isEnded) {
+      return;
+    }
+
+    donair.destroy();
+    this.damagePlayer(this.quakeBoss.damage);
   }
 
   private enterSecretLevel(): void {
