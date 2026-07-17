@@ -90,6 +90,10 @@ const PRESENTATION_VIEW_HEIGHT = GAME_HEIGHT - PRESENTATION_MATTE_Y * 2;
 
 // Set true to hide control hints and dev labels for clean trailer/screen captures.
 const TRAILER_CAPTURE_MODE = false;
+const QUAKE_STOMP_MIN_FALL_SPEED = 10;
+const QUAKE_STOMP_TOP_GRACE_PX = 44; // ~top third of the 116px body reads as head
+const QUAKE_STOMP_PREVIOUS_BOTTOM_GRACE_PX = 40;
+const QUAKE_STOMP_X_GRACE_PX = 24;
 
 // Levels where collecting a relic shows a floating "+N" score popup.
 // Strict allowlist (the four campaign shoreline levels) — opt-in only, so the
@@ -2493,6 +2497,10 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (this.quakeBoss) {
+      this.physics.add.overlap(this.player, this.quakeBoss as Phaser.GameObjects.GameObject, () => {
+        this.handleQuakeBossContact();
+      });
+
       // Donairs route through the EXISTING damage flow (same cooldown/knockback
       // as hazards); a landed donair despawns on the platform it hits.
       this.physics.add.overlap(this.player, this.quakeBoss.getDonairs(), (_player, donair) => {
@@ -2510,7 +2518,42 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     this.quakeBoss.destroyDonair(donair);
+    if (this.isQaInvulnerable()) {
+      console.log('[QA] donair hit ignored');
+      return;
+    }
     this.damagePlayer(this.quakeBoss.damage);
+  }
+
+  /** QA-only invulnerability for boss iteration — triply fenced so it cannot
+   *  ship: requires the DEV build (import.meta.env is absent from the tsc dist
+   *  build, so this is false in production), a testOnly level, AND an explicit
+   *  ?qa=1 URL param. Skips donair damage only; everything else is untouched. */
+  private isQaInvulnerable(): boolean {
+    const isDevBuild = Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
+    if (!isDevBuild || this.currentLevel.testOnly !== true) {
+      return false;
+    }
+
+    return new URLSearchParams(window.location.search).get('qa') === '1';
+  }
+
+  private handleQuakeBossContact(): void {
+    const boss = this.quakeBoss;
+    if (!boss || this.isEnded) {
+      return;
+    }
+
+    if (!this.isStompingQuakeBoss(boss)) {
+      return;
+    }
+
+    if (boss.takeDamage(1)) {
+      const bounceDirection = this.player.x < boss.x ? -1 : 1;
+      this.getPlayerBody().setVelocity(bounceDirection * 125, -270);
+      this.playSfx(AUDIO_KEYS.malefactoStompHit);
+      this.cameras.main.shake(70, 0.0025);
+    }
   }
 
   private enterSecretLevel(): void {
@@ -3054,6 +3097,30 @@ export class ShorelineScene extends Phaser.Scene {
     const stompDepth = bossBody.height * 0.72;
 
     return playerBody.velocity.y > 35 && playerCenterY < bossUpperBody && playerBottom <= bossTop + stompDepth;
+  }
+
+  private isStompingQuakeBoss(boss: QuakeBoss): boolean {
+    if (!boss.isVulnerable() || boss.isInHitReaction()) {
+      return false;
+    }
+
+    const playerBody = this.getPlayerBody();
+    const bossBody = boss.body;
+    const playerCenterX = playerBody.x + playerBody.width * 0.5;
+    const playerBottom = playerBody.y + playerBody.height;
+    const bossLeft = bossBody.x;
+    const bossRight = bossBody.x + bossBody.width;
+    const bossTop = bossBody.y;
+    const previousPlayerBottom =
+      Number.isFinite(playerBody.prevFrame?.y) ? playerBody.prevFrame.y + playerBody.height : playerBottom;
+
+    return (
+      playerBody.velocity.y >= QUAKE_STOMP_MIN_FALL_SPEED &&
+      playerBottom <= bossTop + QUAKE_STOMP_TOP_GRACE_PX &&
+      previousPlayerBottom <= bossTop + QUAKE_STOMP_PREVIOUS_BOTTOM_GRACE_PX &&
+      playerCenterX >= bossLeft - QUAKE_STOMP_X_GRACE_PX &&
+      playerCenterX <= bossRight + QUAKE_STOMP_X_GRACE_PX
+    );
   }
 
   private isStompingScuttleclaw(scuttleclaw: Scuttleclaw): boolean {
