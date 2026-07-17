@@ -2488,7 +2488,7 @@ export class ShorelineScene extends Phaser.Scene {
         this.handleDonairContact(donair as Phaser.Physics.Arcade.Image);
       });
       this.physics.add.collider(this.quakeBoss.getDonairs(), this.platforms, (donair) => {
-        (donair as Phaser.Physics.Arcade.Image).destroy();
+        this.quakeBoss?.destroyDonair(donair as Phaser.Physics.Arcade.Image);
       });
     }
   }
@@ -2498,7 +2498,7 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
-    donair.destroy();
+    this.quakeBoss.destroyDonair(donair);
     this.damagePlayer(this.quakeBoss.damage);
   }
 

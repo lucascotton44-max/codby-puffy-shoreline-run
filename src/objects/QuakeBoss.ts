@@ -67,6 +67,8 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
   private hasSpawnedDonairThisThrow = false;
   private donairReleaseAt = 0;
   private throwTargetX = 0;
+  private activeDonair: Phaser.Physics.Arcade.Image | null = null;
+  private activeDonairLifetimeEvent: Phaser.Time.TimerEvent | null = null;
 
   public constructor(scene: Phaser.Scene, definition: QuakeBossDefinition) {
     const sprite = scene.add.image(0, 0, TEXTURE_KEYS.quakeDonairBossIdle);
@@ -96,6 +98,10 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
   /** targetX is the player's x at update time; captured when the throw fires. */
   public update(time: number, targetX: number): void {
     this.destroyOutOfBoundsDonairs();
+    if (this.activeDonair && !this.activeDonair.active) {
+      this.activeDonair = null;
+    }
+    this.enforceSingleDonairInvariant();
 
     if (this.bossState === 'throwActive' && !this.hasSpawnedDonairThisThrow && time >= this.donairReleaseAt) {
       this.spawnDonair(this.throwTargetX);
@@ -134,6 +140,15 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
     return this.donairs;
   }
 
+  public destroyDonair(donair: Phaser.Physics.Arcade.Image): void {
+    if (donair === this.activeDonair) {
+      this.destroyActiveDonair();
+    } else if (donair.active) {
+      donair.destroy();
+    }
+    this.enforceSingleDonairInvariant();
+  }
+
   private enterState(nextState: QuakeBossState, time: number): void {
     this.bossState = nextState;
     this.syncBodyVisual(nextState);
@@ -168,12 +183,16 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
     if (this.hasSpawnedDonairThisThrow) {
       return;
     }
+    if (this.activeDonair?.active) {
+      return;
+    }
     this.hasSpawnedDonairThisThrow = true;
-    this.clearActiveDonairs();
+    this.destroyActiveDonair();
 
     const spawnX = this.baseX + HAND_OFFSET_X;
     const spawnY = this.baseY + HAND_OFFSET_Y;
     const donair = this.donairs.create(spawnX, spawnY, TEXTURE_KEYS.donairProjectile) as Phaser.Physics.Arcade.Image;
+    this.ignoreFromNonMainCameras(donair);
     const source = donair.texture.getSourceImage() as { width: number; height: number };
     donair.setScale(DONAIR_DISPLAY_WIDTH_PX / source.width); // ratio-true (128x80 -> 44x27.5)
     donair.setDepth(11);
@@ -187,14 +206,32 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
     const speedY = -(gravityY * flightSeconds) / 2;
     donair.setVelocity(speedX, speedY);
     donair.setAngularVelocity(speedX < 0 ? -DONAIR_SPIN_DEG_PER_S : DONAIR_SPIN_DEG_PER_S);
+    this.activeDonair = donair;
 
-    this.scene.time.delayedCall(DONAIR_LIFETIME_MS, () => {
-      if (donair.active) {
-        donair.destroy();
+    this.activeDonairLifetimeEvent = this.scene.time.delayedCall(DONAIR_LIFETIME_MS, () => {
+      if (this.activeDonair === donair) {
+        this.destroyActiveDonair();
       }
     });
   }
-  private clearActiveDonairs(): void {
+
+  private ignoreFromNonMainCameras(gameObject: Phaser.GameObjects.GameObject): void {
+    this.scene.cameras.cameras.forEach((camera) => {
+      if (camera !== this.scene.cameras.main) {
+        camera.ignore(gameObject);
+      }
+    });
+  }
+
+  private destroyActiveDonair(): void {
+    this.activeDonairLifetimeEvent?.remove(false);
+    this.activeDonairLifetimeEvent = null;
+
+    if (this.activeDonair?.active) {
+      this.activeDonair.destroy();
+    }
+    this.activeDonair = null;
+
     this.donairs.getChildren().forEach((child) => {
       const donair = child as Phaser.Physics.Arcade.Image;
       if (donair.active) {
@@ -217,10 +254,30 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
       }
 
       if (donair.x < minX || donair.x > maxX || donair.y < minY || donair.y > maxY) {
+        if (donair === this.activeDonair) {
+          this.destroyActiveDonair();
+        } else {
+          donair.destroy();
+        }
+      }
+    });
+  }
+
+  private enforceSingleDonairInvariant(): void {
+    const activeChildren = this.donairs
+      .getChildren()
+      .filter((child) => {
+        const donair = child as Phaser.Physics.Arcade.Image;
+        return donair.active && donair.visible;
+      }) as Phaser.Physics.Arcade.Image[];
+
+    activeChildren.forEach((donair) => {
+      if (!this.activeDonair || donair !== this.activeDonair) {
         donair.destroy();
       }
     });
   }
+
   /** Texture-per-state (the PNG analogue of Malefacto's atlas-frame sync).
    *  recovery shows idle art (wind-down); roundLost/hitStun map to stunned art
    *  for later stages; unmapped states fall back to idle. */
