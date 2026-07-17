@@ -67,6 +67,7 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
   private hasSpawnedDonairThisThrow = false;
   private donairReleaseAt = 0;
   private throwTargetX = 0;
+  private facingDirection: -1 | 1 = -1;
   private activeDonair: Phaser.Physics.Arcade.Image | null = null;
   private activeDonairLifetimeEvent: Phaser.Time.TimerEvent | null = null;
 
@@ -97,6 +98,7 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
 
   /** targetX is the player's x at update time; captured when the throw fires. */
   public update(time: number, targetX: number): void {
+    this.updateFacing(targetX);
     this.destroyOutOfBoundsDonairs();
     if (this.activeDonair && !this.activeDonair.active) {
       this.activeDonair = null;
@@ -149,6 +151,15 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
     this.enforceSingleDonairInvariant();
   }
 
+  private updateFacing(targetX: number): void {
+    if (targetX === this.baseX) {
+      return;
+    }
+
+    this.facingDirection = targetX < this.baseX ? -1 : 1;
+    this.spriteBody.setFlipX(this.facingDirection > 0);
+  }
+
   private enterState(nextState: QuakeBossState, time: number): void {
     this.bossState = nextState;
     this.syncBodyVisual(nextState);
@@ -189,7 +200,7 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
     this.hasSpawnedDonairThisThrow = true;
     this.destroyActiveDonair();
 
-    const spawnX = this.baseX + HAND_OFFSET_X;
+    const spawnX = this.baseX + HAND_OFFSET_X * -this.facingDirection;
     const spawnY = this.baseY + HAND_OFFSET_Y;
     const donair = this.donairs.create(spawnX, spawnY, TEXTURE_KEYS.donairProjectile) as Phaser.Physics.Arcade.Image;
     this.ignoreFromNonMainCameras(donair);
@@ -292,6 +303,7 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
       this.spriteBody.setTexture(textureKey);
       this.applyFrameSizing();
     }
+    this.spriteBody.setFlipX(this.facingDirection > 0);
   }
 
   /** Per-texture sizing + grounding: scale THIS frame from its own source
