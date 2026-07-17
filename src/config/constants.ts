@@ -52,7 +52,7 @@ export const ASSET_PATHS = {
   level04LockTransition: 'assets/cutscenes/level_04_lock_transition.png',
   brasDorBelowLevel05Backdrop: 'assets/backgrounds/bras_dor_below_shallow_eelgrass_v1.png',
   calvinsCreatureRoomRainyHalifaxPlaceholder: 'assets/backgrounds/calvins_creature_room_rainy_halifax_placeholder.png',
-  oldVarietyBossArena: 'assets/backgrounds/old_variety_boss_arena_v1.png',
+  oldVarietyBossArena: 'assets/backgrounds/old_variety_boss_arena_v2.png',
   calvinEarthEyesBartPlaceholder: 'assets/sprites/calvin/earth_eyes_bart_placeholder.png',
   calvinRedBartPlaceholder: 'assets/sprites/calvin/red_bart_placeholder.png',
   calvinEarthEyesBartPlayer: 'assets/sprites/calvin/earth_eyes_bart_player_v1.png',
