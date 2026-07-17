@@ -506,6 +506,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.updateScuttleclaws();
     this.lordMalefacto?.update(time);
     this.quakeBoss?.update(time, this.player.x);
+    if (this.quakeBoss?.isMatchOver() && !this.isEnded) {
+      this.endLevel(true);
+    }
     this.syncPlayerDecorations();
 
     if (this.isEnded) {
@@ -3553,6 +3556,20 @@ export class ShorelineScene extends Phaser.Scene {
         'Every creature made it home.',
         `Sketches: ${this.collectedFragments}/${this.currentLevel.totalFragments}`,
         'Sucka Free',
+        `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
+        `Score: ${this.score}`,
+        '',
+        ...restartLines,
+      ];
+    }
+
+    // Minimal placeholder win screen for the Quake fight — the dedication and
+    // tribute copy are Q7's family-gated content, deliberately NOT here yet.
+    if (this.currentLevel.id === 'quake-donair-boss-test') {
+      return [
+        'THE OLD VARIETY',
+        '',
+        'Respect.',
         `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
         `Score: ${this.score}`,
         '',

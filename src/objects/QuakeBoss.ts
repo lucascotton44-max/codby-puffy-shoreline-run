@@ -24,6 +24,8 @@ const FRAME_BOTTOM_PADDING_PX: Record<string, number> = {
   [TEXTURE_KEYS.quakeDonairBossIdle]: 54,
   [TEXTURE_KEYS.quakeDonairBossThrow]: 54,
   [TEXTURE_KEYS.quakeDonairBossStunned]: 14,
+  // Old-generation 320x320 art like stunned (alpha bbox bottom 306 of 320).
+  [TEXTURE_KEYS.quakeDonairBossDefeat]: 14,
 };
 
 // Cycle timing: idle 1200 + telegraph 700 + throwActive 250 + recovery 850 =
@@ -53,6 +55,11 @@ const HIT_STUN_MS = 420;
 const HIT_FLASH_MS = 140;
 const VULNERABLE_TINT = 0xf1d37a;
 const VULNERABLE_PULSE_MS = 240;
+// Ending beats: at 0 HP he's caught (roundLost, stunned art) then daps —
+// beaten and delighted, never destroyed. After DAP_END_NOTIFY_MS in dapping,
+// isMatchOver() flips true and the scene ends the level as a win.
+const ROUND_LOST_MS = 900;
+const DAP_END_NOTIFY_MS = 1600;
 // Recovery-window "!" indicator above the head — created on recovery enter,
 // destroyed on exit (see syncVulnerableReadability). Container-local, so it
 // moves and cleans up with the boss.
@@ -88,6 +95,7 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
   private hitFlashTimer?: Phaser.Time.TimerEvent;
   private vulnerableIndicator?: Phaser.GameObjects.Text;
   private vulnerableIndicatorTween?: Phaser.Tweens.Tween;
+  private matchOverAt = Number.POSITIVE_INFINITY;
 
   public constructor(scene: Phaser.Scene, definition: QuakeBossDefinition) {
     const sprite = scene.add.image(0, 0, TEXTURE_KEYS.quakeDonairBossIdle);
@@ -128,7 +136,18 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
       this.spawnDonair(this.throwTargetX);
     }
 
+    // The dap is terminal: he holds it (facing the player) and never rejoins
+    // the throw cycle. The scene ends the level via isMatchOver().
+    if (this.bossState === 'dapping') {
+      return;
+    }
+
     if (time < this.stateEndsAt) {
+      return;
+    }
+
+    if (this.bossState === 'roundLost') {
+      this.enterState('dapping', time);
       return;
     }
 
@@ -180,9 +199,18 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
 
     this.hasTakenDamageThisRecovery = true;
     this.hp = Math.max(0, this.hp - amount);
-    this.enterState('hitStun', this.scene.time.now);
+    // At 0 HP the fight ends: a caught beat (roundLost, stunned art), then the
+    // dap (see update). No more hitStun cycling — the dead-end loop is gone.
+    this.enterState(this.hp <= 0 ? 'roundLost' : 'hitStun', this.scene.time.now);
     this.playHitFeedback();
     return true;
+  }
+
+  /** True once the dap has been held long enough for the scene to end the level
+   *  as a win (the scene polls this beside its update call, mirroring how
+   *  Malefacto's defeat feeds endLevel(true)). */
+  public isMatchOver(): boolean {
+    return this.bossState === 'dapping' && this.scene.time.now >= this.matchOverAt;
   }
 
   public destroyDonair(donair: Phaser.Physics.Arcade.Image): void {
@@ -230,6 +258,21 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
 
     if (nextState === 'hitStun') {
       this.stateEndsAt = time + HIT_STUN_MS;
+      return;
+    }
+
+    if (nextState === 'roundLost') {
+      // Fight's over the moment he's caught: any in-flight donair vanishes so
+      // nothing can hit the player during the ending beats.
+      this.destroyActiveDonair();
+      this.stateEndsAt = time + ROUND_LOST_MS;
+      return;
+    }
+
+    if (nextState === 'dapping') {
+      this.destroyActiveDonair();
+      this.stateEndsAt = Number.POSITIVE_INFINITY; // terminal — never auto-exits
+      this.matchOverAt = time + DAP_END_NOTIFY_MS;
       return;
     }
 
@@ -417,7 +460,9 @@ export class QuakeBoss extends Phaser.GameObjects.Container {
         ? TEXTURE_KEYS.quakeDonairBossThrow
         : state === 'hitStun' || state === 'roundLost'
           ? TEXTURE_KEYS.quakeDonairBossStunned
-          : TEXTURE_KEYS.quakeDonairBossIdle;
+          : state === 'dapping'
+            ? TEXTURE_KEYS.quakeDonairBossDefeat // repurposed as respect — beaten and delighted
+            : TEXTURE_KEYS.quakeDonairBossIdle;
     if (this.spriteBody.texture.key !== textureKey && this.scene.textures.exists(textureKey)) {
       this.spriteBody.setTexture(textureKey);
       this.applyFrameSizing();
