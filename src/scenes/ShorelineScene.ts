@@ -2058,12 +2058,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private createHud(): void {
-    const hasTouch =
-      navigator.maxTouchPoints > 0 ||
-      window.matchMedia('(pointer: coarse)').matches ||
-      /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
-      this.sys.game.device.input.touch;
-    this.isMobileLayout = hasTouch;
+    this.isMobileLayout = this.shouldUseMobileTouchControls();
 
     if (this.isMobileLayout) {
       // Compact full-width strip at top of screen for touch devices.
@@ -2308,8 +2303,24 @@ export class ShorelineScene extends Phaser.Scene {
     this.touchInput.jumpHeld = this.touchPointers.jump.size > 0;
   }
 
+  private shouldUseMobileTouchControls(): boolean {
+    const hasTouchInput =
+      navigator.maxTouchPoints > 0 ||
+      this.sys.game.device.input.touch;
+    const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const noHover = window.matchMedia('(hover: none)').matches;
+    const mobileUserAgent = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const shortViewportSide = Math.min(window.innerWidth, window.innerHeight);
+    const smallViewport = shortViewportSide <= 640;
+
+    return (
+      hasTouchInput &&
+      ((coarsePointer && noHover) || (coarsePointer && smallViewport) || (mobileUserAgent && smallViewport))
+    );
+  }
+
   private createTouchControls(): void {
-    if (!this.sys.game.device.input.touch || TRAILER_CAPTURE_MODE) {
+    if (!this.shouldUseMobileTouchControls() || TRAILER_CAPTURE_MODE) {
       return;
     }
 
