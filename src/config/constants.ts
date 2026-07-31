@@ -104,29 +104,37 @@ export const ASSET_PATHS = {
   storySparkIcon: 'assets/props/story_spark_icon.png',
 };
 
+// Each entry is a [m4a, ogg] fallback pair: Phaser probes the list in order and
+// downloads ONLY the first format the device can play. M4A (AAC) first — its
+// edit list is honored by Chrome AND Safari, so decodeAudioData returns the
+// exact WAV sample count and the music/ambient loop points survive unchanged
+// (measured: Chrome decodes our .ogg ~9-20ms LONG — untrimmed Vorbis tail
+// padding — which would add an audible hiccup at every loop seam; keep m4a
+// first). OGG covers browsers without AAC decoders (some Linux builds).
+// WAV masters live in dev_assets/audio_originals/ — re-encode from there only.
 export const AUDIO_PATHS = {
-  shorelineThemeLoop: 'assets/audio/music/shoreline_theme_loop.wav',
-  level02Theme: 'assets/audio/music/level_02_theme.wav',
-  level03CanalTheme: 'assets/audio/music/level_03_canal_theme.wav',
-  calvinsCreatureRoomThemeLoop: 'assets/audio/music/calvins_creature_room_theme_loop.wav',
-  jump: 'assets/audio/sfx/jump.wav',
-  glide: 'assets/audio/sfx/glide.wav',
-  collectFragment: 'assets/audio/sfx/collect_fragment.wav',
-  hazardHit: 'assets/audio/sfx/hazard_hit.wav',
-  characterSwitch: 'assets/audio/sfx/character_switch.wav',
-  levelComplete: 'assets/audio/sfx/level_complete.wav',
-  gameOver: 'assets/audio/sfx/game_over.wav',
-  scuttleclawStomp: 'assets/audio/sfx/scuttleclaw_stomp.wav',
-  powerupPickup: 'assets/audio/sfx/powerup_pickup.wav',
-  kelpShield: 'assets/audio/sfx/kelp_shield.wav',
-  tideLift: 'assets/audio/sfx/tide_lift.wav',
-  canalBoatTransition: 'assets/audio/sfx/canal_boat_transition_v1.wav',
-  malefactoStompHit: 'assets/audio/sfx/malefacto_stomp_hit_v1.wav',
-  landingThud: 'assets/audio/sfx/landing_thud.wav',
-  level1ShoreAmbient: 'assets/audio/ambient/level1_shore_ambient.wav',
-  canalAmbient: 'assets/audio/ambient/canal_ambient.wav',
-  bridgeAmbient: 'assets/audio/ambient/bridge_ambient.wav',
-  level01bAmbient: 'assets/audio/ambient/level01b_ambient.wav',
+  shorelineThemeLoop: ['assets/audio/music/shoreline_theme_loop.m4a', 'assets/audio/music/shoreline_theme_loop.ogg'],
+  level02Theme: ['assets/audio/music/level_02_theme.m4a', 'assets/audio/music/level_02_theme.ogg'],
+  level03CanalTheme: ['assets/audio/music/level_03_canal_theme.m4a', 'assets/audio/music/level_03_canal_theme.ogg'],
+  calvinsCreatureRoomThemeLoop: ['assets/audio/music/calvins_creature_room_theme_loop.m4a', 'assets/audio/music/calvins_creature_room_theme_loop.ogg'],
+  jump: ['assets/audio/sfx/jump.m4a', 'assets/audio/sfx/jump.ogg'],
+  glide: ['assets/audio/sfx/glide.m4a', 'assets/audio/sfx/glide.ogg'],
+  collectFragment: ['assets/audio/sfx/collect_fragment.m4a', 'assets/audio/sfx/collect_fragment.ogg'],
+  hazardHit: ['assets/audio/sfx/hazard_hit.m4a', 'assets/audio/sfx/hazard_hit.ogg'],
+  characterSwitch: ['assets/audio/sfx/character_switch.m4a', 'assets/audio/sfx/character_switch.ogg'],
+  levelComplete: ['assets/audio/sfx/level_complete.m4a', 'assets/audio/sfx/level_complete.ogg'],
+  gameOver: ['assets/audio/sfx/game_over.m4a', 'assets/audio/sfx/game_over.ogg'],
+  scuttleclawStomp: ['assets/audio/sfx/scuttleclaw_stomp.m4a', 'assets/audio/sfx/scuttleclaw_stomp.ogg'],
+  powerupPickup: ['assets/audio/sfx/powerup_pickup.m4a', 'assets/audio/sfx/powerup_pickup.ogg'],
+  kelpShield: ['assets/audio/sfx/kelp_shield.m4a', 'assets/audio/sfx/kelp_shield.ogg'],
+  tideLift: ['assets/audio/sfx/tide_lift.m4a', 'assets/audio/sfx/tide_lift.ogg'],
+  canalBoatTransition: ['assets/audio/sfx/canal_boat_transition_v1.m4a', 'assets/audio/sfx/canal_boat_transition_v1.ogg'],
+  malefactoStompHit: ['assets/audio/sfx/malefacto_stomp_hit_v1.m4a', 'assets/audio/sfx/malefacto_stomp_hit_v1.ogg'],
+  landingThud: ['assets/audio/sfx/landing_thud.m4a', 'assets/audio/sfx/landing_thud.ogg'],
+  level1ShoreAmbient: ['assets/audio/ambient/level1_shore_ambient.m4a', 'assets/audio/ambient/level1_shore_ambient.ogg'],
+  canalAmbient: ['assets/audio/ambient/canal_ambient.m4a', 'assets/audio/ambient/canal_ambient.ogg'],
+  bridgeAmbient: ['assets/audio/ambient/bridge_ambient.m4a', 'assets/audio/ambient/bridge_ambient.ogg'],
+  level01bAmbient: ['assets/audio/ambient/level01b_ambient.m4a', 'assets/audio/ambient/level01b_ambient.ogg'],
 };
 
 export const TEXTURE_KEYS = {

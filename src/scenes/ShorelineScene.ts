@@ -378,6 +378,51 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.audio(AUDIO_KEYS.canalAmbient, AUDIO_PATHS.canalAmbient);
     this.load.audio(AUDIO_KEYS.bridgeAmbient, AUDIO_PATHS.bridgeAmbient);
     this.load.audio(AUDIO_KEYS.level01bAmbient, AUDIO_PATHS.level01bAmbient);
+
+    this.createLoadingUi();
+  }
+
+  /** First-load progress bar + percentage. Must be called at the END of
+   *  preload() so every file is already queued. On warm scene restarts the
+   *  loader skips cached keys and the list is empty, so no UI is created and
+   *  no listeners are added (the progress listener would otherwise accumulate
+   *  on the persistent LoaderPlugin across restarts — it is removed on
+   *  COMPLETE for the same reason). Drawn on the default display list: this
+   *  runs before create() builds worldLayer/uiLayer, and everything here is
+   *  destroyed the moment loading completes. */
+  private createLoadingUi(): void {
+    if (this.load.list.size === 0) {
+      return;
+    }
+
+    const centerX = GAME_WIDTH / 2;
+    const centerY = GAME_HEIGHT / 2;
+    const barWidth = 320;
+    const barHeight = 6;
+
+    const frame = this.add.rectangle(centerX, centerY, barWidth + 8, barHeight + 8, 0x172426, 0.9);
+    frame.setStrokeStyle(1, 0xb9c0b5, 0.35);
+    const fill = this.add.rectangle(centerX - barWidth / 2, centerY, 1, barHeight, 0xd8ddd2, 0.9);
+    fill.setOrigin(0, 0.5);
+    const label = this.add.text(centerX, centerY - 26, 'LOADING 0%', {
+      color: COLORS.text,
+      fontFamily: 'monospace',
+      fontSize: '14px',
+      fontStyle: 'bold',
+    });
+    label.setOrigin(0.5, 0.5);
+
+    const onProgress = (value: number): void => {
+      fill.width = Math.max(1, Math.round(barWidth * value));
+      label.setText(`LOADING ${Math.round(value * 100)}%`);
+    };
+    this.load.on(Phaser.Loader.Events.PROGRESS, onProgress);
+    this.load.once(Phaser.Loader.Events.COMPLETE, () => {
+      this.load.off(Phaser.Loader.Events.PROGRESS, onProgress);
+      frame.destroy();
+      fill.destroy();
+      label.destroy();
+    });
   }
 
   public create(): void {

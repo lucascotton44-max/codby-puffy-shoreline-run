@@ -672,6 +672,15 @@ export const LEVELS: LevelDefinition[] = [
     musicAudioKey: AUDIO_KEYS.shorelineThemeLoop,
     worldWidth: 1320,
     startX: START_X,
+    // WARNING: endX is a deliberate OUT-OF-BOUNDS sentinel (3000 > worldWidth
+    // 1320). This level wins ONLY through QuakeBoss.isMatchOver() (the dap
+    // ending polled in ShorelineScene.update). checkFallOut()'s walk-to-end
+    // completion still applies here (the level has no `boss` property, and
+    // requiredFragments is 0), so it is prevented ONLY by world-bounds
+    // collision making x >= endX-26 unreachable. Do NOT promote this
+    // definition to a campaign level or widen worldWidth without replacing
+    // the sentinel with an explicit no-walk-to-end flag — otherwise players
+    // can walk past Quake for an instant win. See AUDIT-2026-07 finding F-12.
     endX: 3000,
     totalFragments: 0,
     requiredFragments: 0,
