@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/clean-dist.mjs && tsc -p tsconfig.build.json && node scripts/build.mjs",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "dependencies": {
