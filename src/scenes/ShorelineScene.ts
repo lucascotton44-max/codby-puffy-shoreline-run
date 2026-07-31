@@ -12,7 +12,7 @@ import {
   TEXTURE_KEYS,
 } from '../config/constants.js';
 import { CREATURES, CREATURE_ATTRIBUTION, CreatureRarity, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
-import { LEVELS, LevelDefinition } from '../config/levels.js';
+import { LEVELS, LevelDefinition, QUAKE_BONUS_LEVEL_ID } from '../config/levels.js';
 import { EPISODE_ONE_STORY_CARDS } from '../config/storyCards.js';
 import {
   AMBIENT_BY_LEVEL,
@@ -707,8 +707,9 @@ export class ShorelineScene extends Phaser.Scene {
   private hasNextLevel(): boolean {
     const nextIndex = this.currentLevelIndex + 1;
     if (nextIndex >= LEVELS.length) return false;
-    // testOnly levels are not part of normal campaign progression.
-    if (LEVELS[nextIndex].testOnly) return false;
+    // testOnly and bonusLevel slices are not part of campaign progression —
+    // bonus arenas are entered only via their explicit branch offer or URL.
+    if (LEVELS[nextIndex].testOnly || LEVELS[nextIndex].bonusLevel) return false;
     return true;
   }
 
@@ -1161,7 +1162,7 @@ export class ShorelineScene extends Phaser.Scene {
   private addPlatform(x: number, y: number, width: number, height: number, color: number): void {
     const platform = this.add.rectangle(x, y, width, height, color);
     const isBrasDor = this.currentLevel.id === 'bras-dor-below-level-05';
-    const isQuakeBossTest = this.currentLevel.id === 'quake-donair-boss-test';
+    const isQuakeBossTest = this.currentLevel.id === QUAKE_BONUS_LEVEL_ID;
     const hasDockProp = color === COLORS.dock && this.hasTexture(TEXTURE_KEYS.dockPlankPlatformProp);
 
     if (isBrasDor || isQuakeBossTest) {
@@ -1938,7 +1939,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private usesCalvinSketchPlayerVisuals(): boolean {
-    return this.isCalvinCreatureRoom() || this.currentLevel.id === 'quake-donair-boss-test';
+    return this.isCalvinCreatureRoom() || this.currentLevel.id === QUAKE_BONUS_LEVEL_ID;
   }
 
   private createCalvinCreatureVisual(characterKey: CharacterKey): Phaser.GameObjects.Container | null {
@@ -2253,10 +2254,20 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createTitleOverlay(): void {
     const usesSketchIdentity = this.usesCalvinSketchPlayerVisuals();
-    const titleText = usesSketchIdentity ? "CALVIN'S CREATURE ROOM" : "COD B\u2019Y & PUFFY\nSHORELINE RUN";
-    const objectiveText = usesSketchIdentity
-      ? 'A secret page behind the shoreline.'
-      : 'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.';
+    // The Old Variety arena shares the sketch identity (Bart visuals) but
+    // carries its own poster-styled title \u2014 without this it would wrongly
+    // titlecard as CALVIN'S CREATURE ROOM on direct loads and loss-retries.
+    const isOldVarietyArena = this.currentLevel.id === QUAKE_BONUS_LEVEL_ID;
+    const titleText = isOldVarietyArena
+      ? 'THE OLD VARIETY'
+      : usesSketchIdentity
+        ? "CALVIN'S CREATURE ROOM"
+        : "COD B\u2019Y & PUFFY\nSHORELINE RUN";
+    const objectiveText = isOldVarietyArena
+      ? 'Open challenge.\nOne night only.'
+      : usesSketchIdentity
+        ? 'A secret page behind the shoreline.'
+        : 'Collect the Tide Relics.\nMind the gaps. Ride the tide.\nReach CH 8.';
     const footerText = usesSketchIdentity ? '1 Earth Eyes | 2 Red Bart | R Restart' : '1 Cod B\u2019y | 2 Puffy | R Restart';
 
     const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0f1819, 0.58);
@@ -3747,7 +3758,7 @@ export class ShorelineScene extends Phaser.Scene {
 
     // Minimal placeholder win screen for the Quake fight — the dedication and
     // tribute copy are Q7's family-gated content, deliberately NOT here yet.
-    if (this.currentLevel.id === 'quake-donair-boss-test') {
+    if (this.currentLevel.id === QUAKE_BONUS_LEVEL_ID) {
       return [
         'THE OLD VARIETY',
         '',
@@ -3883,7 +3894,7 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private getHudTitleText(): string {
-    if (this.currentLevel.id === 'quake-donair-boss-test') {
+    if (this.currentLevel.id === QUAKE_BONUS_LEVEL_ID) {
       return 'THE OLD VARIETY';
     }
 
@@ -3899,8 +3910,10 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private getHudObjectiveText(collectibleLabel: string): string {
-    if (this.currentLevel.id === 'quake-donair-boss-test') {
-      return 'BOSS TEST';
+    if (this.currentLevel.id === QUAKE_BONUS_LEVEL_ID) {
+      // Player-facing objective, phrased from the Episode 1 poster card
+      // ("THE OLD VARIETY. OPEN CHALLENGE.") — no real-person naming.
+      return 'OPEN CHALLENGE';
     }
 
     if (this.currentLevel.id === 'lord-malefacto-boss-level-04') {

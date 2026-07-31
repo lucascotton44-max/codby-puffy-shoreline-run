@@ -129,7 +129,16 @@ export type LevelDefinition = {
   secretLevel?: boolean;
   /** Test/dev slice — excluded from normal campaign progression. Load via ?level=<id>. */
   testOnly?: boolean;
+  /** Optional bonus arena — excluded from campaign advance (hasNextLevel skips
+   *  it) but player-facing: reachable only through an explicit in-game branch
+   *  offer or a direct ?level=<id> URL. Unlike testOnly, this ships. */
+  bonusLevel?: boolean;
 };
+
+/** Promoted id of Quake's Old Variety bonus arena (plan §5,
+ *  quake_bonus_branch_implementation_plan_v1.md). Shared by the level
+ *  definition and every scene-side check so the id can never drift. */
+export const QUAKE_BONUS_LEVEL_ID = 'quake-donair-boss-old-variety';
 
 export const LEVELS: LevelDefinition[] = [
   // ── Campaign 1 — Shoreline intro ─────────────────────────────────────────
@@ -663,9 +672,11 @@ export const LEVELS: LevelDefinition[] = [
     secretLevel: true,
     testOnly: true,
   },
-  // Direct visual staging test only. Accessible via: ?level=quake-donair-boss-test
+  // Quake's Old Variety bonus arena — optional branch offered after Calvin's
+  // Creature Room completion (plan §4: never required, never in campaign
+  // advance). Also accessible directly via: ?level=quake-donair-boss-old-variety
   {
-    id: 'quake-donair-boss-test',
+    id: QUAKE_BONUS_LEVEL_ID,
     name: 'THE OLD VARIETY',
     backdropPath: ASSET_PATHS.oldVarietyBossArena,
     backdropTextureKey: TEXTURE_KEYS.oldVarietyBossArena,
@@ -677,10 +688,11 @@ export const LEVELS: LevelDefinition[] = [
     // ending polled in ShorelineScene.update). checkFallOut()'s walk-to-end
     // completion still applies here (the level has no `boss` property, and
     // requiredFragments is 0), so it is prevented ONLY by world-bounds
-    // collision making x >= endX-26 unreachable. Do NOT promote this
-    // definition to a campaign level or widen worldWidth without replacing
-    // the sentinel with an explicit no-walk-to-end flag — otherwise players
-    // can walk past Quake for an instant win. See AUDIT-2026-07 finding F-12.
+    // collision making x >= endX-26 unreachable. bonusLevel keeps it out of
+    // campaign advance; do NOT widen worldWidth or fold this into campaign
+    // without replacing the sentinel with an explicit no-walk-to-end flag —
+    // otherwise players can walk past Quake for an instant win.
+    // See AUDIT-2026-07 finding F-12.
     endX: 3000,
     totalFragments: 0,
     requiredFragments: 0,
@@ -692,6 +704,6 @@ export const LEVELS: LevelDefinition[] = [
     powerUps: [],
     scuttleclaws: [],
     quakeBoss: { x: 900, y: GROUND_Y },
-    testOnly: true,
+    bonusLevel: true,
   },
 ];
