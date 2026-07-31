@@ -504,6 +504,11 @@ export class ShorelineScene extends Phaser.Scene {
       return;
     }
 
+    if (this.canOfferQuakeBonusBranch() && Phaser.Input.Keyboard.JustDown(this.controls.start)) {
+      this.enterQuakeBonusBranch();
+      return;
+    }
+
     if (
       this.isEnded &&
       this.didWinLevel &&
@@ -701,6 +706,13 @@ export class ShorelineScene extends Phaser.Scene {
     this.isDirectTestLevel = this.isDirectTestLevel || isSecretRoute || this.currentLevel.testOnly === true;
     this.registry.set('shorelineSecretReturnToMain', isSecretRoute);
     this.registry.set('shorelineSecretRoute', false);
+    // The bonus-route flag only means anything while the Quake arena itself is
+    // the current level (it survives loss-retries there). Landing anywhere
+    // else — campaign, room, direct URLs — clears it so a stale flag can never
+    // redirect a later, unrelated arena win back to the main flow.
+    if (this.currentLevel.id !== QUAKE_BONUS_LEVEL_ID) {
+      this.registry.set('shorelineQuakeBonusRoute', false);
+    }
     this.registry.set('shorelineCurrentLevelIndex', this.currentLevelIndex);
   }
 
@@ -726,12 +738,22 @@ export class ShorelineScene extends Phaser.Scene {
   }
 
   private restartCurrentLevelOrReturnFromSecretRoute(): void {
+    // Quake bonus route: only a WIN returns to the main flow — a loss falls
+    // through to the plain restart below (arena title screen, retry), and the
+    // route flag deliberately survives that retry (selectCurrentLevel keeps it
+    // while the arena stays current) so the eventual win still heads home.
+    const isQuakeBonusWinReturn =
+      this.currentLevel.id === QUAKE_BONUS_LEVEL_ID &&
+      this.didWinLevel &&
+      this.registry.get('shorelineQuakeBonusRoute') === true;
     const shouldReturnToMain =
-      this.currentLevel.secretLevel === true && this.registry.get('shorelineSecretReturnToMain') === true;
+      (this.currentLevel.secretLevel === true && this.registry.get('shorelineSecretReturnToMain') === true) ||
+      isQuakeBonusWinReturn;
 
     if (shouldReturnToMain) {
       this.registry.set('shorelineSecretReturnToMain', false);
       this.registry.set('shorelineSecretRoute', false);
+      this.registry.set('shorelineQuakeBonusRoute', false);
       this.registry.set('shorelineCurrentLevelIndex', 0);
       this.stopCurrentMusic();
       this.stopCurrentAmbient();
@@ -2752,6 +2774,37 @@ export class ShorelineScene extends Phaser.Scene {
     }
   }
 
+  /** True while the Creature Room's won-screen should offer the Old Variety
+   *  branch: room completed, and the bonus arena exists in LEVELS. */
+  private canOfferQuakeBonusBranch(): boolean {
+    return (
+      this.isEnded &&
+      this.didWinLevel &&
+      this.currentLevel.id === 'calvins-creature-room' &&
+      LEVELS.some((level) => level.id === QUAKE_BONUS_LEVEL_ID)
+    );
+  }
+
+  /** Step 3 of quake_bonus_branch_implementation_plan_v1.md: the gated,
+   *  OPTIONAL post-completion branch from Calvin's Creature Room into the Old
+   *  Variety arena. Mirrors enterSecretLevel's registry+restart idiom;
+   *  shorelineStartLevelImmediately skips the title (matching how the
+   *  campaign's Malefacto transition auto-starts its boss level), and
+   *  shorelineQuakeBonusRoute arms the win-returns-to-main flow. */
+  private enterQuakeBonusBranch(): void {
+    const targetLevelIndex = LEVELS.findIndex((level) => level.id === QUAKE_BONUS_LEVEL_ID);
+    if (targetLevelIndex < 0) {
+      return;
+    }
+
+    this.registry.set('shorelineCurrentLevelIndex', targetLevelIndex);
+    this.registry.set('shorelineStartLevelImmediately', true);
+    this.registry.set('shorelineQuakeBonusRoute', true);
+    this.stopCurrentMusic();
+    this.stopCurrentAmbient();
+    this.scene.restart();
+  }
+
   private enterSecretLevel(): void {
     if (this.isEnded || this.isTransitioningToBoss) {
       return;
@@ -2784,6 +2837,10 @@ export class ShorelineScene extends Phaser.Scene {
     this.isEnded = false;
     this.didWinLevel = false;
     this.isTransitioningToBoss = false;
+    // Transient tap-guard must not leak across scene.restart (class fields
+    // survive restarts — see selectCurrentLevel's isDirectTestLevel note): a
+    // leaked true would silently swallow the first tap of the next level.
+    this.suppressNextTouchAction = false;
     this.sketchbookGalleryLayer?.destroy();
     this.sketchbookGalleryLayer = undefined;
     this.kelpShieldCharges = 0;
@@ -3482,6 +3539,53 @@ export class ShorelineScene extends Phaser.Scene {
     if (didWin && this.currentLevel.secretLevel === true) {
       this.showSketchbookGallery();
     }
+
+    if (this.canOfferQuakeBonusBranch()) {
+      this.createQuakeOfferButton();
+    }
+  }
+
+  /** The Old Variety offer — a poster-style strip pinned in the HUD band
+   *  (hidden at endLevel, so the strip is the only thing up there) above the
+   *  sketchbook panel. Additive only: declining stays exactly the existing
+   *  behavior (tap anywhere else / R returns to the main flow), so the locked
+   *  Creature Door completion, completion card, and sketchbook gallery are
+   *  untouched. Uses the FS button's stopPropagation + suppressNextTouchAction
+   *  pattern so an accept tap can't double-fire the tap-anywhere handler.
+   *  Destroyed implicitly by the scene.restart both routes trigger. */
+  private createQuakeOfferButton(): void {
+    const x = GAME_WIDTH / 2;
+    const y = 16;
+    const acceptHint = this.isMobileLayout ? 'TAP HERE' : 'ENTER / TAP HERE';
+
+    const btn = this.add.rectangle(x, y, 484, 26, 0x1a3a3c, 0.88);
+    btn.setStrokeStyle(1, 0xd8ddd2, 0.55);
+    btn.setScrollFactor(0);
+    btn.setDepth(990);
+    btn.setInteractive(
+      new Phaser.Geom.Rectangle(-260, -24, 520, 48),
+      Phaser.Geom.Rectangle.Contains,
+    );
+
+    const label = this.add.text(x, y, `THE OLD VARIETY — OPEN CHALLENGE — ${acceptHint}`, {
+      color: COLORS.text,
+      fontFamily: 'monospace',
+      fontSize: '13px',
+      fontStyle: 'bold',
+    });
+    label.setOrigin(0.5, 0.5);
+    label.setScrollFactor(0);
+    label.setDepth(991);
+
+    this.uiLayer.add([btn, label]);
+
+    btn.on('pointerover', () => btn.setFillStyle(0x2a5050, 0.92));
+    btn.on('pointerout', () => btn.setFillStyle(0x1a3a3c, 0.88));
+    btn.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+      event.stopPropagation();
+      this.suppressNextTouchAction = true;
+      this.enterQuakeBonusBranch();
+    });
   }
 
   /** Sketchbook gallery (step 5, complete): the FULL melt roster in a 2-row grid
