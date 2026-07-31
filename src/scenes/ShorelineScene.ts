@@ -13,6 +13,7 @@ import {
 } from '../config/constants.js';
 import { CREATURES, CREATURE_ATTRIBUTION, CreatureRarity, MELT_CUTOUT_BASE_PATH } from '../config/creatures.js';
 import { LEVELS, LevelDefinition } from '../config/levels.js';
+import { EPISODE_ONE_STORY_CARDS } from '../config/storyCards.js';
 import {
   AMBIENT_BY_LEVEL,
   COLLECT_FEEDBACK,
@@ -225,6 +226,12 @@ export class ShorelineScene extends Phaser.Scene {
   private titleOverlay!: Phaser.GameObjects.Container;
   private messagePanel!: Phaser.GameObjects.Rectangle;
   private messageText!: Phaser.GameObjects.Text;
+  private storyCardOverlay?: Phaser.GameObjects.Container;
+  private storyCardTitleText?: Phaser.GameObjects.Text;
+  private storyCardBodyText?: Phaser.GameObjects.Text;
+  private storyCardProgressText?: Phaser.GameObjects.Text;
+  private storyCardIndex = 0;
+  private isStoryCardProofActive = false;
   /** Sketchbook gallery overlay (secret room completion only). Step 1: holds a
    *  single creature image; future steps grow a grid inside this container. */
   private sketchbookGalleryLayer?: Phaser.GameObjects.Container;
@@ -406,6 +413,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.createTouchControls();
     this.assignRemainingObjectsToWorldLayer();
     this.reseatLevelOneParallax();
+    this.createStoryCardProofIfRequested();
 
     this.cameras.main.startFollow(this.player, true, 0.12, 0.1, -120, 30);
 
@@ -421,6 +429,14 @@ export class ShorelineScene extends Phaser.Scene {
 
   public update(time: number): void {
     this.handleAudioInput();
+
+    if (this.isStoryCardProofActive) {
+      this.handleStoryCardProofInput();
+      this.getPlayerBody().setVelocityX(0);
+      this.updateWaterShimmers(time);
+      this.syncPlayerDecorations();
+      return;
+    }
 
     if (Phaser.Input.Keyboard.JustDown(this.controls.restart)) {
       if (this.isEnded && this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
@@ -2278,6 +2294,123 @@ export class ShorelineScene extends Phaser.Scene {
     this.updateHud();
   }
 
+  private createStoryCardProofIfRequested(): void {
+    if (!this.shouldShowStoryCardProof()) {
+      return;
+    }
+
+    this.isStoryCardProofActive = true;
+    this.storyCardIndex = 0;
+    this.isRunStarted = false;
+    this.titleOverlay.setVisible(false);
+    this.hudPanel.setVisible(false);
+    this.hudTitleText.setVisible(false);
+    this.hudStatsText.setVisible(false);
+    this.hudHintText.setVisible(false);
+    this.messagePanel.setVisible(false);
+    this.messageText.setText('');
+
+    const shade = this.add.rectangle(GAME_WIDTH / 2, GAME_HEIGHT / 2, GAME_WIDTH, GAME_HEIGHT, 0x0f1819, 0.74);
+    const panel = this.add.rectangle(GAME_WIDTH / 2, 246, 650, 330, 0x172426, 0.93);
+    panel.setStrokeStyle(1, 0xd8ddd2, 0.30);
+
+    const topRule = this.add.rectangle(GAME_WIDTH / 2, 113, 470, 1, 0xd8ddd2, 0.32);
+    const lowerRule = this.add.rectangle(GAME_WIDTH / 2, 378, 470, 1, 0xd8ddd2, 0.24);
+
+    this.storyCardTitleText = this.add.text(GAME_WIDTH / 2, 158, '', {
+      align: 'center',
+      color: COLORS.text,
+      fontFamily: 'monospace',
+      fontSize: this.isMobileLayout ? '28px' : '34px',
+      fontStyle: 'bold',
+    });
+    this.storyCardTitleText.setOrigin(0.5, 0.5);
+
+    this.storyCardBodyText = this.add.text(GAME_WIDTH / 2, 264, '', {
+      align: 'center',
+      color: COLORS.mutedText,
+      fontFamily: 'monospace',
+      fontSize: this.isMobileLayout ? '16px' : '19px',
+      lineSpacing: this.isMobileLayout ? 7 : 8,
+      wordWrap: { width: 560, useAdvancedWrap: true },
+    });
+    this.storyCardBodyText.setOrigin(0.5, 0.5);
+
+    this.storyCardProgressText = this.add.text(GAME_WIDTH / 2, 414, '', {
+      align: 'center',
+      color: '#a8bfb8',
+      fontFamily: 'monospace',
+      fontSize: '12px',
+      fontStyle: 'bold',
+    });
+    this.storyCardProgressText.setOrigin(0.5, 0.5);
+
+    this.storyCardOverlay = this.add.container(0, 0, [
+      shade,
+      panel,
+      topRule,
+      lowerRule,
+      this.storyCardTitleText,
+      this.storyCardBodyText,
+      this.storyCardProgressText,
+    ]);
+    this.storyCardOverlay.setDepth(950);
+    this.storyCardOverlay.setScrollFactor(0);
+    this.uiLayer.add(this.storyCardOverlay);
+    this.renderStoryCardProof();
+  }
+
+  private shouldShowStoryCardProof(): boolean {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('story') === 'episode1' || params.get('storyCards') === 'episode1';
+  }
+
+  private handleStoryCardProofInput(): void {
+    if (Phaser.Input.Keyboard.JustDown(this.controls.start) || Phaser.Input.Keyboard.JustDown(this.controls.space)) {
+      this.advanceStoryCardProof();
+    }
+  }
+
+  private advanceStoryCardProof(): void {
+    if (!this.isStoryCardProofActive) {
+      return;
+    }
+
+    this.storyCardIndex += 1;
+    if (this.storyCardIndex >= EPISODE_ONE_STORY_CARDS.length) {
+      this.closeStoryCardProof();
+      return;
+    }
+
+    this.renderStoryCardProof();
+  }
+
+  private renderStoryCardProof(): void {
+    const card = EPISODE_ONE_STORY_CARDS[this.storyCardIndex];
+    if (!card || !this.storyCardTitleText || !this.storyCardBodyText || !this.storyCardProgressText) {
+      return;
+    }
+
+    this.storyCardTitleText.setText(card.title);
+    this.storyCardBodyText.setText(card.body);
+    this.storyCardProgressText.setText(`${this.storyCardIndex + 1}/${EPISODE_ONE_STORY_CARDS.length}  SPACE / ENTER / TAP`);
+  }
+
+  private closeStoryCardProof(): void {
+    this.isStoryCardProofActive = false;
+    this.storyCardOverlay?.destroy();
+    this.storyCardOverlay = undefined;
+    this.storyCardTitleText = undefined;
+    this.storyCardBodyText = undefined;
+    this.storyCardProgressText = undefined;
+    this.titleOverlay.setVisible(true);
+    this.hudPanel.setVisible(true);
+    this.hudTitleText.setVisible(!this.isMobileLayout && !TRAILER_CAPTURE_MODE);
+    this.hudStatsText.setVisible(true);
+    this.hudHintText.setVisible(!this.isMobileLayout && !TRAILER_CAPTURE_MODE);
+    this.updateHud();
+  }
+
   private createDebugOverlay(): void {
     this.debugGraphics = this.add.graphics();
     this.debugGraphics.setDepth(1000);
@@ -2452,6 +2585,10 @@ export class ShorelineScene extends Phaser.Scene {
     this.input.on('pointerdown', () => {
       if (this.suppressNextTouchAction) {
         this.suppressNextTouchAction = false;
+        return;
+      }
+      if (this.isStoryCardProofActive) {
+        this.advanceStoryCardProof();
         return;
       }
       if (!this.isRunStarted || (this.isEnded && !this.isTransitioningToBoss)) {
