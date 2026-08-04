@@ -129,6 +129,11 @@ const SKETCHBOOK_PANEL_BOTTOM_PAD_PX = 18; // attribution -> panel bottom edge
 const SKETCHBOOK_DIVIDER_GAP_PX = 10; // grid -> divider, and divider -> text zone
 const SKETCHBOOK_PANEL_SIDE_PAD_PX = 24; // grid span -> panel side edges
 const SKETCHBOOK_ATTRIBUTION_ZONE_PX = 16; // credit line under the text zone
+// Explicit-choice button row (ENTER THE OLD VARIETY / RUN AGAIN) shown between
+// the text zone and the attribution when the Quake offer is available. The
+// text zone shrinks by the same amount, so panel height — and the 512px
+// uiCamera clip margin — are unchanged whether or not the row is present.
+const SKETCHBOOK_CHOICE_ZONE_PX = 40;
 
 // Rarity tier colors for the sketchbook labels (player-facing; provisional
 // creatures display like any other — the provisional flag stays code-only).
@@ -494,6 +499,14 @@ export class ShorelineScene extends Phaser.Scene {
 
     if (this.isEnded && this.touchInput.jumpJustDown) {
       this.touchInput.jumpJustDown = false;
+      // Old Variety choice screen: tap-anywhere is disarmed — on a phone the
+      // natural tap landed on the card and swallowed the offer, bouncing
+      // players to level 1 before they ever saw the branch. Routing here is
+      // ONLY via the two explicit card buttons (or ENTER / R on keyboard);
+      // stray taps do nothing. Every other end screen keeps tap-anywhere.
+      if (this.canOfferQuakeBonusBranch()) {
+        return;
+      }
       if (this.didWinLevel && this.hasNextLevel()) {
         this.advanceToNextLevel();
       } else if (this.didWinLevel && !this.hasNextLevel() && !this.isDirectTestLevel) {
@@ -3541,33 +3554,25 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     if (this.canOfferQuakeBonusBranch()) {
-      this.createQuakeOfferButton();
+      this.createQuakeOfferBanner();
+      this.createSketchbookChoiceButtons();
     }
   }
 
-  /** The Old Variety offer — a poster-style strip pinned in the HUD band
-   *  (hidden at endLevel, so the strip is the only thing up there) above the
-   *  sketchbook panel. Additive only: declining stays exactly the existing
-   *  behavior (tap anywhere else / R returns to the main flow), so the locked
-   *  Creature Door completion, completion card, and sketchbook gallery are
-   *  untouched. Uses the FS button's stopPropagation + suppressNextTouchAction
-   *  pattern so an accept tap can't double-fire the tap-anywhere handler.
-   *  Destroyed implicitly by the scene.restart both routes trigger. */
-  private createQuakeOfferButton(): void {
+  /** The Old Variety announcement — a VISUAL-ONLY poster strip in the vacated
+   *  HUD band. Deliberately not interactive: phone QA showed the actionable
+   *  target must sit at thumb height on the card (createSketchbookChoiceButtons),
+   *  and a live top strip would reintroduce the accidental-accept risk. */
+  private createQuakeOfferBanner(): void {
     const x = GAME_WIDTH / 2;
     const y = 16;
-    const acceptHint = this.isMobileLayout ? 'TAP HERE' : 'ENTER / TAP HERE';
 
-    const btn = this.add.rectangle(x, y, 484, 26, 0x1a3a3c, 0.88);
-    btn.setStrokeStyle(1, 0xd8ddd2, 0.55);
-    btn.setScrollFactor(0);
-    btn.setDepth(990);
-    btn.setInteractive(
-      new Phaser.Geom.Rectangle(-260, -24, 520, 48),
-      Phaser.Geom.Rectangle.Contains,
-    );
+    const banner = this.add.rectangle(x, y, 420, 26, 0x1a3a3c, 0.88);
+    banner.setStrokeStyle(1, 0xd8ddd2, 0.55);
+    banner.setScrollFactor(0);
+    banner.setDepth(990);
 
-    const label = this.add.text(x, y, `THE OLD VARIETY — OPEN CHALLENGE — ${acceptHint}`, {
+    const label = this.add.text(x, y, 'THE OLD VARIETY — OPEN CHALLENGE', {
       color: COLORS.text,
       fontFamily: 'monospace',
       fontSize: '13px',
@@ -3577,15 +3582,66 @@ export class ShorelineScene extends Phaser.Scene {
     label.setScrollFactor(0);
     label.setDepth(991);
 
-    this.uiLayer.add([btn, label]);
+    this.uiLayer.add([banner, label]);
+  }
 
-    btn.on('pointerover', () => btn.setFillStyle(0x2a5050, 0.92));
-    btn.on('pointerout', () => btn.setFillStyle(0x1a3a3c, 0.88));
-    btn.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
-      event.stopPropagation();
-      this.suppressNextTouchAction = true;
-      this.enterQuakeBonusBranch();
-    });
+  /** The explicit choice row on the sketchbook card's reserved zone (layout
+   *  guarantees the space — see SKETCHBOOK_CHOICE_ZONE_PX). Tap-anywhere is
+   *  disarmed on this screen, so these two buttons — plus ENTER / R on
+   *  keyboard — are the only routing. Both destroyed implicitly by the
+   *  scene.restart each route triggers. */
+  private createSketchbookChoiceButtons(): void {
+    const layout = this.getSketchbookPanelLayout();
+    const centerX = this.scale.gameSize.width / 2;
+    const y = layout.choiceCenterY;
+    const buttonH = 30;
+    const hitPadY = 10; // thumb-friendly: hit zone taller than the visual
+    const gap = 18;
+    const enterW = 250;
+    const againW = 150;
+    const totalW = enterW + gap + againW;
+    const enterX = centerX - totalW / 2 + enterW / 2;
+    const againX = centerX + totalW / 2 - againW / 2;
+
+    const makeChoice = (
+      x: number,
+      width: number,
+      text: string,
+      accent: boolean,
+      onPick: () => void,
+    ): void => {
+      const btn = this.add.rectangle(x, y, width, buttonH, accent ? 0x2a5050 : 0x1a3a3c, 0.94);
+      btn.setStrokeStyle(1, accent ? 0xe8d49a : 0xb9c0b5, accent ? 0.8 : 0.5);
+      btn.setScrollFactor(0);
+      btn.setDepth(990);
+      btn.setInteractive(
+        new Phaser.Geom.Rectangle(-width / 2, -(buttonH / 2 + hitPadY), width, buttonH + hitPadY * 2),
+        Phaser.Geom.Rectangle.Contains,
+      );
+
+      const label = this.add.text(x, y, text, {
+        color: accent ? '#f3efe2' : '#c8d8d0',
+        fontFamily: 'monospace',
+        fontSize: '13px',
+        fontStyle: 'bold',
+      });
+      label.setOrigin(0.5, 0.5);
+      label.setScrollFactor(0);
+      label.setDepth(991);
+
+      this.uiLayer.add([btn, label]);
+
+      btn.on('pointerover', () => btn.setFillStyle(accent ? 0x376a6a : 0x2a5050, 0.96));
+      btn.on('pointerout', () => btn.setFillStyle(accent ? 0x2a5050 : 0x1a3a3c, 0.94));
+      btn.on('pointerdown', (_ptr: Phaser.Input.Pointer, _lx: number, _ly: number, event: Phaser.Types.Input.EventData) => {
+        event.stopPropagation();
+        this.suppressNextTouchAction = true;
+        onPick();
+      });
+    };
+
+    makeChoice(enterX, enterW, 'ENTER THE OLD VARIETY', true, () => this.enterQuakeBonusBranch());
+    makeChoice(againX, againW, 'RUN AGAIN', false, () => this.restartCurrentLevelOrReturnFromSecretRoute());
   }
 
   /** Sketchbook gallery (step 5, complete): the FULL melt roster in a 2-row grid
@@ -3743,12 +3799,19 @@ export class ShorelineScene extends Phaser.Scene {
     gridRowPitchY: number;
     dividerY: number;
     textCenterY: number;
+    choiceZoneH: number;
+    choiceCenterY: number;
     attributionCenterY: number;
   } {
     const { width: canvasW, height: canvasH } = this.scale.gameSize;
     const rosterCount = Object.keys(CREATURES).length;
     const textZoneW = this.isMobileLayout ? 592 : 584;
-    const textZoneH = this.isMobileLayout ? 164 : 170;
+    // When the Old Variety offer is live, the choice-button row borrows its
+    // height from the text zone (the summary drops its restart-hint lines on
+    // that screen, so the shorter zone still fits) — panel height is identical
+    // either way.
+    const choiceZoneH = this.canOfferQuakeBonusBranch() ? SKETCHBOOK_CHOICE_ZONE_PX : 0;
+    const textZoneH = (this.isMobileLayout ? 164 : 170) - choiceZoneH;
 
     // 2-row grid over the full roster. Each grid row band = plate band (cutout +
     // plate padding) + label zone; the plate center is the band's anchor so the
@@ -3771,6 +3834,7 @@ export class ShorelineScene extends Phaser.Scene {
       gridH +
       dividerZoneH +
       textZoneH +
+      choiceZoneH +
       SKETCHBOOK_ATTRIBUTION_ZONE_PX +
       SKETCHBOOK_PANEL_BOTTOM_PAD_PX;
 
@@ -3779,8 +3843,17 @@ export class ShorelineScene extends Phaser.Scene {
     const gridRow0CenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + plateBandH / 2);
     const dividerY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + SKETCHBOOK_DIVIDER_GAP_PX);
     const textCenterY = Math.round(panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + dividerZoneH + textZoneH / 2);
+    const choiceCenterY = Math.round(
+      panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + dividerZoneH + textZoneH + choiceZoneH / 2,
+    );
     const attributionCenterY = Math.round(
-      panelTop + SKETCHBOOK_PANEL_TOP_PAD_PX + gridH + dividerZoneH + textZoneH + SKETCHBOOK_ATTRIBUTION_ZONE_PX / 2,
+      panelTop +
+        SKETCHBOOK_PANEL_TOP_PAD_PX +
+        gridH +
+        dividerZoneH +
+        textZoneH +
+        choiceZoneH +
+        SKETCHBOOK_ATTRIBUTION_ZONE_PX / 2,
     );
 
     return {
@@ -3794,6 +3867,8 @@ export class ShorelineScene extends Phaser.Scene {
       gridRowPitchY,
       dividerY,
       textCenterY,
+      choiceZoneH,
+      choiceCenterY,
       attributionCenterY,
     };
   }
@@ -3847,6 +3922,10 @@ export class ShorelineScene extends Phaser.Scene {
       : (this.isDirectTestLevel ? ['R / TAP: Run Again'] : ['R / TAP: Restart Run']);
 
     if (this.currentLevel.secretLevel === true) {
+      // When the Old Variety choice buttons are on the card, they ARE the
+      // prompts — a text line saying "TAP: Run Again" over a disarmed
+      // tap-anywhere handler would be misleading UI. Keyboard R still works.
+      const roomPromptLines = this.canOfferQuakeBonusBranch() ? [] : ['', ...restartLines];
       return [
         'SKETCHBOOK COMPLETE',
         '',
@@ -3855,8 +3934,7 @@ export class ShorelineScene extends Phaser.Scene {
         'Sucka Free',
         `Time: ${this.formatSeconds(this.getElapsedSeconds())}`,
         `Score: ${this.score}`,
-        '',
-        ...restartLines,
+        ...roomPromptLines,
       ];
     }
 
