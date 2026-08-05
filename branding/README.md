@@ -66,6 +66,16 @@ white sponsor tile, one-colour black, one-colour white, on-navy, and a
 The refined system above remains the durable identity for small sizes and
 one-colour reproduction; the classic master is the display version.
 
+## Trailer / video watermarks
+
+`classic/png/ll_classic_wm_overlay_1080p_br.png` and `_4k_br.png` are
+full-frame transparent overlays — white classic lockup at 40% opacity,
+bottom-right, safe-area margins baked in — drop one on the top track of a
+1920×1080 or 3840×2160 timeline and it just works.
+`_1080p_center.png` is a larger centered 28% version for screeners and
+review cuts. `watermark_mock.png` shows both over a trailer still.
+Regenerate with `tools/video_watermark.py`.
+
 ## Sponsor tiles (event templates)
 
 For event graphics that layer sponsor logos onto a white tile (e.g. Harbour
