@@ -109,6 +109,15 @@ export const PLANK_SKINS: Record<string, PlankSkin> = {
     mid: TEXTURE_KEYS.level01bPlankMid,
     capRight: TEXTURE_KEYS.level01bPlankCapRight,
   },
+  // Night-harbour grade of the level-01 wharf skin (same cuts, cooled and
+  // deepened for the rainy Halifax backdrop). The Calvin sketch dock dressing
+  // draws over/under these at its own depths (0.5 supports, 1.05 chalk) —
+  // plank pieces stay at depth 1, footprint unchanged.
+  'calvins-creature-room': {
+    capLeft: TEXTURE_KEYS.calvinsCreatureRoomPlankCapLeft,
+    mid: TEXTURE_KEYS.calvinsCreatureRoomPlankMid,
+    capRight: TEXTURE_KEYS.calvinsCreatureRoomPlankCapRight,
+  },
 };
 
 // Landing feedback (global, all levels). Tune feel here. A landing only fires
