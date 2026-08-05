@@ -114,6 +114,12 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
 //   placeholder textures: 512x640, ~35px padding -> e.g. 35 * 0.16 = 5.6px (cod) / 35 * 0.12 = 4.2px (puffy).
 const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
 const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
+// The _player_v1 Bart art is a mid-bound RUNNING pose — its lowest opaque
+// pixel is a trailing toe tip, so even a geometrically exact seat (measured:
+// 2px) reads airborne when idle. Sinking the art a few px plants the toes
+// into visual deck contact. A standing-pose frame is the complete fix (art
+// pass, family-gated call) — this is the code-side mitigation.
+const CALVIN_PLAYER_FOOT_SINK_PX = 4;
 
 // Sketchbook completion screen (secret room): ONE framed panel containing the
 // creature row on top and the text summary below. All geometry derives from
@@ -2039,14 +2045,16 @@ export class ShorelineScene extends Phaser.Scene {
     const image = this.add.image(0, 0, textureKey);
     image.setOrigin(0.5, 1);
     let bottomPaddingPx: number;
+    let footSinkPx = 0;
     if (textureKey === playerTextureKey) {
       image.setDisplaySize(characterKey === 'cod' ? 82 : 86, 96);
       bottomPaddingPx = CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX; // 256px-tall _player_v1 art
+      footSinkPx = CALVIN_PLAYER_FOOT_SINK_PX; // plant the run-pose toes (see const)
     } else {
       image.setScale(characterKey === 'cod' ? 0.16 : 0.12);
       bottomPaddingPx = CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX; // 640px-tall placeholder art
     }
-    image.y = bottomPaddingPx * image.scaleY;
+    image.y = bottomPaddingPx * image.scaleY + footSinkPx;
 
     const visual = this.add.container(this.player.x, this.getPlayerFootY(), [image]);
     visual.setDepth(20);
@@ -4444,9 +4452,16 @@ export class ShorelineScene extends Phaser.Scene {
     const height = Phaser.Math.Clamp(surfaceY - footY, 0, 170);
     const t = height / 170;
     const baseScale = (CHARACTERS[this.activeCharacter].width * 1.5) / 100;
+    // Calvin night scenes: the 0.34-alpha shadow vanishes on the near-black
+    // planks, and the Bart run-pose art needs the shadow to sell ground
+    // contact — boost strength and footprint there only. Daylight levels
+    // render byte-identical.
+    const isNightSketchScene = this.usesCalvinSketchPlayerVisuals();
+    const alphaBase = isNightSketchScene ? 0.52 : 0.34;
+    const scaleMul = isNightSketchScene ? 1.15 : 1;
     this.contactShadow.setPosition(this.player.x, surfaceY);
-    this.contactShadow.setScale(baseScale * (1 - 0.45 * t));
-    this.contactShadow.setAlpha(0.34 * (1 - 0.62 * t));
+    this.contactShadow.setScale(baseScale * scaleMul * (1 - 0.45 * t));
+    this.contactShadow.setAlpha(alphaBase * (1 - 0.62 * t));
   }
 
   /** Nearest standable surface top directly below the player's feet, for the

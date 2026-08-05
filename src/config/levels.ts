@@ -652,24 +652,28 @@ export const LEVELS: LevelDefinition[] = [
       // walk-off and run-off arcs both cross it; ground walk-back also works)
       { x: 295, y: 465, creatureId: 'melt-long-48' },
 
-      // S02 — T1 -> D2 jump apex
-      { x: 615, y: 378, creatureId: 'melt-tiny-center' },
+      // S02 — on the T1 -> D2 arc, biased to D2's edge so at rest it reads as
+      // D2's marker, not a floater over the gap
+      { x: 630, y: 382, creatureId: 'melt-tiny-center' },
 
-      // S03 — A1 -> A2 entry arc apex
-      { x: 1310, y: 362, creatureId: 'melt-flying' },
+      // S03 — the A1 -> A2 arc's landing tail, at A2's edge ("land here")
+      { x: 1322, y: 350, creatureId: 'melt-flying' },
 
       // S04 — the summit arc's crown (B2 -> H apex, bridge-deck height)
       { x: 2600, y: 158, creatureId: 'melt-crowned-long' },
 
-      // S05 — the A3 -> recovery-wharf drop arc: pulls the player down
+      // S05 — the A3 -> recovery-wharf drop arc, over R's edge
       { x: 1790, y: 322, creatureId: 'melt-left-smiling' },
 
-      // S06 — on the glide line; Red Bart dips to it mid-descent, Earth Eyes
-      // ladder-jumps 72px from M1 below it (MANDATORY, retryable)
-      { x: 2880, y: 268, creatureId: 'melt-snail' },
+      // S06 — directly above M1's center at y225: fully above standing
+      // head-reach (fragment bottom 243 vs standing head 278 — the pickup is
+      // body-overlap, so anything lower is collectable without jumping), so
+      // Earth Eyes needs a deliberate retryable hop (MANDATORY, 8/8); sits on
+      // Red Bart's natural glide body-line for the stylish mid-air grab.
+      { x: 2900, y: 225, creatureId: 'melt-snail' },
 
-      // S07 — the calm C1 -> S step-down arc (ketsu begins)
-      { x: 3370, y: 386, creatureId: 'melt-squid' },
+      // S07 — the calm C1 -> S step-down arc, just past C1's edge
+      { x: 3335, y: 392, creatureId: 'melt-squid' },
 
       // S08 — stride height, one step before the door
       { x: 3940, y: 430, creatureId: 'melt-king' },
