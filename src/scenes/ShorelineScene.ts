@@ -1256,7 +1256,13 @@ export class ShorelineScene extends Phaser.Scene {
     const totalW = width + 18;
     const drawH = Math.max(42, height + 18);
     const leftEdge = x - totalW / 2;
-    const py = y - 7;
+    // py = y - 4 (was y - 7): the painted skins' walkable deck line (the
+    // board-band/beam transition, measured at texture row 46 of 140) rendered
+    // ~3px ABOVE the physics platform top, so boots sank visibly behind the
+    // front board edge. Lowering the art 3px seats the drawn deck line on the
+    // foot line (378.8 vs 379.0 world on a y=390 dock). Visual only — the
+    // collision rectangle and every other prop path are untouched.
+    const py = y - 4;
 
     // capW is rounded to a WHOLE pixel: with the fractional value (27.9 at
     // drawH 42) midW came out fractional too (e.g. 152.2), Phaser's TileSprite
