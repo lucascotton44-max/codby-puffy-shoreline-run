@@ -50,6 +50,22 @@ The brass rule inside the wordmark lockups is the same tide line.
 
 All SVGs without a named background are transparent.
 
+## Classic master (Concept #4 as posted)
+
+`classic/` holds the faithful vector rebuild of the original Concept #4
+render — Cormorant Garamond serif, Montserrat sans, tapered gold rule,
+cream field, colours sampled from the source (`#23384A` / `#F9F2E1` /
+`#B4824D` / `#C9A254`). Use it when you want the exact posted look.
+
+Formats in `classic/png/` (SVG masters in `classic/svg/`): square 2000 &
+1080, portrait 4:5 (1080×1350), landscape 16:9 (1920×1080), banner
+(2560×852), story 9:16 (1080×1920), tight-crop transparent and on-cream,
+white sponsor tile, one-colour black, one-colour white, on-navy, and a
+40%-white watermark. Regenerate with `tools/classic_logo.py`.
+
+The refined system above remains the durable identity for small sizes and
+one-colour reproduction; the classic master is the display version.
+
 ## Sponsor tiles (event templates)
 
 For event graphics that layer sponsor logos onto a white tile (e.g. Harbour
