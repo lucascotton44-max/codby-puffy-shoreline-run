@@ -160,3 +160,28 @@ write("ll_classic_on_navy.svg", tight(CREAM, GOLD_RULE, GOLD_TEXT, bg=NAVY))
 write("ll_classic_watermark.svg", watermark())
 print("serif_w", round(serif_w, 1), "| sans size", round(sans_size, 1),
       "| rule w", round(RULE_W, 1))
+
+# ---------------------------------------------------------------------------
+# Descriptor variants: one quiet tracked line under the lockup, width-matched
+# to 80% of the LEGACY STUDIOS line. The furthest the identity goes toward
+# saying what the studio does — never a services list.
+# ---------------------------------------------------------------------------
+DESC = "ATLANTIC CINEMATIC STORYTELLING"
+DESC_TRACK = 0.32
+desc_size = size_for_width(SANS, DESC, DESC_TRACK, sans_w * 0.80)
+desc_d, desc_w2 = shape_run(SANS, DESC, desc_size, DESC_TRACK)
+desc_cap2 = cap(SANS, desc_size)
+
+def tight_descriptor(bg=WHITE, pad=90):
+    body, bw, asc, desc = lockup(NAVY, GOLD_RULE, GOLD_TEXT)
+    gap = 46
+    w = bw + 2 * pad
+    h = asc + desc + gap + desc_cap2 + 2 * pad
+    base = f'<g transform="translate({w/2:.2f} {pad + asc:.2f})">{body(0,0)}</g>'
+    dy = pad + asc + desc + gap + desc_cap2
+    dline = g(desc_d, w/2 - desc_w2/2, dy, NAVY)
+    return svg_doc(w, h, base + dline, bg=bg)
+
+write("ll_classic_tile_descriptor_white.svg", tight_descriptor())
+write("ll_classic_tight_descriptor_transparent.svg", tight_descriptor(bg=None))
+write("ll_classic_tight_descriptor_on_cream.svg", tight_descriptor(bg=CREAM))
