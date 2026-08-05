@@ -338,6 +338,7 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankCapLeft, ASSET_PATHS.calvinsCreatureRoomPlankCapLeft);
     this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankMid, ASSET_PATHS.calvinsCreatureRoomPlankMid);
     this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankCapRight, ASSET_PATHS.calvinsCreatureRoomPlankCapRight);
+    this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPiling, ASSET_PATHS.calvinsCreatureRoomPiling);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
     this.load.image(TEXTURE_KEYS.ropeDebrisHazardProp, ASSET_PATHS.ropeDebrisHazardProp);
@@ -1274,6 +1275,24 @@ export class ShorelineScene extends Phaser.Scene {
     const capTex = this.textures.get(skin.capLeft).getSourceImage();
     const capW = Math.round(drawH * (capTex.width / capTex.height)); // cap aspect, whole px (~28)
     const midW = Math.max(0, totalW - capW * 2);
+
+    // Opt-in support pilings (skin.pilingTexture): dark timber legs behind the
+    // planks at the same x stations as the Calvin chalk dressing's sketch legs
+    // (center and +/-0.36*width), so the chalk reads as Calvin sketching over
+    // real structure. Length is bounded and the texture bottom-fades, so high
+    // docks show timber receding into the rain rather than 300px stilts.
+    // Depth 0.75: above the backdrop, below the plank slices at depth 1.
+    if (skin.pilingTexture && this.textures.exists(skin.pilingTexture)) {
+      const undersideY = py + drawH / 2 - 4;
+      const groundTop = GROUND_Y - 9;
+      const legLength = Phaser.Math.Clamp(groundTop - undersideY + 6, 18, 140);
+      [x - width * 0.36, x, x + width * 0.36].forEach((legX) => {
+        const leg = this.add.image(legX, undersideY, skin.pilingTexture as string);
+        leg.setOrigin(0.5, 0);
+        leg.setDisplaySize(10, legLength);
+        leg.setDepth(0.75);
+      });
+    }
 
     const left = this.add.image(leftEdge, py, skin.capLeft).setOrigin(0, 0.5);
     left.setDisplaySize(capW, drawH);
