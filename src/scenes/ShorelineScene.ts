@@ -116,10 +116,12 @@ const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
 const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
 // The _player_v1 Bart art is a mid-bound RUNNING pose — its lowest opaque
 // pixel is a trailing toe tip, so even a geometrically exact seat (measured:
-// 2px) reads airborne when idle. Sinking the art a few px plants the toes
-// into visual deck contact. A standing-pose frame is the complete fix (art
-// pass, family-gated call) — this is the code-side mitigation.
-const CALVIN_PLAYER_FOOT_SINK_PX = 4;
+// 2px) reads airborne when idle. Sink the art so the toes and lower body
+// visibly overlap the plank board band (~14px tall): 10px puts the feet
+// mid-band — planted, not hovering. Playtest verdict drove the depth: 4px
+// was too timid. A standing-pose frame is still the complete fix (art pass,
+// family-gated call) — this is the code-side mitigation.
+const CALVIN_PLAYER_FOOT_SINK_PX = 10;
 
 // Sketchbook completion screen (secret room): ONE framed panel containing the
 // creature row on top and the text summary below. All geometry derives from
@@ -4230,7 +4232,15 @@ export class ShorelineScene extends Phaser.Scene {
     } else if (this.usesCalvinSketchPlayerVisuals()) {
       // Calvin creature containers are foot-anchored like sprites (their image
       // bottoms sit on the foot line), so they ground correctly on the floor.
-      this.playerVisual.setPosition(this.player.x, this.getPlayerFootY());
+      // Stride bob: the Bart art is a single static bound pose with no walk
+      // animation, so while grounded and moving it lifts 0-3px on a ~450ms
+      // stride cycle — locomotion instead of sliding. The bob only ever lifts
+      // INTO the 10px foot sink, so deck contact never visually breaks.
+      // Idle and airborne take no bob (jumps/glides stay clean).
+      const calvinBody = this.getPlayerBody();
+      const isStriding = calvinBody.blocked.down && Math.abs(calvinBody.velocity.x) > 20;
+      const strideBob = isStriding ? Math.abs(Math.sin(this.time.now * 0.014)) * -3 : 0;
+      this.playerVisual.setPosition(this.player.x, this.getPlayerFootY() + strideBob);
     } else {
       this.playerVisual.setPosition(this.player.x, this.player.y);
     }
