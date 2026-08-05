@@ -590,80 +590,97 @@ export const LEVELS: LevelDefinition[] = [
     endX: 4000,
     totalFragments: 8,
     requiredFragments: 8,
+    // Greybox route per dev_docs/CALVIN_ROOM_LAYOUT_PROPOSAL_2026-08.md:
+    // shore boardwalk -> piling ladder over the water -> clean recovery wharf
+    // -> glide descent -> seawall rise -> ground-level door walk-up. Platform
+    // tops sit on the SS9 lanes (low 440-403 / mid 359-345 / high 305-271);
+    // every mandatory Earth Eyes jump is <=70px rise vs the 84.5px physics max.
     platforms: [
       { x: 2100, y: GROUND_Y + 26, width: 4200, height: 70, color: COLORS.shore },
 
-      // Screen 1 — Safe Arrival
-      { x: 430, y: 412, width: 220, height: 22, color: COLORS.dock },
+      // Beat 1 — Arrival: the campaign-standard 43px teaching hop at the shore
+      { x: 420, y: 451, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 2 — Low Dock Hop
-      { x: 700, y: 408, width: 220, height: 22, color: COLORS.dock },
-      { x: 960, y: 370, width: 230, height: 22, color: COLORS.dock },
+      // Beat 2 — Low dock hops leaving the shore (first real gaps: 60/70px)
+      { x: 680, y: 451, width: 200, height: 22, color: COLORS.dock },
+      { x: 950, y: 414, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 3 — High Climb
-      { x: 1200, y: 402, width: 240, height: 22, color: COLORS.dock },
-      { x: 1440, y: 338, width: 230, height: 22, color: COLORS.dock },
-      { x: 1680, y: 282, width: 260, height: 22, color: COLORS.dock },
+      // Beat 3 — Piling ladder over the water (rising silhouette: +44/+54/+34)
+      { x: 1220, y: 370, width: 220, height: 22, color: COLORS.dock },
+      { x: 1470, y: 316, width: 200, height: 22, color: COLORS.dock },
+      { x: 1720, y: 282, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 4 — Recovery Lane
-      { x: 1980, y: 414, width: 300, height: 22, color: COLORS.dock },
-      { x: 2180, y: 356, width: 230, height: 22, color: COLORS.dock },
+      // Beat 4 — Recovery wharf: the 132px-drop catch, kept hazard-free
+      { x: 2000, y: 414, width: 300, height: 22, color: COLORS.dock },
+      { x: 2240, y: 356, width: 180, height: 22, color: COLORS.dock },
 
-      // Screen 5 — Optional Red Bart Glide Advantage
-      { x: 2400, y: 286, width: 280, height: 22, color: COLORS.dock },
-      { x: 2660, y: 352, width: 260, height: 22, color: COLORS.dock },
-      { x: 2940, y: 416, width: 300, height: 22, color: COLORS.dock },
+      // Beat 5 — Glide setup (+70 risk step) and the 110x130 descent gap
+      { x: 2480, y: 286, width: 220, height: 22, color: COLORS.dock },
+      { x: 2820, y: 416, width: 240, height: 22, color: COLORS.dock },
+      { x: 3000, y: 451, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 6 — Final Climb
-      { x: 3220, y: 402, width: 280, height: 22, color: COLORS.dock },
-      { x: 3480, y: 342, width: 250, height: 22, color: COLORS.dock },
-      { x: 3740, y: 304, width: 260, height: 22, color: COLORS.dock },
+      // Beat 6 — Seawall rise (tighter mirror of Beat 3; carries the patrol)
+      { x: 3260, y: 414, width: 220, height: 22, color: COLORS.dock },
+      { x: 3510, y: 370, width: 220, height: 22, color: COLORS.dock },
+      { x: 3760, y: 316, width: 220, height: 22, color: COLORS.dock },
 
-      // Screen 7 — Creature Door Payoff
-      { x: 3920, y: 410, width: 300, height: 22, color: COLORS.dock },
+      // Beat 7 stays on the ground: pickup -> chalked door in one walk.
     ],
     hazards: [
-      // Puddle 1 - recovery platform teaching hazard.
-      { x: 2030, y: 400, width: 95, height: 18, kind: 'blackSketchPuddle' },
+      // Puddles sit on the GROUND below drops per design source SS10 ("the
+      // danger must be visible before the player falls into it") — approved
+      // relocations off the recovery/reward platform surfaces.
 
-      // Puddle 2 - glide/catch platform consequence.
-      { x: 2660, y: 338, width: 105, height: 18, kind: 'blackSketchPuddle' },
+      // Puddle 1 — below the Beat 3 summit -> recovery-wharf drop line.
+      { x: 1840, y: 480, width: 80, height: 18, kind: 'blackSketchPuddle' },
 
-      // Puddle 3 - final buildup pressure before the door payoff.
-      { x: 3220, y: 388, width: 90, height: 18, kind: 'blackSketchPuddle' },
+      // Puddle 2 — below the glide gap; punishes a short jump, glide clears it.
+      { x: 2700, y: 480, width: 105, height: 18, kind: 'blackSketchPuddle' },
+
+      // Puddle 3 — below the seawall rise; jumpable on the ground lane.
+      { x: 3430, y: 480, width: 90, height: 18, kind: 'blackSketchPuddle' },
     ],
+    // Fragments trace the route per design source SS8 (each hangs <=34px above
+    // its surface or sits on a proven jump arc — no blind leaps).
     fragments: [
-      // S01 — Safe first pickup → melt-long-48 (common, 48% CONFIRMED — easy confirmed win first)
+      // S01 — Safe first pickup on the ground → melt-long-48 (confirmed win first)
       { x: 180, y: GROUND_Y - 64, creatureId: 'melt-long-48' },
 
-      // S02 — Low dock hop reward → melt-tiny-center (uncommon provisional — small creature, small hop)
-      { x: 700, y: 366, creatureId: 'melt-tiny-center' },
+      // S02 — Above the first pilings dock: the reward pulls forward → melt-tiny-center
+      { x: 950, y: 369, creatureId: 'melt-tiny-center' },
 
-      // S03 — Forward confirmation → melt-flying (uncommon provisional — airborne blob for the first air route)
-      { x: 1200, y: 360, creatureId: 'melt-flying' },
+      // S03 — Ladder entry: confirms the vertical route → melt-flying
+      { x: 1220, y: 325, creatureId: 'melt-flying' },
 
-      // S04 — High climb reward → melt-crowned-long (uncommon provisional — crowned blob crowns the climb)
-      { x: 1680, y: 240, creatureId: 'melt-crowned-long' },
+      // S04 — Ladder summit: rewards the climb → melt-crowned-long
+      { x: 1720, y: 237, creatureId: 'melt-crowned-long' },
 
-      // S05 — Recovery reward → melt-left-smiling (uncommon provisional — friendly face after the hard stretch)
-      { x: 2180, y: 314, creatureId: 'melt-left-smiling' },
+      // S05 — Above the recovery wharf: pulls the player back down → melt-left-smiling
+      { x: 2000, y: 369, creatureId: 'melt-left-smiling' },
 
-      // S06 — Optional glide-value reward → melt-snail (uncommon, 30% CONFIRMED — Snail-Sludge for the patient route)
-      { x: 2660, y: 310, creatureId: 'melt-snail' },
+      // S06 — Mid-air on the glide line (Red Bart's moment; Earth Eyes reaches
+      // it with a 75px jump from the catch dock's left edge) → melt-snail
+      { x: 2700, y: 330, creatureId: 'melt-snail' },
 
-      // S07 — Final buildup reward → melt-squid (uncommon provisional — spikier silhouette raising stakes)
-      { x: 3220, y: 360, creatureId: 'melt-squid' },
+      // S07 — Seawall rise: confirms near-end progress → melt-squid
+      { x: 3510, y: 325, creatureId: 'melt-squid' },
 
-      // S08 — Near-door payoff → melt-king (rare, 3.8% CONFIRMED — Sucka Free King as the door prize)
-      { x: 3860, y: 368, creatureId: 'melt-king' },
+      // S08 — A step before the door at walk height: pickup -> unlock in one
+      // motion → melt-king (the door prize)
+      { x: 3940, y: 430, creatureId: 'melt-king' },
     ],
     powerUps: [],
     scuttleclaws: [
+      // ScuttleMelt moved off the Beat 4 recovery wharf (it shared that
+      // platform with a puddle, making the drop's catch the most dangerous
+      // tile in the room) to the Beat 6 final-approach dock — design source
+      // SS11 sanctions Beat 4 OR 6. Approved provisionally: Lucas's playtest
+      // verdict on the recovery beat decides whether it stays here.
       {
-        x: 1980,
+        x: 3260,
         y: 392,
-        minX: 1915,
-        maxX: 2045,
+        minX: 3185,
+        maxX: 3335,
         speed: 30,
         damage: 1,
         variant: 'melt',
