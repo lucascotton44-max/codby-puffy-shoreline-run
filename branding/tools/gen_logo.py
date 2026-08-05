@@ -294,3 +294,25 @@ write("ll_legacy_watermark.svg", watermark_svg())
 
 print("\nserif width:", round(serif_w, 1), "| sans size:", round(S_SANS, 1),
       "| desc size:", round(S_DESC, 1))
+
+# ---------------------------------------------------------------------------
+# Sponsor tile — for event templates (e.g. Harbour Wars) that layer the logo
+# onto a white rounded tile. Sponsor-safe cut, scaled to fill, pure white or
+# transparent, sized to survive social-media compression.
+# ---------------------------------------------------------------------------
+def sponsor_tile_svg(w, h, bg=WHITE, fill_ratio=0.88):
+    import re
+    inner = smallsize_svg(NAVY, BRASS)
+    m = re.search(r'viewBox="0 0 (\d+) (\d+)"', inner)
+    iw, ih = int(m.group(1)), int(m.group(2))
+    body = re.match(r'<svg[^>]*>(.*)</svg>$', inner, re.S).group(1)
+    sc = min(w * fill_ratio / iw, h * fill_ratio / ih)
+    tx = (w - iw * sc) / 2
+    ty = (h - ih * sc) / 2
+    wrapped = f'<g transform="translate({tx:.2f} {ty:.2f}) scale({sc:.4f})">{body}</g>'
+    return svg_doc(w, h, wrapped, bg=bg, title="Lucas & Liam Legacy Studios")
+
+write("ll_legacy_sponsor_tile_fit_white.svg", smallsize_svg(NAVY, BRASS, bg=WHITE))
+write("ll_legacy_sponsor_tile_5x4_white.svg", sponsor_tile_svg(1500, 1200))
+write("ll_legacy_sponsor_tile_square_white.svg", sponsor_tile_svg(1400, 1400))
+write("ll_legacy_sponsor_tile_5x4_transparent.svg", sponsor_tile_svg(1500, 1200, bg=None))

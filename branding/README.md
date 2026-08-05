@@ -50,6 +50,16 @@ The brass rule inside the wordmark lockups is the same tide line.
 
 All SVGs without a named background are transparent.
 
+## Sponsor tiles (event templates)
+
+For event graphics that layer sponsor logos onto a white tile (e.g. Harbour
+Wars thank-you posts), send `png/ll_legacy_sponsor_tile_fit_white.png` —
+pure-white background (their tiles are pure white; the off-white field would
+show a seam), sponsor-safe cut, logo sized to fill. `_5x4_` and `_square_`
+versions cover templates that need a fixed tile shape, and
+`_5x4_transparent` covers tools that composite onto their own tile.
+`sponsor_tile_mock.png` shows all three layered in a template-style tile.
+
 ## Usage rules
 
 - Clear space: keep a margin of at least the cap height of “LEGACY STUDIOS”
