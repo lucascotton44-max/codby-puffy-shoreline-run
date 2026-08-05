@@ -114,14 +114,15 @@ const PICKUP_FEEDBACK_LEVEL_IDS = new Set<string>([
 //   placeholder textures: 512x640, ~35px padding -> e.g. 35 * 0.16 = 5.6px (cod) / 35 * 0.12 = 4.2px (puffy).
 const CALVIN_PLAYER_TEXTURE_BOTTOM_PADDING_PX = 12;
 const CALVIN_PLACEHOLDER_TEXTURE_BOTTOM_PADDING_PX = 35;
-// The _player_v1 Bart art is a mid-bound RUNNING pose — its lowest opaque
-// pixel is a trailing toe tip, so even a geometrically exact seat (measured:
-// 2px) reads airborne when idle. Sink the art so the toes and lower body
-// visibly overlap the plank board band (~14px tall): 10px puts the feet
-// mid-band — planted, not hovering. Playtest verdict drove the depth: 4px
-// was too timid. A standing-pose frame is still the complete fix (art pass,
-// family-gated call) — this is the code-side mitigation.
-const CALVIN_PLAYER_FOOT_SINK_PX = 10;
+// Zero since the deterministic walk-row derivation in addPaintedPlankProp:
+// feet now rest on the drawn TOP of the deck boards (texture row 8), which is
+// the visual contact line the eye expects — the earlier 4px/10px sink values
+// were nudges compensating for the walk line being 38 texture rows too low
+// (the board/beam boundary), and reintroducing any sink would push the toes
+// through the visible board tops. Kept as a named constant (not deleted) so
+// any future pose-specific compensation has one documented home. The complete
+// fix for the run-pose art remains a standing-pose Bart frame (family-gated).
+const CALVIN_PLAYER_FOOT_SINK_PX = 0;
 
 // Sketchbook completion screen (secret room): ONE framed panel containing the
 // creature row on top and the text summary below. All geometry derives from
@@ -255,6 +256,9 @@ export class ShorelineScene extends Phaser.Scene {
   private sparkIndicator!: Phaser.GameObjects.Arc;
   private debugGraphics!: Phaser.GameObjects.Graphics;
   private areDebugHitboxesVisible = false;
+  /** ?debug=align: plank walk-row segments collected during level build
+   *  (null when the overlay is off, so addPaintedPlankProp skips the work). */
+  private alignDebugSegments: { left: number; right: number; walkRowY: number }[] | null = null;
   private music?: Phaser.Sound.BaseSound;
   private ambient?: Phaser.Sound.BaseSound;
   private ambientKey?: string;
@@ -461,10 +465,14 @@ export class ShorelineScene extends Phaser.Scene {
     this.cameras.main.ignore(this.uiLayer);
     this.uiCamera.ignore(this.worldLayer);
 
+    this.alignDebugSegments =
+      new URLSearchParams(window.location.search).get('debug') === 'align' ? [] : null;
+
     this.createControls();
     this.createAudio();
     this.createBackdrop();
     this.createLevel();
+    this.createAlignDebugOverlay();
     this.createCharacterAnimations();
     this.createPlayer();
     this.createPlayerPowerIndicators();
@@ -1265,13 +1273,30 @@ export class ShorelineScene extends Phaser.Scene {
     const totalW = width + 18;
     const drawH = Math.max(42, height + 18);
     const leftEdge = x - totalW / 2;
-    // py = y - 4 (was y - 7): the painted skins' walkable deck line (the
-    // board-band/beam transition, measured at texture row 46 of 140) rendered
-    // ~3px ABOVE the physics platform top, so boots sank visibly behind the
-    // front board edge. Lowering the art 3px seats the drawn deck line on the
-    // foot line (378.8 vs 379.0 world on a y=390 dock). Visual only — the
-    // collision rectangle and every other prop path are untouched.
-    const py = y - 4;
+    // DERIVED, not nudged. The character must stand on the drawn TOP of the
+    // deck boards. Measured on the 140px-tall plank textures (both skins cut
+    // from the same master sheet): the top-edge highlight band peaks at row 3
+    // and the board face begins at row PLANK_DECK_WALK_ROW_PX = 8 (night skin;
+    // day skin measures 9 — a grade-contrast shift worth 0.3px at draw scale).
+    // Solve for the prop center py such that
+    //   drawnWalkRow == physicsTop
+    //   artTop + WALK_ROW * (drawH / texH) == y - height/2
+    //   (py - drawH/2) + WALK_ROW * (drawH / 140) == y - height/2
+    // => py = (y - height/2) + drawH/2 - WALK_ROW * (drawH / 140)
+    // For the standard 22px dock (drawH 42): py = y + 7.6. Verifiable at
+    // runtime with ?debug=align (magenta physics top / cyan drawn walk row —
+    // the lines must coincide).
+    const PLANK_DECK_WALK_ROW_PX = 8;
+    const capTexH = this.textures.get(skin.capLeft).getSourceImage().height; // 140
+    const physicsTop = y - height / 2;
+    const py = physicsTop + drawH / 2 - PLANK_DECK_WALK_ROW_PX * (drawH / capTexH);
+    // Debug overlay data: the cyan drawn-walk-row is RE-DERIVED from the final
+    // py (not copied from physicsTop), so if anyone ever reintroduces a nudge
+    // the two ?debug=align lines split visibly instead of lying in agreement.
+    if (this.alignDebugSegments) {
+      const drawnWalkRowY = (py - drawH / 2) + PLANK_DECK_WALK_ROW_PX * (drawH / capTexH);
+      this.alignDebugSegments.push({ left: leftEdge, right: leftEdge + totalW, walkRowY: drawnWalkRowY });
+    }
 
     // capW is rounded to a WHOLE pixel: with the fractional value (27.9 at
     // drawH 42) midW came out fractional too (e.g. 152.2), Phaser's TileSprite
@@ -2551,6 +2576,52 @@ export class ShorelineScene extends Phaser.Scene {
     this.debugGraphics = this.add.graphics();
     this.debugGraphics.setDepth(1000);
     this.debugGraphics.setVisible(false);
+  }
+
+  /** ?debug=align — the alignment proof overlay. MAGENTA: every platform
+   *  physics body top (where feet rest). CYAN: every plank prop's drawn deck
+   *  walk row, re-derived from the prop's final draw position. The fix is
+   *  correct exactly when the pairs coincide. The build stamp renders into
+   *  the overlay so every screenshot self-certifies which commit it shows. */
+  private createAlignDebugOverlay(): void {
+    if (!this.alignDebugSegments) {
+      return;
+    }
+
+    const g = this.add.graphics();
+    g.setDepth(2000);
+
+    this.platforms.children.each((child) => {
+      const body = (child as Phaser.GameObjects.GameObject).body as Phaser.Physics.Arcade.StaticBody | undefined;
+      if (body) {
+        g.lineStyle(1, 0xff00ff, 1); // magenta: physics top
+        g.lineBetween(body.left, body.top, body.right, body.top);
+      }
+      return true;
+    });
+
+    // Cyan is DASHED so that when the two lines coincide (the success case)
+    // magenta stays visible through the gaps — a solid cyan overdraw would
+    // hide the magenta line exactly when the fix works. Coincidence reads as
+    // one continuous row alternating magenta/cyan.
+    this.alignDebugSegments.forEach(({ left, right, walkRowY }) => {
+      g.lineStyle(1, 0x00ffff, 1); // cyan: drawn deck walk row
+      for (let dx = left; dx < right; dx += 16) {
+        g.lineBetween(dx, walkRowY, Math.min(dx + 8, right), walkRowY);
+      }
+    });
+
+    const stamp = (window as unknown as { __SHORELINE_BUILD__?: { commit: string; loadedAt: string } })
+      .__SHORELINE_BUILD__;
+    const label = this.add.text(
+      8,
+      PRESENTATION_VIEW_HEIGHT - 22, // inside the 512px uiCamera band (GAME_HEIGHT-22 would be clipped)
+      `ALIGN DEBUG  build ${stamp?.commit ?? 'unknown'}  ${stamp?.loadedAt ?? ''}`,
+      { color: '#00ffff', fontFamily: 'monospace', fontSize: '11px', fontStyle: 'bold' },
+    );
+    label.setScrollFactor(0);
+    label.setDepth(2001);
+    this.uiLayer.add(label);
   }
 
   private queueTouchJump(): void {

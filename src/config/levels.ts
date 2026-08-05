@@ -656,14 +656,20 @@ export const LEVELS: LevelDefinition[] = [
       // D2's marker, not a floater over the gap
       { x: 630, y: 382, creatureId: 'melt-tiny-center' },
 
-      // S03 — the A1 -> A2 arc's landing tail, at A2's edge ("land here")
-      { x: 1322, y: 350, creatureId: 'melt-flying' },
+      // S03 — hop-arc above A2's deck (17px hop). Clearance audit: no point
+      // on the A1->A2 jump arc clears the dock art by 12px (the 84.5px jump
+      // apex misses the corridor by ~3px), so the fragment re-anchored to the
+      // standing-hop arc over its landing dock — still marks "climb to here".
+      { x: 1420, y: 262, creatureId: 'melt-flying' },
 
-      // S04 — the summit arc's crown (B2 -> H apex, bridge-deck height)
-      { x: 2600, y: 158, creatureId: 'melt-crowned-long' },
+      // S04 — the summit arc's crown (B2 -> H apex), audit-shifted along the
+      // SAME arc (t 0.380->0.384) to clear H's art by 17px
+      { x: 2601, y: 132, creatureId: 'melt-crowned-long' },
 
-      // S05 — the A3 -> recovery-wharf drop arc, over R's edge
-      { x: 1790, y: 322, creatureId: 'melt-left-smiling' },
+      // S05 — hop-arc above the recovery wharf (20px hop). Same audit story
+      // as S03: the A3->R drop arc has no 12px-clear point, re-anchored to
+      // the hop above R — still pulls the player down onto the wharf.
+      { x: 1900, y: 240, creatureId: 'melt-left-smiling' },
 
       // S06 — directly above M1's center at y225: fully above standing
       // head-reach (fragment bottom 243 vs standing head 278 — the pickup is
@@ -672,8 +678,10 @@ export const LEVELS: LevelDefinition[] = [
       // Red Bart's natural glide body-line for the stylish mid-air grab.
       { x: 2900, y: 225, creatureId: 'melt-snail' },
 
-      // S07 — the calm C1 -> S step-down arc, just past C1's edge
-      { x: 3335, y: 392, creatureId: 'melt-squid' },
+      // S07 — the calm C1 -> S step-down arc, audit-shifted along the SAME
+      // arc (t 0.270->0.274) to 13px clearance; also collectable walking the
+      // ground lane beneath (fitting the ketsu calm)
+      { x: 3371, y: 450, creatureId: 'melt-squid' },
 
       // S08 — stride height, one step before the door
       { x: 3940, y: 430, creatureId: 'melt-king' },
