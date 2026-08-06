@@ -601,10 +601,13 @@ export const LEVELS: LevelDefinition[] = [
     platforms: [
       { x: 2100, y: GROUND_Y + 26, width: 4200, height: 70, color: COLORS.shore },
 
-      // KI — spawn lands on B0; walking off its edge collects S01 mid-fall
-      { x: 140, y: 451, width: 220, height: 22, color: COLORS.dock },
-      { x: 480, y: 451, width: 200, height: 22, color: COLORS.dock },
-      { x: 740, y: 432, width: 200, height: 22, color: COLORS.dock },
+      // KI — the player spawns ON THE PAVEMENT at far left (startX 96, clear
+      // ground beneath), walks through S01 at ground level, then the first
+      // dock is something you jump UP onto: ground -> 43px hop -> boardwalk.
+      // D2's top sits at 428 (not 421) so the T1/D2/A1 silhouette steps
+      // 440 -> 428 -> 415 with >10px between every within-screen pair.
+      { x: 460, y: 451, width: 200, height: 22, color: COLORS.dock },
+      { x: 740, y: 439, width: 200, height: 22, color: COLORS.dock },
 
       // SHO / Ladder A — up the water band (+68 from ground, +56, +54)
       { x: 1180, y: 426, width: 200, height: 22, color: COLORS.dock },
@@ -621,8 +624,12 @@ export const LEVELS: LevelDefinition[] = [
       // THE SUMMIT — bridge-deck band, top 168; the glide launches here
       { x: 2650, y: 179, width: 200, height: 22, color: COLORS.dock },
 
-      // TEN — Earth Eyes' stepped catches (Red Bart overflies both)
-      { x: 2900, y: 351, width: 180, height: 22, color: COLORS.dock },
+      // TEN — Earth Eyes' stepped catches (Red Bart overflies both). M1's top
+      // sits at 355 (not 340): the recovery wharf R is 340 and both docks fit
+      // in one screen-width, so identical heights flattened the silhouette —
+      // staggered by 15px. S06's ladder-hop from M1 becomes 50px (head-reach
+      // 293 vs fragment bottom 243) — still above standing reach.
+      { x: 2900, y: 366, width: 180, height: 22, color: COLORS.dock },
       { x: 3200, y: 427, width: 240, height: 22, color: COLORS.dock },
 
       // KETSU — one gentle step down; then the ground walk to the door
@@ -648,9 +655,10 @@ export const LEVELS: LevelDefinition[] = [
     // reach at 72px, fair because it stands above M1 - retryable from a
     // stable platform, never a one-shot mid-air catch.
     fragments: [
-      // S01 — collected mid-fall walking off B0's edge (drift-verified: the
-      // walk-off and run-off arcs both cross it; ground walk-back also works)
-      { x: 295, y: 465, creatureId: 'melt-long-48' },
+      // S01 — ground-level walk-through pickup between the pavement spawn and
+      // the first hop (its old B0 walk-off drop-arc died with the ground
+      // spawn; rides along per the tweak pass — still the safe first pickup)
+      { x: 240, y: 462, creatureId: 'melt-long-48' },
 
       // S02 — on the T1 -> D2 arc, biased to D2's edge so at rest it reads as
       // D2's marker, not a floater over the gap
