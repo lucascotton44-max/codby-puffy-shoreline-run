@@ -22,6 +22,16 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [ShorelineScene],
 };
 
+// Build stamp (injected per page load by the vite plugin): logged on boot so
+// every session — and every verification screenshot's console — can be checked
+// against `git rev-parse --short HEAD`. A mismatched or missing stamp means
+// the tab is running stale code and its evidence is void.
+const buildStamp = (window as unknown as { __SHORELINE_BUILD__?: { commit: string; loadedAt: string } })
+  .__SHORELINE_BUILD__;
+console.log(
+  `[shoreline-run] build ${buildStamp?.commit ?? 'unknown'} loaded ${buildStamp?.loadedAt ?? '?'}`,
+);
+
 const game = new Phaser.Game(config);
 
 // QA hook: import.meta.env exists only under the Vite dev server; the

@@ -87,7 +87,9 @@ export const PAINTED_PARALLAX: Record<string, PaintedParallaxConfig> = {
 
 // Per-level 3-slice plank material. Same geometry; only the texture set (palette)
 // differs: canal = warm golden wood, level-1 = cool grey-timber for the overcast.
-export type PlankSkin = { capLeft: string; mid: string; capRight: string };
+// pilingTexture (opt-in, per skin) draws dark timber support legs behind the
+// planks reaching toward the ground — levels without it are byte-identical.
+export type PlankSkin = { capLeft: string; mid: string; capRight: string; pilingTexture?: string };
 export const PLANK_SKINS: Record<string, PlankSkin> = {
   'st-peters-canal-level-03': {
     capLeft: TEXTURE_KEYS.canalPlankCapLeft,
@@ -117,6 +119,11 @@ export const PLANK_SKINS: Record<string, PlankSkin> = {
     capLeft: TEXTURE_KEYS.calvinsCreatureRoomPlankCapLeft,
     mid: TEXTURE_KEYS.calvinsCreatureRoomPlankMid,
     capRight: TEXTURE_KEYS.calvinsCreatureRoomPlankCapRight,
+    // Full-vertical redesign: high docks need visual grounding against the
+    // fixed backdrop — night-graded timber legs, bounded + bottom-faded so the
+    // summit doesn't stand on 300px stilts. Calvin's chalk dressing draws its
+    // sketch legs OVER these (sketch-over-reality is the room's language).
+    pilingTexture: TEXTURE_KEYS.calvinsCreatureRoomPiling,
   },
 };
 

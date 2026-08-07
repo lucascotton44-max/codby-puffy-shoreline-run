@@ -36,6 +36,10 @@ export class StoryFragment extends Phaser.GameObjects.Container {
     this.creatureId = creatureId;
     scene.add.existing(this);
     scene.physics.add.existing(this);
+    // Above the plank props (depth 1), pilings (0.75), and dressing (1.05) —
+    // arc-placed fragments overlap dock art and were being painted over.
+    // Matches PowerUpPickup's depth 12 so all pickups layer identically.
+    this.setDepth(12);
     this.body.setAllowGravity(false);
     this.body.setSize(GAMEPLAY_TUNING.collectibles.pickupSize.width, GAMEPLAY_TUNING.collectibles.pickupSize.height);
     this.body.setOffset(
