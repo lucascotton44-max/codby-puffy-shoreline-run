@@ -620,6 +620,15 @@ export const LEVELS: LevelDefinition[] = [
       // SHO / Ladder B — through the skyline band (+65, +60, +47)
       { x: 2220, y: 286, width: 180, height: 22, color: COLORS.dock },
       { x: 2440, y: 226, width: 180, height: 22, color: COLORS.dock },
+      // NOTE (presence & choices pass): the specced optional perch (w~140,
+      // top 255-265, above the recovery-wharf area, Earth-Eyes-only via
+      // near-ceiling jump) is provably unplaceable here: Red Bart's full
+      // A3->R landing arc forces its left edge >= ~2062, while dock-
+      // separation from B1 (no overlap; >=40px horizontal clearance at
+      // overlapping heights) caps its right edge at 2090 — a 28px window,
+      // narrower than the player. Clearing B1's band vertically instead
+      // needs top <= 223, a 117px rise from R — beyond Earth Eyes even with
+      // tideLift (106px). Audit: dev scratchpad presence_choices_audit.py.
 
       // THE SUMMIT — bridge-deck band, top 168; the glide launches here
       { x: 2650, y: 179, width: 200, height: 22, color: COLORS.dock },
@@ -694,7 +703,34 @@ export const LEVELS: LevelDefinition[] = [
       // S08 — stride height, one step before the door
       { x: 3940, y: 430, creatureId: 'melt-king' },
     ],
-    powerUps: [],
+    // Optional decisions (presence & choices pass) — both OFF the mandatory
+    // line; the route never requires either pickup.
+    powerUps: [
+      // kelpShield — tucked low under the recovery wharf R, between the
+      // pilings, in the only safe ground window there (P3's hazard ends
+      // 1810 — pool art 1814 — and melt B's sweep begins 2029). The deliberate detour: walk off R's left
+      // edge (lands ~1665, short of P3), hop P3 in, grab, then pay the way
+      // back — re-mount Ladder A through melt A's widened lane.
+      { kind: 'kelpShield', x: 1900, y: 452 },
+
+      // tideLift — the pressure pocket at Ladder B's base: 12px clear of
+      // melt B's sweep (ends 2271), 14px clear of puddle P1's pool art
+      // (starts 2331; the hazard band itself starts 2335). Enables Red Bart's otherwise-impossible ground->R leap
+      // (rise 143 vs base max 136; lifted max 159) — slip off Ladder B,
+      // bounce straight back onto the wharf while the 5.2s lift holds.
+      // Earth Eyes gains jump margin only (84.5 -> 106px reaches no new
+      // dock in this room — verified pair sweep, presence-pass audit).
+      { kind: 'tideLift', x: 2300, y: 450 },
+
+      // storySpark — far-left pavement BEHIND the spawn (startX 96): the
+      // player who walks LEFT against the level's grain finds it, and it is
+      // visible on screen from the first frame. x45, not the sketched
+      // 60-80: the pickup body is 34 wide and Earth Eyes' spawn body spans
+      // 75-117, so any x > 57 overlaps the spawn and silently auto-collects
+      // on frame one (probed live). x45 keeps 13px of daylight. Ground
+      // walk-collect; no platform, arc, or clearance dependencies.
+      { kind: 'storySpark', x: 45, y: 450 },
+    ],
     // SS11 AMENDMENT (melt placement pass, Lucas 2026-08): the design
     // source's "one patrol" rule is amended to THREE placed melts, each with
     // a stated job — Mario-style pressure on the route, not decoration.
@@ -703,15 +739,20 @@ export const LEVELS: LevelDefinition[] = [
     // player always gets footing before pressure). All speed 30, contact
     // damage, stomp-defeatable — no new behaviors.
     scuttleclaws: [
-      // Ground melt A — beneath Ladder A. JOB: makes the ground route under
-      // the first climb cost something. Body sweep 1119-1381 stays 199px
-      // clear of the mandatory D2->ground landing zone (~x860-920); failed
-      // climbs off A1/A2 drop into its lane — that is the point.
+      // Ground melt A — beneath Ladder A, widened (presence pass) so it
+      // sweeps the open low lane instead of parking under dock A1. JOB
+      // unchanged: makes the ground route under the first climb cost
+      // something. Range is the MAXIMUM the 150px landing law allows: the
+      // D2->ground walk-off envelope now includes Red Bart (vx 250 -> body
+      // lands out to x951), so sweep-left must stay >= 1101; minX 1133 puts
+      // the body sweep at 1102-1431 — 151px clear of the landing zone, 299px
+      // clear of puddle P3. (The requested [1050,1400] would cut the landing
+      // clearance to 68px — rejected by the audit, per the pass's own rule.)
       {
         x: 1250,
         y: 472,
-        minX: 1150,
-        maxX: 1350,
+        minX: 1133,
+        maxX: 1400,
         speed: 30,
         damage: 1,
         variant: 'melt',

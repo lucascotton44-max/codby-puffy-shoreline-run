@@ -1575,34 +1575,47 @@ export class ShorelineScene extends Phaser.Scene {
     }
   }
 
+  /** Spilled-ink pool lying ON the pavement (SS10: the danger must be visible
+   *  before the player falls into it). VISUAL ONLY — the HazardZone body is
+   *  untouched; the pool draws slightly WIDER than the hitbox so the visual
+   *  never under-sells the danger. Anchored to the pavement line (ground top
+   *  483) rather than the hazard-band centre, so it sits on the surface
+   *  instead of floating over it. */
   private addBlackSketchPuddleHazardDetail(x: number, y: number, width: number, height: number): void {
-    const shadow = this.add.ellipse(x + 5, y + 5, width + 22, height + 12, 0x070b0d, 0.38);
-    shadow.setDepth(1.6);
+    void y;
+    void height; // hazard-band centre/height stay collision-only; the pool hugs the pavement
+    const pavementTop = 483;
+    const poolY = pavementTop + 1;
+    const poolW = width + 8;
 
-    const body = this.add.ellipse(x, y, width, height, 0x0b1217, 0.88);
-    body.setDepth(1.7);
+    const contactShadow = this.add.ellipse(x + 3, poolY + 3, poolW + 14, 12, 0x070b0d, 0.5);
+    contactShadow.setDepth(1.6);
 
-    const leftSpill = this.add.ellipse(x - width * 0.34, y + 1, width * 0.28, height * 0.62, 0x101a20, 0.72);
-    leftSpill.setDepth(1.72);
+    // Full-alpha ink body with a chalk-white edge — Calvin's own visual
+    // language: a deliberate dark drawing, outlined, not a grey ghost.
+    const pool = this.add.ellipse(x, poolY, poolW, 11, 0x05090c, 1);
+    pool.setStrokeStyle(2, 0xd8ddd2, 0.5);
+    pool.setDepth(1.7);
 
-    const rightSpill = this.add.ellipse(x + width * 0.31, y - 3, width * 0.24, height * 0.48, 0x070d11, 0.62);
-    rightSpill.setDepth(1.72);
+    const leftLobe = this.add.ellipse(x - poolW * 0.38, poolY + 1, poolW * 0.3, 8, 0x05090c, 1);
+    leftLobe.setStrokeStyle(2, 0xd8ddd2, 0.42);
+    leftLobe.setDepth(1.69);
 
-    const frontDrip = this.add.ellipse(x - width * 0.08, y + height * 0.34, width * 0.38, height * 0.34, 0x111b21, 0.56);
-    frontDrip.setDepth(1.73);
+    const rightLobe = this.add.ellipse(x + poolW * 0.36, poolY, poolW * 0.26, 7, 0x05090c, 1);
+    rightLobe.setStrokeStyle(2, 0xd8ddd2, 0.42);
+    rightLobe.setDepth(1.69);
 
-    const brokenEdge = this.add.ellipse(x - width * 0.2, y - 2, width * 0.34, height * 0.28, 0x1a262c, 0.28);
-    brokenEdge.setDepth(1.74);
+    // Wet sheen: one cool inner highlight so the ink reads liquid, not paint.
+    const sheen = this.add.ellipse(x - poolW * 0.16, poolY - 2, poolW * 0.34, 3, 0x3d5560, 0.6);
+    sheen.setDepth(1.75);
 
-    const scratches = this.add.graphics();
-    scratches.setDepth(1.8);
-    scratches.lineStyle(1, 0xd8ddd2, 0.18);
-    scratches.lineBetween(x - width * 0.43, y - 3, x - width * 0.28, y - 6);
-    scratches.lineBetween(x - width * 0.1, y - height * 0.42, x + width * 0.08, y - height * 0.36);
-    scratches.lineBetween(x + width * 0.24, y + 2, x + width * 0.4, y - 1);
-    scratches.lineStyle(1, 0x2a3940, 0.46);
-    scratches.lineBetween(x - width * 0.26, y + 5, x - width * 0.02, y + 8);
-    scratches.lineBetween(x + width * 0.08, y + 7, x + width * 0.28, y + 4);
+    // Spatter dots past the edge — spilled, not stamped.
+    const spatter = this.add.graphics();
+    spatter.setDepth(1.72);
+    spatter.fillStyle(0x05090c, 1);
+    spatter.fillEllipse(x - poolW * 0.58, poolY + 2, 6, 3);
+    spatter.fillEllipse(x + poolW * 0.55, poolY + 1, 5, 3);
+    spatter.fillEllipse(x + poolW * 0.64, poolY + 3, 3, 2);
   }
 
   private addHazardProp(
