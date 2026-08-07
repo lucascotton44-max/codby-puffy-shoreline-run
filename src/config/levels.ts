@@ -695,16 +695,55 @@ export const LEVELS: LevelDefinition[] = [
       { x: 3940, y: 430, creatureId: 'melt-king' },
     ],
     powerUps: [],
+    // SS11 AMENDMENT (melt placement pass, Lucas 2026-08): the design
+    // source's "one patrol" rule is amended to THREE placed melts, each with
+    // a stated job — Mario-style pressure on the route, not decoration.
+    // Beat 7 (x3400+) stays enemy-free; the recovery wharf R stays clean;
+    // ground melts keep >=150px from every mandatory landing point (the
+    // player always gets footing before pressure). All speed 30, contact
+    // damage, stomp-defeatable — no new behaviors.
     scuttleclaws: [
-      // ScuttleMelt on the GROUND LANE beneath Ladder B (design source SS11
-      // Beat 4 zone): pressures the low route exactly where the escalation
-      // begins, recovery wharf untouched above it. Placement remains
-      // provisional pending Lucas's recovery-beat playtest verdict.
+      // Ground melt A — beneath Ladder A. JOB: makes the ground route under
+      // the first climb cost something. Body sweep 1119-1381 stays 199px
+      // clear of the mandatory D2->ground landing zone (~x860-920); failed
+      // climbs off A1/A2 drop into its lane — that is the point.
+      {
+        x: 1250,
+        y: 472,
+        minX: 1150,
+        maxX: 1350,
+        speed: 30,
+        damage: 1,
+        variant: 'melt',
+      },
+
+      // Ground melt B — beneath Ladder B (unchanged from the redesign). JOB:
+      // pressures the low lane at the escalation. Provisional placement
+      // pending Lucas's recovery-beat verdict still applies.
       {
         x: 2150,
         y: 472,
         minX: 2060,
         maxX: 2240,
+        speed: 30,
+        damage: 1,
+        variant: 'melt',
+      },
+
+      // Platform melt — paces dock B2 (skyline dock, top 215), the
+      // penultimate step before the summit. JOB: forces a timed jump on the
+      // climb's second-to-last move, visible from B1 before the player
+      // commits. Patrol centers [2435,2470] -> body sweep 2404-2501 on the
+      // 2350-2530 dock: a 54px melt-free landing shelf at the left edge
+      // (player body is 42px) and 29px at the takeoff edge — land, wait,
+      // time the pass; never an instant-hit landing. (The general 150px
+      // landing rule is geometrically impossible on a 180px dock; this
+      // melt's own landing-margin rule governs, per the pass spec.)
+      {
+        x: 2450,
+        y: 204,
+        minX: 2435,
+        maxX: 2470,
         speed: 30,
         damage: 1,
         variant: 'melt',
