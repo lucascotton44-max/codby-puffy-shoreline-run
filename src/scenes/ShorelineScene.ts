@@ -335,6 +335,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.load.image(TEXTURE_KEYS.level01bPlankCapLeft, ASSET_PATHS.level01bPlankCapLeft);
     this.load.image(TEXTURE_KEYS.level01bPlankMid, ASSET_PATHS.level01bPlankMid);
     this.load.image(TEXTURE_KEYS.level01bPlankCapRight, ASSET_PATHS.level01bPlankCapRight);
+    this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankCapLeft, ASSET_PATHS.calvinsCreatureRoomPlankCapLeft);
+    this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankMid, ASSET_PATHS.calvinsCreatureRoomPlankMid);
+    this.load.image(TEXTURE_KEYS.calvinsCreatureRoomPlankCapRight, ASSET_PATHS.calvinsCreatureRoomPlankCapRight);
     this.load.image(TEXTURE_KEYS.brokenWharfHazardProp, ASSET_PATHS.brokenWharfHazardProp);
     this.load.image(TEXTURE_KEYS.rockHazardProp, ASSET_PATHS.rockHazardProp);
     this.load.image(TEXTURE_KEYS.ropeDebrisHazardProp, ASSET_PATHS.ropeDebrisHazardProp);
@@ -1253,10 +1256,23 @@ export class ShorelineScene extends Phaser.Scene {
     const totalW = width + 18;
     const drawH = Math.max(42, height + 18);
     const leftEdge = x - totalW / 2;
-    const py = y - 7;
+    // py = y - 4 (was y - 7): the painted skins' walkable deck line (the
+    // board-band/beam transition, measured at texture row 46 of 140) rendered
+    // ~3px ABOVE the physics platform top, so boots sank visibly behind the
+    // front board edge. Lowering the art 3px seats the drawn deck line on the
+    // foot line (378.8 vs 379.0 world on a y=390 dock). Visual only — the
+    // collision rectangle and every other prop path are untouched.
+    const py = y - 4;
 
+    // capW is rounded to a WHOLE pixel: with the fractional value (27.9 at
+    // drawH 42) midW came out fractional too (e.g. 152.2), Phaser's TileSprite
+    // quantized it down to 152, and the lost 0.2px opened a sub-pixel gap at
+    // the mid/right-cap junction that rasterized as a bright sky line under
+    // the level-1 camera zoom. Rounding keeps cap aspect within 0.4% and makes
+    // midW integral for every integer platform width, so the three pieces abut
+    // exactly. Footprint (leftEdge/totalW/py/drawH) is unchanged.
     const capTex = this.textures.get(skin.capLeft).getSourceImage();
-    const capW = drawH * (capTex.width / capTex.height); // preserve cap aspect (~28px)
+    const capW = Math.round(drawH * (capTex.width / capTex.height)); // cap aspect, whole px (~28)
     const midW = Math.max(0, totalW - capW * 2);
 
     const left = this.add.image(leftEdge, py, skin.capLeft).setOrigin(0, 0.5);
