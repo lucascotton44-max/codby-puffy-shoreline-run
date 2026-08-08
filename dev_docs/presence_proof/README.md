@@ -17,7 +17,7 @@ label rendered into the canvas at capture time. Acceptance criterion:
 | `before_puddle_*.png` / `after_puddle_*.png` | The three blackSketchPuddles (P3 x1770, P1 x2380, P2 x3020). Before: pale grey oval floating above the pavement line. After: full-alpha ink pool with chalk-white edge, lying ON the pavement, spatter at the tips. |
 | `after_pickup_kelp.png` | kelpShield (x1900) tucked under wharf R between the pilings — P3 left, melt B's lane right. |
 | `after_pickup_tidelift.png` | tideLift (x2300) in the pressure pocket: melt B left, P1 right, Ladder B above. |
-| `after_pickup_spark_spawn.png` | storySpark (x45) on the pavement left of the spawn — visible from frame one, collected only by walking against the level's grain. |
+| `after_spark_from_wharf.png` | storySpark (1985,450) in the drop-down nook under wharf R, captured from the player's position ON the deck (camera following, zoom 1) — both nook pickups legible below, melt B guarding the exit. Stamp `0b1de53-dirty`. |
 | `fixed_R_B1_zone.png` | The R–B1 silhouette after removing the unplaceable optional perch (the only pair the platform-overlap audit ever flagged: 43px × 9px rectangle overlap). |
 
 Method notes: hidden-pane pump (`game.loop.step`), `renderer.snapshot`,

@@ -722,14 +722,14 @@ export const LEVELS: LevelDefinition[] = [
       // dock in this room — verified pair sweep, presence-pass audit).
       { kind: 'tideLift', x: 2300, y: 450 },
 
-      // storySpark — far-left pavement BEHIND the spawn (startX 96): the
-      // player who walks LEFT against the level's grain finds it, and it is
-      // visible on screen from the first frame. x45, not the sketched
-      // 60-80: the pickup body is 34 wide and Earth Eyes' spawn body spans
-      // 75-117, so any x > 57 overlaps the spawn and silently auto-collects
-      // on frame one (probed live). x45 keeps 13px of daylight. Ground
-      // walk-collect; no platform, arc, or clearance dependencies.
-      { kind: 'storySpark', x: 45, y: 450 },
+      // storySpark — the drop-down nook beneath recovery wharf R, deeper in
+      // than the kelpShield: the same deliberate detour pays twice. Sits in
+      // the audited safe ground window (P3's pool art ends 1814; melt B's
+      // sweep begins 2029): body 1968-2002 -> 27px clear of the sweep, 51px
+      // right of the kelpShield's body, 154px from P3. Visible from the
+      // wharf deck above (side-view: the deck never occludes the ground
+      // lane), so the temptation reads before the drop.
+      { kind: 'storySpark', x: 1985, y: 450 },
     ],
     // SS11 AMENDMENT (melt placement pass, Lucas 2026-08): the design
     // source's "one patrol" rule is amended to THREE placed melts, each with
