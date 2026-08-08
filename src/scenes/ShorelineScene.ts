@@ -78,7 +78,8 @@ type PowerUpStateAtlasMeta = {
 };
 
 type WaterShimmer = {
-  band: Phaser.GameObjects.Rectangle;
+  /** Only .x/.alpha are animated, so Graphics (the harbour band) rides along. */
+  band: Phaser.GameObjects.Rectangle | Phaser.GameObjects.Graphics;
   baseX: number;
   baseAlpha: number;
   speed: number;
@@ -252,6 +253,8 @@ export class ShorelineScene extends Phaser.Scene {
   private endMarker!: Phaser.GameObjects.Rectangle;
   private endMarkerText!: Phaser.GameObjects.Text;
   private waterShimmers: WaterShimmer[] = [];
+  /** Creature-room foreground harbour: pooled rain-ring sparkles (empty elsewhere). */
+  private harbourWaterRings: Phaser.GameObjects.Ellipse[] = [];
   private tideLiftGraphics!: Phaser.GameObjects.Graphics;
   private sparkIndicator!: Phaser.GameObjects.Arc;
   private debugGraphics!: Phaser.GameObjects.Graphics;
@@ -1032,6 +1035,7 @@ export class ShorelineScene extends Phaser.Scene {
 
   private createBackdrop(): void {
     this.waterShimmers = [];
+    this.harbourWaterRings = [];
 
     // Canal level: painted golden-hour parallax (far/mid/near) replaces the flat
     // backdrop PNG + grey procedural silhouette/foreground. Keep the live water
@@ -1205,6 +1209,9 @@ export class ShorelineScene extends Phaser.Scene {
     this.createFragments();
     this.createPowerUps();
     this.createScuttleclaws();
+    if (this.currentLevel.id === 'calvins-creature-room') {
+      this.createCreatureRoomHarbourWater();
+    }
     this.createBoss();
     this.createEndMarker();
     this.createStartZone();
@@ -3339,6 +3346,101 @@ export class ShorelineScene extends Phaser.Scene {
       band.x = baseX + wave * drift;
       band.alpha = baseAlpha + Math.max(0, wave) * 0.035;
     });
+    this.updateHarbourWaterRings(time);
+  }
+
+  /** Creature-room foreground harbour water (x1100-3100): a dark green-black
+   *  strip whose waterline sits 2px above the pavement top (483), so the
+   *  pilings (depth 0.75) read as standing in it while everything on the
+   *  ground lane — puddles (1.6+), melts (9), pickups, player — draws over
+   *  it. PURELY VISUAL: no bodies, no colliders, no route changes. The intro
+   *  pavement (<1100) and Beat 7 (>3100) stay dry; 90px alpha fades inside
+   *  each end keep the edges soft. The swell and the streak rows ride the
+   *  existing waterShimmers updater (zero per-frame allocation); the rain
+   *  rings below are the only new per-frame work — six pooled ellipses,
+   *  scale/alpha transforms only. */
+  private createCreatureRoomHarbourWater(): void {
+    const LEFT = 1100;
+    const RIGHT = 3100;
+    const FADE = 90;
+    const TOP = 481; // 2px above the pavement line
+    const BOTTOM = 540;
+
+    // Wet quay face: the backdrop's pale quay strip (~y458-481) would float
+    // as a bright band over the water — darken it to wet stone across the
+    // same span, STATIC (stone must not ride the swell), same end fades.
+    const quay = this.add.graphics();
+    quay.setDepth(0.88);
+    const QUAY_TOP = 458;
+    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0, 0.8, 0, 0.8);
+    quay.fillRect(LEFT, QUAY_TOP, FADE, TOP - QUAY_TOP);
+    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0.8, 0, 0.8, 0);
+    quay.fillRect(RIGHT - FADE, QUAY_TOP, FADE, TOP - QUAY_TOP);
+    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0.8, 0.8, 0.8, 0.8);
+    quay.fillRect(LEFT + FADE, QUAY_TOP, RIGHT - LEFT - FADE * 2, TOP - QUAY_TOP);
+
+    const water = this.add.graphics();
+    water.setDepth(0.9);
+    // End fades: horizontal alpha gradients toward the dry zones.
+    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0, 0.92, 0, 0.92);
+    water.fillRect(LEFT, TOP, FADE, BOTTOM - TOP);
+    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0.92, 0, 0.92, 0);
+    water.fillRect(RIGHT - FADE, TOP, FADE, BOTTOM - TOP);
+    // Main body: vertical grade, dark green-black matching the backdrop band.
+    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0.92, 0.92, 0.92, 0.92);
+    water.fillRect(LEFT + FADE, TOP, RIGHT - LEFT - FADE * 2, BOTTOM - TOP);
+    // Waterline lip.
+    water.fillStyle(0x9fb8ae, 0.2);
+    water.fillRect(LEFT + FADE, TOP, RIGHT - LEFT - FADE * 2, 2);
+    // The whole strip swells 2.5px on the existing shimmer clock.
+    this.waterShimmers.push({ band: water, baseX: 0, baseAlpha: 1, speed: 0.00042, phase: 0.6, drift: 2.5 });
+
+    // Two rows of pale drift streaks inside the faded span (margin > drift).
+    const rows = [
+      { y: 497, width: 72, alpha: 0.07, step: 236, drift: 8, speed: 0.0006 },
+      { y: 516, width: 48, alpha: 0.05, step: 268, drift: 6, speed: 0.00078 },
+    ];
+    rows.forEach((row, rowIndex) => {
+      for (let x = LEFT + FADE + 24; x < RIGHT - FADE - 24; x += row.step) {
+        const streak = this.add.rectangle(x, row.y, row.width, 2, 0xd8e0db, row.alpha);
+        streak.setDepth(0.91);
+        this.waterShimmers.push({
+          band: streak,
+          baseX: x,
+          baseAlpha: row.alpha,
+          speed: row.speed,
+          phase: x * 0.011 + rowIndex * 2.1,
+          drift: row.drift,
+        });
+      }
+    });
+
+    // Rain-ring pool: six stroked ellipses, recycled forever via scale/alpha.
+    for (let i = 0; i < 6; i++) {
+      const ring = this.add.ellipse(0, 0, 30, 10);
+      ring.setStrokeStyle(1.5, 0x9fb8ae, 1);
+      ring.setDepth(0.92);
+      ring.setAlpha(0);
+      this.harbourWaterRings.push(ring);
+    }
+  }
+
+  /** Rain rings on the harbour band: deterministic cycles (no Math.random —
+   *  restart-stable), transforms only (no geometry rebuilds, no allocation).
+   *  No-op outside the creature room (pool is empty). */
+  private updateHarbourWaterRings(time: number): void {
+    for (let i = 0; i < this.harbourWaterRings.length; i++) {
+      const ring = this.harbourWaterRings[i];
+      const t = time * 0.0007 + i * 0.373;
+      const cycle = t - Math.floor(t);
+      const generation = Math.floor(t);
+      const seed = (i * 761 + generation * 1543) % 1901;
+      ring.x = 1220 + (seed / 1900) * 1760;
+      ring.y = 494 + (i % 3) * 14;
+      const scale = 0.25 + cycle * 1.05;
+      ring.setScale(scale, scale * 0.4);
+      ring.setAlpha(0.24 * (1 - cycle));
+    }
   }
 
   private updateBubbleVentVisual(time: number): void {
