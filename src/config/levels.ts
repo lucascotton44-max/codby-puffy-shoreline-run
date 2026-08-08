@@ -590,80 +590,160 @@ export const LEVELS: LevelDefinition[] = [
     endX: 4000,
     totalFragments: 8,
     requiredFragments: 8,
+    // Full-vertical kishotenketsu route per
+    // dev_docs/CALVIN_ROOM_FULL_VERTICAL_REDESIGN_2026-08.md (approved):
+    // ki - spawn boardwalk drop-collect + flat hops; sho - Ladder A up the
+    // water band, clean recovery wharf, Ladder B through the skyline band to
+    // the SUMMIT at bridge-deck height (top 168; 315px total climb); ten -
+    // the glide descent (Red Bart one unbroken fall, Earth Eyes stepped
+    // catches M1/C1); ketsu - hazard-free calm walk to the door. Worst
+    // mandatory rise 72px (S06 from M1, retryable) vs the 84.5px ceiling.
     platforms: [
       { x: 2100, y: GROUND_Y + 26, width: 4200, height: 70, color: COLORS.shore },
 
-      // Screen 1 — Safe Arrival
-      { x: 430, y: 412, width: 220, height: 22, color: COLORS.dock },
+      // KI — the player spawns ON THE PAVEMENT at far left (startX 96, clear
+      // ground beneath), walks through S01 at ground level, then the first
+      // dock is something you jump UP onto: ground -> 43px hop -> boardwalk.
+      // D2's top sits at 428 (not 421) so the T1/D2/A1 silhouette steps
+      // 440 -> 428 -> 415 with >10px between every within-screen pair.
+      { x: 460, y: 451, width: 200, height: 22, color: COLORS.dock },
+      { x: 740, y: 439, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 2 — Low Dock Hop
-      { x: 700, y: 408, width: 220, height: 22, color: COLORS.dock },
-      { x: 960, y: 370, width: 230, height: 22, color: COLORS.dock },
+      // SHO / Ladder A — up the water band (+68 from ground, +56, +54)
+      { x: 1180, y: 426, width: 200, height: 22, color: COLORS.dock },
+      { x: 1420, y: 370, width: 190, height: 22, color: COLORS.dock },
+      { x: 1650, y: 316, width: 190, height: 22, color: COLORS.dock },
 
-      // Screen 3 — High Climb
-      { x: 1200, y: 402, width: 240, height: 22, color: COLORS.dock },
-      { x: 1440, y: 338, width: 230, height: 22, color: COLORS.dock },
-      { x: 1680, y: 282, width: 260, height: 22, color: COLORS.dock },
+      // SHO — wide hazard-free recovery wharf (breathe before Ladder B)
+      { x: 1950, y: 351, width: 320, height: 22, color: COLORS.dock },
 
-      // Screen 4 — Recovery Lane
-      { x: 1980, y: 414, width: 300, height: 22, color: COLORS.dock },
-      { x: 2180, y: 356, width: 230, height: 22, color: COLORS.dock },
+      // SHO / Ladder B — through the skyline band (+65, +60, +47)
+      { x: 2220, y: 286, width: 180, height: 22, color: COLORS.dock },
+      { x: 2440, y: 226, width: 180, height: 22, color: COLORS.dock },
 
-      // Screen 5 — Optional Red Bart Glide Advantage
-      { x: 2400, y: 286, width: 280, height: 22, color: COLORS.dock },
-      { x: 2660, y: 352, width: 260, height: 22, color: COLORS.dock },
-      { x: 2940, y: 416, width: 300, height: 22, color: COLORS.dock },
+      // THE SUMMIT — bridge-deck band, top 168; the glide launches here
+      { x: 2650, y: 179, width: 200, height: 22, color: COLORS.dock },
 
-      // Screen 6 — Final Climb
-      { x: 3220, y: 402, width: 280, height: 22, color: COLORS.dock },
-      { x: 3480, y: 342, width: 250, height: 22, color: COLORS.dock },
-      { x: 3740, y: 304, width: 260, height: 22, color: COLORS.dock },
+      // TEN — Earth Eyes' stepped catches (Red Bart overflies both). M1's top
+      // sits at 355 (not 340): the recovery wharf R is 340 and both docks fit
+      // in one screen-width, so identical heights flattened the silhouette —
+      // staggered by 15px. S06's ladder-hop from M1 becomes 50px (head-reach
+      // 293 vs fragment bottom 243) — still above standing reach.
+      { x: 2900, y: 366, width: 180, height: 22, color: COLORS.dock },
+      { x: 3200, y: 427, width: 240, height: 22, color: COLORS.dock },
 
-      // Screen 7 — Creature Door Payoff
-      { x: 3920, y: 410, width: 300, height: 22, color: COLORS.dock },
+      // KETSU — one gentle step down; then the ground walk to the door
+      { x: 3510, y: 451, width: 200, height: 22, color: COLORS.dock },
     ],
     hazards: [
-      // Puddle 1 - recovery platform teaching hazard.
-      { x: 2030, y: 400, width: 95, height: 18, kind: 'blackSketchPuddle' },
+      // Ground puddles below drop lines per design source SS10 — visible
+      // before every fall that can reach them. The ketsu zone is hazard-free.
 
-      // Puddle 2 - glide/catch platform consequence.
-      { x: 2660, y: 338, width: 105, height: 18, kind: 'blackSketchPuddle' },
+      // Below the Ladder A -> recovery-wharf drop line.
+      { x: 1770, y: 480, width: 80, height: 18, kind: 'blackSketchPuddle' },
 
-      // Puddle 3 - final buildup pressure before the door payoff.
-      { x: 3220, y: 388, width: 90, height: 18, kind: 'blackSketchPuddle' },
+      // Below Ladder B's gaps — the climb's visible stake.
+      { x: 2380, y: 480, width: 90, height: 18, kind: 'blackSketchPuddle' },
+
+      // Under the twist's air — punishes a botched glide or short hop.
+      { x: 3020, y: 480, width: 105, height: 18, kind: 'blackSketchPuddle' },
     ],
+    // Fragments are GUIDANCE ARCS (design doc SS"Fragments"): six of eight sit
+    // on the apex/fall-line of mandatory jumps computed from the real physics
+    // (Earth Eyes v0=390 g=900); S01/S08 bookend at walk height. All 8 are
+    // required (8/8 - every creature comes home); S06 is the worst mandatory
+    // reach at 72px, fair because it stands above M1 - retryable from a
+    // stable platform, never a one-shot mid-air catch.
     fragments: [
-      // S01 — Safe first pickup → melt-long-48 (common, 48% CONFIRMED — easy confirmed win first)
-      { x: 180, y: GROUND_Y - 64, creatureId: 'melt-long-48' },
+      // S01 — ground-level walk-through pickup between the pavement spawn and
+      // the first hop (its old B0 walk-off drop-arc died with the ground
+      // spawn; rides along per the tweak pass — still the safe first pickup)
+      { x: 240, y: 462, creatureId: 'melt-long-48' },
 
-      // S02 — Low dock hop reward → melt-tiny-center (uncommon provisional — small creature, small hop)
-      { x: 700, y: 366, creatureId: 'melt-tiny-center' },
+      // S02 — on the T1 -> D2 arc, biased to D2's edge so at rest it reads as
+      // D2's marker, not a floater over the gap
+      { x: 630, y: 382, creatureId: 'melt-tiny-center' },
 
-      // S03 — Forward confirmation → melt-flying (uncommon provisional — airborne blob for the first air route)
-      { x: 1200, y: 360, creatureId: 'melt-flying' },
+      // S03 — hop-arc above A2's deck (17px hop). Clearance audit: no point
+      // on the A1->A2 jump arc clears the dock art by 12px (the 84.5px jump
+      // apex misses the corridor by ~3px), so the fragment re-anchored to the
+      // standing-hop arc over its landing dock — still marks "climb to here".
+      { x: 1420, y: 262, creatureId: 'melt-flying' },
 
-      // S04 — High climb reward → melt-crowned-long (uncommon provisional — crowned blob crowns the climb)
-      { x: 1680, y: 240, creatureId: 'melt-crowned-long' },
+      // S04 — the summit arc's crown (B2 -> H apex), audit-shifted along the
+      // SAME arc (t 0.380->0.384) to clear H's art by 17px
+      { x: 2601, y: 132, creatureId: 'melt-crowned-long' },
 
-      // S05 — Recovery reward → melt-left-smiling (uncommon provisional — friendly face after the hard stretch)
-      { x: 2180, y: 314, creatureId: 'melt-left-smiling' },
+      // S05 — hop-arc above the recovery wharf (20px hop). Same audit story
+      // as S03: the A3->R drop arc has no 12px-clear point, re-anchored to
+      // the hop above R — still pulls the player down onto the wharf.
+      { x: 1900, y: 240, creatureId: 'melt-left-smiling' },
 
-      // S06 — Optional glide-value reward → melt-snail (uncommon, 30% CONFIRMED — Snail-Sludge for the patient route)
-      { x: 2660, y: 310, creatureId: 'melt-snail' },
+      // S06 — directly above M1's center at y225: fully above standing
+      // head-reach (fragment bottom 243 vs standing head 278 — the pickup is
+      // body-overlap, so anything lower is collectable without jumping), so
+      // Earth Eyes needs a deliberate retryable hop (MANDATORY, 8/8); sits on
+      // Red Bart's natural glide body-line for the stylish mid-air grab.
+      { x: 2900, y: 225, creatureId: 'melt-snail' },
 
-      // S07 — Final buildup reward → melt-squid (uncommon provisional — spikier silhouette raising stakes)
-      { x: 3220, y: 360, creatureId: 'melt-squid' },
+      // S07 — the calm C1 -> S step-down arc, audit-shifted along the SAME
+      // arc (t 0.270->0.274) to 13px clearance; also collectable walking the
+      // ground lane beneath (fitting the ketsu calm)
+      { x: 3371, y: 450, creatureId: 'melt-squid' },
 
-      // S08 — Near-door payoff → melt-king (rare, 3.8% CONFIRMED — Sucka Free King as the door prize)
-      { x: 3860, y: 368, creatureId: 'melt-king' },
+      // S08 — stride height, one step before the door
+      { x: 3940, y: 430, creatureId: 'melt-king' },
     ],
     powerUps: [],
+    // SS11 AMENDMENT (melt placement pass, Lucas 2026-08): the design
+    // source's "one patrol" rule is amended to THREE placed melts, each with
+    // a stated job — Mario-style pressure on the route, not decoration.
+    // Beat 7 (x3400+) stays enemy-free; the recovery wharf R stays clean;
+    // ground melts keep >=150px from every mandatory landing point (the
+    // player always gets footing before pressure). All speed 30, contact
+    // damage, stomp-defeatable — no new behaviors.
     scuttleclaws: [
+      // Ground melt A — beneath Ladder A. JOB: makes the ground route under
+      // the first climb cost something. Body sweep 1119-1381 stays 199px
+      // clear of the mandatory D2->ground landing zone (~x860-920); failed
+      // climbs off A1/A2 drop into its lane — that is the point.
       {
-        x: 1980,
-        y: 392,
-        minX: 1915,
-        maxX: 2045,
+        x: 1250,
+        y: 472,
+        minX: 1150,
+        maxX: 1350,
+        speed: 30,
+        damage: 1,
+        variant: 'melt',
+      },
+
+      // Ground melt B — beneath Ladder B (unchanged from the redesign). JOB:
+      // pressures the low lane at the escalation. Provisional placement
+      // pending Lucas's recovery-beat verdict still applies.
+      {
+        x: 2150,
+        y: 472,
+        minX: 2060,
+        maxX: 2240,
+        speed: 30,
+        damage: 1,
+        variant: 'melt',
+      },
+
+      // Platform melt — paces dock B2 (skyline dock, top 215), the
+      // penultimate step before the summit. JOB: forces a timed jump on the
+      // climb's second-to-last move, visible from B1 before the player
+      // commits. Patrol centers [2435,2470] -> body sweep 2404-2501 on the
+      // 2350-2530 dock: a 54px melt-free landing shelf at the left edge
+      // (player body is 42px) and 29px at the takeoff edge — land, wait,
+      // time the pass; never an instant-hit landing. (The general 150px
+      // landing rule is geometrically impossible on a 180px dock; this
+      // melt's own landing-margin rule governs, per the pass spec.)
+      {
+        x: 2450,
+        y: 204,
+        minX: 2435,
+        maxX: 2470,
         speed: 30,
         damage: 1,
         variant: 'melt',
