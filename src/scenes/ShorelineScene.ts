@@ -3365,6 +3365,32 @@ export class ShorelineScene extends Phaser.Scene {
     const FADE = 90;
     const TOP = 481; // 2px above the pavement line
     const BOTTOM = 540;
+    const FADE_STEPS = 18;
+    const drawSegmentedBand = (
+      target: Phaser.GameObjects.Graphics,
+      top: number,
+      bottom: number,
+      rows: { color: number; alpha: number }[],
+    ): void => {
+      const height = bottom - top;
+      const segmentWidth = FADE / FADE_STEPS;
+      const drawRows = (x: number, width: number, alphaScale: number): void => {
+        let y = top;
+        rows.forEach(({ color, alpha }, index) => {
+          const rowHeight = index === rows.length - 1 ? bottom - y : height / rows.length;
+          target.fillStyle(color, alpha * alphaScale);
+          target.fillRect(x, y, width, rowHeight);
+          y += rowHeight;
+        });
+      };
+
+      for (let i = 0; i < FADE_STEPS; i++) {
+        const t = (i + 0.5) / FADE_STEPS;
+        drawRows(LEFT + i * segmentWidth, segmentWidth, t);
+        drawRows(RIGHT - FADE + i * segmentWidth, segmentWidth, 1 - t);
+      }
+      drawRows(LEFT + FADE, RIGHT - LEFT - FADE * 2, 1);
+    };
 
     // Wet quay face: the backdrop's pale quay strip (~y458-481) would float
     // as a bright band over the water — darken it to wet stone across the
@@ -3372,23 +3398,24 @@ export class ShorelineScene extends Phaser.Scene {
     const quay = this.add.graphics();
     quay.setDepth(0.88);
     const QUAY_TOP = 458;
-    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0, 0.8, 0, 0.8);
-    quay.fillRect(LEFT, QUAY_TOP, FADE, TOP - QUAY_TOP);
-    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0.8, 0, 0.8, 0);
-    quay.fillRect(RIGHT - FADE, QUAY_TOP, FADE, TOP - QUAY_TOP);
-    quay.fillGradientStyle(0x101d1a, 0x101d1a, 0x0c1714, 0x0c1714, 0.8, 0.8, 0.8, 0.8);
-    quay.fillRect(LEFT + FADE, QUAY_TOP, RIGHT - LEFT - FADE * 2, TOP - QUAY_TOP);
+    drawSegmentedBand(quay, QUAY_TOP, TOP, [
+      { color: 0x101d1a, alpha: 0.8 },
+      { color: 0x0f1b18, alpha: 0.8 },
+      { color: 0x0e1916, alpha: 0.8 },
+      { color: 0x0c1714, alpha: 0.8 },
+    ]);
 
     const water = this.add.graphics();
     water.setDepth(0.9);
-    // End fades: horizontal alpha gradients toward the dry zones.
-    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0, 0.92, 0, 0.92);
-    water.fillRect(LEFT, TOP, FADE, BOTTOM - TOP);
-    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0.92, 0, 0.92, 0);
-    water.fillRect(RIGHT - FADE, TOP, FADE, BOTTOM - TOP);
-    // Main body: vertical grade, dark green-black matching the backdrop band.
-    water.fillGradientStyle(0x0b1a17, 0x0b1a17, 0x060f0d, 0x060f0d, 0.92, 0.92, 0.92, 0.92);
-    water.fillRect(LEFT + FADE, TOP, RIGHT - LEFT - FADE * 2, BOTTOM - TOP);
+    // Canvas-safe end fades: fixed alpha slices instead of per-corner gradients.
+    drawSegmentedBand(water, TOP, BOTTOM, [
+      { color: 0x0b1a17, alpha: 0.92 },
+      { color: 0x0a1815, alpha: 0.92 },
+      { color: 0x091613, alpha: 0.92 },
+      { color: 0x081411, alpha: 0.92 },
+      { color: 0x07120f, alpha: 0.92 },
+      { color: 0x060f0d, alpha: 0.92 },
+    ]);
     // Waterline lip.
     water.fillStyle(0x9fb8ae, 0.2);
     water.fillRect(LEFT + FADE, TOP, RIGHT - LEFT - FADE * 2, 2);
