@@ -33,7 +33,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   private readonly speed: number;
   private readonly variant?: ScuttleclawDefinition['variant'];
   private readonly sprite?: Phaser.GameObjects.Sprite;
-  private readonly facingVisual?: Phaser.GameObjects.Image | Phaser.GameObjects.Sprite;
+  private readonly facingVisuals: Array<Phaser.GameObjects.Image | Phaser.GameObjects.Sprite>;
   private direction = 1;
 
   public constructor(scene: Phaser.Scene, definition: ScuttleclawDefinition) {
@@ -42,7 +42,9 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
     super(scene, definition.x, definition.y, parts);
 
     this.sprite = parts.find((part): part is Phaser.GameObjects.Sprite => part instanceof Phaser.GameObjects.Sprite);
-    this.facingVisual = parts.find((part): part is Phaser.GameObjects.Image | Phaser.GameObjects.Sprite =>
+    // Every textured layer must flip together — the melt body and its rim are
+    // separate images of one asymmetric drawing.
+    this.facingVisuals = parts.filter((part): part is Phaser.GameObjects.Image | Phaser.GameObjects.Sprite =>
       part instanceof Phaser.GameObjects.Image || part instanceof Phaser.GameObjects.Sprite);
     this.minX = Math.min(definition.minX, definition.maxX);
     this.maxX = Math.max(definition.minX, definition.maxX);
@@ -152,6 +154,27 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
   }
 
   private static createMeltVisualParts(scene: Phaser.Scene): Phaser.GameObjects.GameObject[] {
+    if (scene.textures.exists(TEXTURE_KEYS.calvinMeltPatrolSprite)) {
+      // Solid melt-patrol cutout (256x160): width-led sizing preserves the
+      // ratio (80 * 160/256 = 50). Bottom anchor y=22 matches every melt
+      // visual so the ground contact line (and the physics body) stays put.
+      const shadow = scene.add.ellipse(0, 14, 64, 10, 0x050809, 0.34);
+      // Chalk rim: the same cutout ~10% larger, tint-filled the room's chalk
+      // white at low alpha, drawn BEHIND the body — a thin light edge so the
+      // solid dark ink separates from the dark harbour backdrop. This only
+      // works on a filled silhouette; the line-art scuttlemelt sketch it
+      // replaces is ~11% opaque, which is why the old melt read as a ghost.
+      const rim = scene.add.image(0, 22, TEXTURE_KEYS.calvinMeltPatrolSprite);
+      rim.setOrigin(0.5, 1);
+      rim.setDisplaySize(88, 55);
+      rim.setTintFill(0xd8ddd2);
+      rim.setAlpha(0.3);
+      const sprite = scene.add.image(0, 22, TEXTURE_KEYS.calvinMeltPatrolSprite);
+      sprite.setOrigin(0.5, 1);
+      sprite.setDisplaySize(80, 50);
+      return [shadow, rim, sprite];
+    }
+
     if (scene.textures.exists(TEXTURE_KEYS.calvinScuttlemeltSprite)) {
       // Scuttlemelt cutout is landscape (196x165): width-led sizing preserves
       // the ratio (80 * 165/196 = 67). Shadow sized to sit under the ~80px-wide
@@ -241,7 +264,7 @@ export class Scuttleclaw extends Phaser.GameObjects.Container {
       return;
     }
 
-    this.facingVisual?.setFlipX(this.direction < 0);
+    this.facingVisuals.forEach((visual) => visual.setFlipX(this.direction < 0));
   }
 
   private playAnimation(animationKey: string): void {
