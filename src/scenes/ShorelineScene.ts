@@ -453,7 +453,12 @@ export class ShorelineScene extends Phaser.Scene {
     this.selectCurrentLevel();
     this.resetRunState();
     this.resetCameraState();
-    this.physics.world.setBounds(0, 0, this.currentLevel.worldWidth, GAME_HEIGHT);
+    const physicsWorldHeight =
+      this.currentLevel.id === 'shoreline-run-level-01'
+        ? GAME_HEIGHT + 160
+        : GAME_HEIGHT;
+
+    this.physics.world.setBounds(0, 0, this.currentLevel.worldWidth, physicsWorldHeight);
 
     // World/UI camera split: cameras.main renders worldLayer only; uiCamera
     // (added second → renders on top) renders uiLayer only at fixed zoom 1.
