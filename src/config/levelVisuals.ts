@@ -1,18 +1,21 @@
 import { CharacterKey } from './characters.js';
 import { ASSET_PATHS, AUDIO_KEYS, AUDIO_PATHS, TEXTURE_KEYS, WORLD_WIDTH } from './constants.js';
 
-// Per-level painted parallax descriptor. Each layer is two `tileW`-wide tiles
-// drawn side-by-side; `topY`/`scale` are the shared vertical-registration anchor.
+// Per-level painted parallax descriptor. Each layer has ordered `tileW`-wide
+// tiles drawn side-by-side; `topY`/`scale` are the shared registration anchor.
 // `layers` is ordered back-to-front (far -> near). This data-drives the
 // createBackdrop swap so more than one level can reuse the same code path.
+export type PaintedParallaxTile = {
+  key: string;
+  path: string;
+};
 export type PaintedParallaxLayer = {
-  keyA: string;
-  keyB: string;
-  pathA: string;
-  pathB: string;
   scrollX: number;
   depth: number;
-};
+} & (
+  | { keyA: string; keyB: string; pathA: string; pathB: string }
+  | { tiles: PaintedParallaxTile[] }
+);
 export type PaintedParallaxConfig = {
   tileW: number;
   scale: number;
@@ -20,6 +23,13 @@ export type PaintedParallaxConfig = {
   shimmer: boolean; // render the animated water shimmer on top of the painted layers
   layers: PaintedParallaxLayer[];
 };
+
+// Index 0 is screen-left; subsequent tiles proceed screen-right.
+export function getPaintedParallaxTiles(layer: PaintedParallaxLayer): PaintedParallaxTile[] {
+  return 'tiles' in layer
+    ? layer.tiles
+    : [{ key: layer.keyA, path: layer.pathA }, { key: layer.keyB, path: layer.pathB }];
+}
 
 // Single source of truth for the level-1 cinematic world zoom. The painted
 // parallax descriptor, the camera zoom/lock, and the reseat all derive from this

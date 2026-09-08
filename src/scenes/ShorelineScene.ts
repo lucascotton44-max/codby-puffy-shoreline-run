@@ -17,6 +17,7 @@ import { EPISODE_ONE_STORY_CARDS } from '../config/storyCards.js';
 import {
   AMBIENT_BY_LEVEL,
   COLLECT_FEEDBACK,
+  getPaintedParallaxTiles,
   JUMP_FEEDBACK,
   LANDING_FEEDBACK,
   LEVEL_ONE_WORLD_ZOOM,
@@ -26,7 +27,7 @@ import {
   RIM_LIGHT_BY_LEVEL,
   SWITCH_FEEDBACK,
 } from '../config/levelVisuals.js';
-import { createPaintedParallax, hasPaintedParallax } from './paintedParallax.js';
+import { createPaintedParallax, hasPaintedParallax, shouldUsePaintedParallax } from './paintedParallax.js';
 import { GAMEPLAY_TUNING } from '../config/tuning.js';
 import { StoryFragment } from '../objects/Collectible.js';
 import { HazardKind, HazardZone } from '../objects/Hazard.js';
@@ -302,9 +303,13 @@ export class ShorelineScene extends Phaser.Scene {
     // is "descriptor + art only" (no preload edit needed). Loads each layer's
     // keyA/keyB from its paths; rendering still keys off keyA/keyB unchanged.
     Object.values(PAINTED_PARALLAX).forEach((cfg) => {
+      if (!shouldUsePaintedParallax(this, cfg)) {
+        return;
+      }
       cfg.layers.forEach((layer) => {
-        this.load.image(layer.keyA, layer.pathA);
-        this.load.image(layer.keyB, layer.pathB);
+        getPaintedParallaxTiles(layer).forEach((tile) => {
+          this.load.image(tile.key, tile.path);
+        });
       });
     });
     this.load.spritesheet(TEXTURE_KEYS.codbyAtlas, ASSET_PATHS.codbyAtlasImage, {
