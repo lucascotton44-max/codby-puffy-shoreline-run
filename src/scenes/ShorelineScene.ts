@@ -2689,7 +2689,10 @@ export class ShorelineScene extends Phaser.Scene {
     }
 
     // Support at least 4 simultaneous touches (left, right, jump, switch each get their own pointer).
-    this.input.addPointer(3);
+    const missingPointers = 4 - this.input.manager.pointersTotal;
+    if (missingPointers > 0) {
+      this.input.addPointer(missingPointers);
+    }
 
     // Prevent browser scroll/zoom from stealing touch events on the canvas.
     const canvas = this.sys.game.canvas;
